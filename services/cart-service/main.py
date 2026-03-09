@@ -30,7 +30,7 @@ def convert_floats_to_decimal(obj):
         return Decimal(str(obj))
     return obj
 
-def get_user_id_from_token(authorization: Optional[str] = Header(None)) -> str:
+def get_user_id_from_token(authorization: Optional[str]) -> str:
     """Extract user_id from JWT token. For local testing, use mock user_id"""
     if not authorization:
         return "test-user-123"

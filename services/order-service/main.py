@@ -40,7 +40,7 @@ def startup_event():
 def health_check():
     return {"status": "healthy", "service": "order-service"}
 
-def get_user_from_token(authorization: Optional[str] = Header(None)) -> str:
+def get_user_from_token(authorization: Optional[str]) -> str:
     """Extract user ID from JWT token"""
     if not authorization:
         return "test-user-123"  # Fallback for local testing
