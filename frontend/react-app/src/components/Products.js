@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
+import { useCart } from '../CartContext';
 import './Products.css';
 
 function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const { refreshCartCount } = useCart();
 
   useEffect(() => {
     loadProducts();
@@ -26,6 +28,7 @@ function Products() {
     try {
       await api.addToCart(product.product_id, 1, product.price);
       setMessage(`Added ${product.name} to cart!`);
+      refreshCartCount(); // Update cart badge
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage('Error adding to cart');

@@ -1,25 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { useCart } from '../CartContext';
 import './Navbar.css';
 
 function Navbar({ signOut, user }) {
   const displayName = user?.signInDetails?.loginId || user?.username || 'User';
-  const [cartCount, setCartCount] = useState(0);
-  
-  // Fetch cart count when user is logged in
-  useEffect(() => {
-    if (user) {
-      api.getCart()
-        .then(cart => {
-          const count = cart.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-          setCartCount(count);
-        })
-        .catch(() => setCartCount(0));
-    } else {
-      setCartCount(0);
-    }
-  }, [user]);
+  const { cartCount } = useCart();
   
   return (
     <nav className="navbar">

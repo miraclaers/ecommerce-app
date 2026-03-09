@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
+import { useCart } from '../CartContext';
 import './Cart.css';
 
 function Cart() {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const { refreshCartCount } = useCart();
 
   useEffect(() => {
     loadCart();
@@ -27,6 +29,7 @@ function Cart() {
       await api.removeFromCart(productId);
       setMessage('Item removed');
       loadCart();
+      refreshCartCount(); // Update cart badge
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage('Error removing item');
@@ -43,6 +46,7 @@ function Cart() {
       await api.createOrder();
       setMessage('Order placed successfully!');
       loadCart();
+      refreshCartCount(); // Update cart badge
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage('Error placing order');

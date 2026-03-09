@@ -7,6 +7,7 @@ import Products from './components/Products';
 import Cart from './components/Cart';
 import Orders from './components/Orders';
 import { api } from './api';
+import { CartProvider } from './CartContext';
 import './App.css';
 
 // Component to handle profile creation
@@ -30,16 +31,18 @@ function AppContent({ signOut, user }) {
   }, [user]);
 
   return (
-    <Router>
-      <div className="App">
-        <Navbar signOut={signOut} user={user} />
-        <Routes>
-          <Route path="/" element={<Products />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/orders" element={<Orders />} />
-        </Routes>
-      </div>
-    </Router>
+    <CartProvider user={user}>
+      <Router>
+        <div className="App">
+          <Navbar signOut={signOut} user={user} />
+          <Routes>
+            <Route path="/" element={<Products />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/orders" element={<Orders />} />
+          </Routes>
+        </div>
+      </Router>
+    </CartProvider>
   );
 }
 
