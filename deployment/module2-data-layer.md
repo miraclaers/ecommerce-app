@@ -413,7 +413,7 @@ aws rds create-db-instance \
   --engine postgres \
   --engine-version 15.5 \
   --master-username postgres \
-  --master-user-password 'YourStrongPassword123!' \
+  --master-user-password '<YOUR_SECURE_PASSWORD_HERE>' \
   --allocated-storage 20 \
   --storage-type gp3 \
   --db-subnet-group-name ecommerce-db-subnet-group \
@@ -492,7 +492,7 @@ CREATE TABLE order_items (
 ### Connection String Format
 **RDS PostgreSQL:**
 ```
-postgresql://postgres:YourPassword@<DB_ENDPOINT>:5432/ecommercedb
+postgresql://postgres:<YOUR_PASSWORD>@<DB_ENDPOINT>:5432/ecommercedb
 ```
 
 **DynamoDB:**
