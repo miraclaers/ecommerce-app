@@ -62,9 +62,12 @@ async def options_handler():
     return {}
 
 @app.get("/cart", response_model=Cart)
-def get_cart(authorization: str = Header(None)):
-    """Get user's cart. X-User-Id header for testing, JWT in production"""
-    user_id = get_user_id_from_token(authorization)
+def get_cart(authorization: str = Header(None), x_user_id: str = Header(None, alias="X-User-Id")):
+    """Get user's cart. Supports both JWT token and X-User-Id header"""
+    # Try JWT token first, fall back to X-User-Id for internal service calls
+    user_id = get_user_id_from_token(authorization) if authorization else x_user_id
+    if not user_id:
+        user_id = "test-user-123"
     
     table = get_carts_table()
     response = table.get_item(Key={'user_id': user_id})
@@ -76,8 +79,10 @@ def get_cart(authorization: str = Header(None)):
     return response['Item']
 
 @app.post("/cart/items")
-def add_item(request: AddItemRequest, authorization: str = Header(None)):
+def add_item(request: AddItemRequest, authorization: str = Header(None), x_user_id: str = Header(None, alias="X-User-Id")):
     user_id = get_user_id_from_token(authorization)
+    if not user_id:
+        user_id = x_user_id
     if not user_id:
         user_id = "test-user-123"
     
@@ -107,8 +112,10 @@ def add_item(request: AddItemRequest, authorization: str = Header(None)):
     return {"message": "Item added to cart", "user_id": user_id}
 
 @app.put("/cart/items/{product_id}")
-def update_item(product_id: str, request: UpdateItemRequest, authorization: str = Header(None)):
+def update_item(product_id: str, request: UpdateItemRequest, authorization: str = Header(None), x_user_id: str = Header(None, alias="X-User-Id")):
     user_id = get_user_id_from_token(authorization)
+    if not user_id:
+        user_id = x_user_id
     if not user_id:
         user_id = "test-user-123"
     
@@ -135,8 +142,10 @@ def update_item(product_id: str, request: UpdateItemRequest, authorization: str 
     return {"message": "Item updated"}
 
 @app.delete("/cart/items/{product_id}")
-def remove_item(product_id: str, authorization: str = Header(None)):
+def remove_item(product_id: str, authorization: str = Header(None), x_user_id: str = Header(None, alias="X-User-Id")):
     user_id = get_user_id_from_token(authorization)
+    if not user_id:
+        user_id = x_user_id
     if not user_id:
         user_id = "test-user-123"
     

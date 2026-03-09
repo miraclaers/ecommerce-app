@@ -94,7 +94,7 @@ async def create_order(order: OrderCreate, authorization: str = Header(None)):
         try:
             cart_response = await client.get(
                 f"{settings.cart_service_url}/cart",
-                headers={"X-User-Id": user_id}
+                headers={"X-User-Id": user_id}  # Internal service call, use X-User-Id
             )
             cart_response.raise_for_status()
             cart = cart_response.json()
