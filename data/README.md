@@ -1,11 +1,81 @@
 # Product Data
 
-This directory contains sample product data for the ecommerce application.
+This directory contains sample product data and images for the ecommerce application.
 
 ## Files
 
 - **products.json** - 20 sample products with details
 - **load-products.sh** - Script to load products into DynamoDB
+- **download-product-images.sh** - Download sample product images
+- **upload-images-to-s3.sh** - Upload images to S3 bucket
+- **update-product-images.sh** - Update products.json with S3 URLs
+
+## Quick Start
+
+### 1. Download Product Images
+
+```bash
+cd data
+./download-product-images.sh
+```
+
+This downloads 20 product images (800x800px) from Unsplash into `product-images/` directory.
+
+### 2. Upload Images to S3
+
+```bash
+./upload-images-to-s3.sh ecommerce-product-images-<your-id> ap-south-1
+```
+
+This uploads all images to `s3://bucket-name/images/products/` with public-read access.
+
+### 3. Update Product Data with S3 URLs
+
+```bash
+./update-product-images.sh ecommerce-product-images-<your-id> ap-south-1
+```
+
+This updates `products.json` to use S3 image URLs instead of Unsplash URLs.
+
+### 4. Load Products into DynamoDB
+
+```bash
+./load-products.sh ecommerce-products ap-south-1
+```
+
+This loads all 20 products with S3 image URLs into DynamoDB.
+
+## S3 Folder Structure
+
+```
+s3://ecommerce-product-images-<id>/
+└── images/
+    └── products/
+        ├── prod-001.jpg
+        ├── prod-002.jpg
+        ├── ...
+        └── prod-020.jpg
+```
+
+This structure allows you to add other image types later:
+- `images/products/` - Product images
+- `images/banners/` - Homepage banners (future)
+- `images/categories/` - Category images (future)
+- `images/users/` - User avatars (future)
+
+## Image URLs
+
+After uploading to S3, images will be accessible at:
+
+**Direct S3 URL:**
+```
+https://ecommerce-product-images-<id>.s3.ap-south-1.amazonaws.com/images/products/prod-001.jpg
+```
+
+**Via CloudFront (after Module 7):**
+```
+https://<cloudfront-domain>/images/products/prod-001.jpg
+```
 
 ## Product Categories
 
@@ -22,58 +92,29 @@ Each product contains:
 - `price` - Price in USD (decimal)
 - `stock` - Available quantity (integer)
 - `category` - Product category
-- `image_url` - Product image URL (from Unsplash)
+- `image_url` - S3 image URL
 
-## Loading Products into DynamoDB
+## Image Specifications
 
-### Prerequisites
-- AWS CLI configured
-- DynamoDB table created (see Module 2)
-- `jq` installed for JSON processing
-
-### Usage
-
-```bash
-# Load into default table (ecommerce-products) in ap-south-1
-cd data
-./load-products.sh
-
-# Specify custom table name and region
-./load-products.sh my-products-table us-east-1
-```
-
-### Verify Loading
-
-```bash
-# Check item count
-aws dynamodb scan \
-  --table-name ecommerce-products \
-  --region ap-south-1 \
-  --select COUNT
-
-# Get all products
-aws dynamodb scan \
-  --table-name ecommerce-products \
-  --region ap-south-1
-
-# Get specific product
-aws dynamodb get-item \
-  --table-name ecommerce-products \
-  --key '{"product_id": {"S": "prod-001"}}' \
-  --region ap-south-1
-```
-
-## Product Images
-
-All product images are sourced from [Unsplash](https://unsplash.com), a free stock photo service. Images are served via CDN and are optimized for web use.
+- Format: JPEG
+- Size: 800x800px (optimized for web)
+- Quality: 80%
+- Source: Unsplash (free stock photos)
 
 ## Customization
 
-To add more products:
-1. Edit `products.json`
-2. Follow the same JSON structure
-3. Use sequential product IDs (prod-021, prod-022, etc.)
-4. Run the load script
+### Add More Products
+
+1. Add product data to `products.json`
+2. Download/create image as `prod-0XX.jpg`
+3. Place in `product-images/` directory
+4. Run upload script
+
+### Use Your Own Images
+
+1. Replace images in `product-images/` directory
+2. Keep naming convention: `prod-001.jpg`, `prod-002.jpg`, etc.
+3. Run upload script
 
 ## Sample Products
 
@@ -98,6 +139,29 @@ To add more products:
 19. HDMI Cable 6ft - $14.99
 20. Webcam Privacy Cover - $9.99
 
-**Total Inventory Value:** ~$1,800
-**Average Price:** $75.99
+**Total Inventory Value:** ~$1,800  
+**Average Price:** $75.99  
 **Total Stock:** 4,675 units
+
+## Troubleshooting
+
+### Images not downloading
+- Check internet connection
+- Unsplash URLs may change - update script if needed
+
+### S3 upload fails
+- Verify AWS CLI is configured: `aws configure list`
+- Check bucket exists: `aws s3 ls s3://bucket-name`
+- Verify bucket permissions
+
+### Images not public
+- Check bucket policy allows public read
+- Verify `--acl public-read` in upload script
+- Test URL in browser
+
+## Cost Considerations
+
+- S3 Storage: $0.023/GB (~$0.05/month for 20 images)
+- S3 Requests: Negligible for low traffic
+- Data Transfer: First 100GB/month free
+- Total: < $1/month for this tutorial
