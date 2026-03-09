@@ -27,21 +27,23 @@ function App() {
     >
       {({ signOut, user }) => {
         // Create user profile in backend after first login
-        if (user) {
-          const email = user.signInDetails?.loginId || user.username;
-          const name = user.username;
-          
-          // Check if profile exists, create only if it doesn't
-          api.getProfile().catch((error) => {
-            console.log('Profile not found, creating...', { email, name });
-            // Profile doesn't exist, create it
-            api.createProfile(email, name)
-              .then(() => console.log('Profile created successfully'))
-              .catch((err) => {
-                console.error('Failed to create profile:', err);
-              });
-          });
-        }
+        React.useEffect(() => {
+          if (user) {
+            const email = user.signInDetails?.loginId || user.username;
+            const name = user.username;
+            
+            // Check if profile exists, create only if it doesn't
+            api.getProfile().catch((error) => {
+              console.log('Profile not found, creating...', { email, name });
+              // Profile doesn't exist, create it
+              api.createProfile(email, name)
+                .then(() => console.log('Profile created successfully'))
+                .catch((err) => {
+                  console.error('Failed to create profile:', err);
+                });
+            });
+          }
+        }, [user]);
 
         return (
           <Router>
