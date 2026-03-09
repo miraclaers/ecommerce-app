@@ -148,10 +148,10 @@ For each service, create a target group:
 1. Go to Load Balancer → Listeners tab
 2. Click on HTTP:80 listener
 3. Add rules:
-   - Path `/api/products*` → Forward to `product-tg`
-   - Path `/api/cart*` → Forward to `cart-tg`
-   - Path `/api/users*` → Forward to `user-tg`
-   - Path `/api/orders*` → Forward to `order-tg`
+   - Path `/products*` → Forward to `product-tg`
+   - Path `/cart*` → Forward to `cart-tg`
+   - Path `/users*` → Forward to `user-tg`
+   - Path `/orders*` → Forward to `order-tg`
 4. Default action: Return fixed response (404)
 
 ### Step 7: Create ECS Cluster
@@ -524,8 +524,8 @@ aws ecs describe-services \
 ```bash
 ALB_DNS=$(cat deployment/vpc-resources.txt | grep ALB_DNS | cut -d'=' -f2)
 
-curl http://$ALB_DNS/api/products
-curl http://$ALB_DNS/api/users/health
+curl http://$ALB_DNS/products
+curl http://$ALB_DNS/users/health
 ```
 
 ## Cost Considerations

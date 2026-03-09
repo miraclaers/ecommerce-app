@@ -423,11 +423,11 @@ docker-compose up
 ### Smoke Tests After Deployment
 ```bash
 # Test products endpoint
-curl https://yourdomain.com/api/products
+curl https://yourdomain.com/products
 
 # Test health checks
-curl https://yourdomain.com/api/users/health
-curl https://yourdomain.com/api/orders/health
+curl https://yourdomain.com/users/health
+curl https://yourdomain.com/orders/health
 ```
 
 ## Cleanup

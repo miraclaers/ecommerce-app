@@ -9,10 +9,10 @@ API Gateway (HTTP API)
 ├── Cognito Authorizer
 ├── HTTP Integration → Public ALB
 └── Routes:
-    ├── GET /products → ALB/api/products
-    ├── GET /cart → ALB/api/cart (authenticated)
-    ├── POST /orders → ALB/api/orders (authenticated)
-    └── GET /users/profile → ALB/api/users/profile (authenticated)
+    ├── GET /products → ALB/products
+    ├── GET /cart → ALB/cart (authenticated)
+    ├── POST /orders → ALB/orders (authenticated)
+    └── GET /users/profile → ALB/users/profile (authenticated)
 ```
 
 ## Why API Gateway?
@@ -103,19 +103,19 @@ The catch-all route `/{proxy+}` forwards all requests to ALB. Now we need to add
 
 **Public Routes (no auth):**
 
-- `GET /api/products`
-- `GET /api/products/{id}`
+- `GET /products`
+- `GET /products/{id}`
 
 **Authenticated Routes (add authorizer):**
 
 For each route below, select `cognito-authorizer`:
-- `GET /api/cart`
-- `POST /api/cart/items`
-- `DELETE /api/cart/items/{productId}`
-- `POST /api/orders`
-- `GET /api/orders`
-- `GET /api/users/profile`
-- `POST /api/users/profile`
+- `GET /cart`
+- `POST /cart/items`
+- `DELETE /cart/items/{productId}`
+- `POST /orders`
+- `GET /orders`
+- `GET /users/profile`
+- `POST /users/profile`
 
 **Note:** All routes use the same HTTP integration to ALB.
 
@@ -131,7 +131,7 @@ For each route below, select `cognito-authorizer`:
 ### Test Public Endpoint (No Auth)
 ```bash
 API_ENDPOINT="https://<api-id>.execute-api.ap-south-1.amazonaws.com"
-curl $API_ENDPOINT/api/products
+curl $API_ENDPOINT/products
 ```
 
 ### Test Authenticated Endpoint
@@ -140,7 +140,7 @@ curl $API_ENDPOINT/api/products
 TOKEN="<your-jwt-token>"
 
 curl -H "Authorization: Bearer $TOKEN" \
-  $API_ENDPOINT/api/cart
+  $API_ENDPOINT/cart
 ```
 
 ### Test from Frontend
@@ -169,13 +169,13 @@ const API_BASE_URL = 'https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com';
 ### Test Each Route
 ```bash
 # Public route (should work)
-curl $API_ENDPOINT/api/products
+curl $API_ENDPOINT/products
 
 # Protected route without token (should return 401)
-curl $API_ENDPOINT/api/cart
+curl $API_ENDPOINT/cart
 
 # Protected route with token (should work)
-curl -H "Authorization: Bearer $TOKEN" $API_ENDPOINT/api/cart
+curl -H "Authorization: Bearer $TOKEN" $API_ENDPOINT/cart
 ```
 
 ## Monitoring
