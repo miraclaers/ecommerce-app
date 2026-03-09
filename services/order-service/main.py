@@ -40,10 +40,10 @@ def startup_event():
 def health_check():
     return {"status": "healthy", "service": "order-service"}
 
-def get_user_from_token(authorization: Optional[str]) -> str:
-    """Extract user ID from JWT token"""
+def get_user_from_token(authorization: Optional[str]) -> tuple:
+    """Extract user ID and email from JWT token. Returns (user_id, email)"""
     if not authorization:
-        return "test-user-123"  # Fallback for local testing
+        return ("test-user-123", "test-user-123@example.com")
     
     try:
         # Extract token from "Bearer <token>"
@@ -53,7 +53,7 @@ def get_user_from_token(authorization: Optional[str]) -> str:
         # In production, you should verify the signature
         parts = token.split('.')
         if len(parts) != 3:
-            return "test-user-123"
+            return ("test-user-123", "test-user-123@example.com")
         
         # Decode payload (add padding if needed)
         payload = parts[1]
@@ -61,11 +61,13 @@ def get_user_from_token(authorization: Optional[str]) -> str:
         decoded = base64.urlsafe_b64decode(payload)
         user_data = json.loads(decoded)
         
-        # Extract 'sub' claim (user ID)
-        return user_data.get('sub', 'test-user-123')
+        # Extract 'sub' claim (user ID) and 'email' claim
+        user_id = user_data.get('sub', 'test-user-123')
+        email = user_data.get('email', f"{user_id}@example.com")
+        return (user_id, email)
     except Exception as e:
         print(f"Error decoding token: {e}")
-        return "test-user-123"
+        return ("test-user-123", "test-user-123@example.com")
 
 # Explicit OPTIONS handlers for CORS preflight
 @app.options("/orders")
@@ -77,7 +79,7 @@ async def options_handler():
 @app.post("/orders", response_model=Order)
 async def create_order(order: OrderCreate, authorization: str = Header(None)):
     """Create order from cart"""
-    user_id = get_user_from_token(authorization)
+    user_id, user_email = get_user_from_token(authorization)
     
     async with httpx.AsyncClient() as client:
         # 1. Get user details
@@ -151,7 +153,7 @@ async def create_order(order: OrderCreate, authorization: str = Header(None)):
             sns = get_sns_client()
             message = {
                 "order_id": order_id,
-                "user_email": user['email'],
+                "user_email": user_email,  # Use email from JWT token
                 "total_amount": float(total_amount),
                 "items": cart['items']
             }
@@ -175,7 +177,7 @@ async def create_order(order: OrderCreate, authorization: str = Header(None)):
 @app.get("/orders", response_model=List[Order])
 async def get_user_orders(authorization: str = Header(None)):
     """Get all orders for a user"""
-    user_id = get_user_from_token(authorization)
+    user_id, _ = get_user_from_token(authorization)  # Only need user_id here
     
     # First get user's internal ID
     async with httpx.AsyncClient() as client:
