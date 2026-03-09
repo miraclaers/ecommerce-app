@@ -4,14 +4,18 @@
 Set up databases for the ecommerce application:
 - **DynamoDB** for high-performance NoSQL data (products, cart)
 - **RDS PostgreSQL** for relational data (users, orders)
+- **S3** for product images
 - Security groups for database access
 
 ## Architecture
 ```
+S3 Bucket (Public Read)
+└── Product Images
+
 DynamoDB (Global, Serverless)
 ├── Table: products
 │   ├── Partition Key: product_id (String)
-│   └── Attributes: name, description, price, stock, image_url
+│   └── Attributes: name, description, price, stock, image_key (S3 key)
 └── Table: cart
     ├── Partition Key: user_id (String)
     ├── Sort Key: product_id (String)
@@ -41,15 +45,27 @@ Private Subnets
 - Referential integrity
 - Consistent data for financial records
 
+**S3 for Product Images:**
+- Cost-effective storage
+- High availability and durability
+- Direct browser access via CloudFront
+- No load on application servers
+
 ## Resources to Create
 
-### 1. DynamoDB Tables
+### 1. S3 Bucket for Product Images
+- Bucket name: ecommerce-product-images-<unique-id>
+- Public read access for images
+- CORS configuration for web access
+
+### 2. DynamoDB Tables
 
 **Products Table:**
 - Table name: ecommerce-products
 - Partition key: product_id (String)
 - Billing mode: On-demand (pay per request)
 - Encryption: Enabled
+- Attributes include: image_key (S3 object key)
 
 **Cart Table:**
 - Table name: ecommerce-cart
@@ -59,18 +75,18 @@ Private Subnets
 - TTL: enabled on `expires_at` attribute (optional)
 - Encryption: Enabled
 
-### 2. DB Subnet Group
+### 3. DB Subnet Group
 - Name: ecommerce-db-subnet-group
 - Subnets: Both private subnets (from Module 1)
 
-### 3. Security Group for RDS
+### 4. Security Group for RDS
 - Name: ecommerce-rds-sg
 - VPC: ecommerce-vpc
 - Inbound Rules:
   - PostgreSQL (5432) from ECS security group (will create in Module 4)
   - For now: PostgreSQL (5432) from VPC CIDR (10.0.0.0/16)
 
-### 4. RDS PostgreSQL Instance
+### 5. RDS PostgreSQL Instance
 - Engine: PostgreSQL 15
 - Instance class: db.t3.micro (Free tier eligible)
 - Storage: 20 GB gp3
@@ -83,12 +99,57 @@ Private Subnets
 - Backup retention: 7 days
 - Public access: No
 
-### 5. IAM Policy for DynamoDB Access
+### 6. IAM Policy for DynamoDB Access
 - Allow ECS tasks to read/write DynamoDB tables
 
 ## Console Steps
 
-### Step 1: Create DynamoDB Tables
+### Step 1: Create S3 Bucket for Product Images
+
+1. Go to S3 Console → Buckets → Create bucket
+2. Bucket name: `ecommerce-product-images-<random-number>` (must be globally unique)
+3. Region: ap-south-1
+4. Block all public access: **Uncheck** (we need public read for images)
+5. Acknowledge the warning
+6. Bucket versioning: Disable
+7. Encryption: Enable (SSE-S3)
+8. Create bucket
+
+**Configure Bucket Policy for Public Read:**
+1. Go to bucket → Permissions → Bucket policy
+2. Add policy:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::ecommerce-product-images-<your-bucket-name>/*"
+    }
+  ]
+}
+```
+
+**Configure CORS:**
+1. Go to bucket → Permissions → CORS
+2. Add configuration:
+```json
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": []
+  }
+]
+```
+
+### Step 2: Create DynamoDB Tables
+
+### Step 2: Create DynamoDB Tables
 
 **Products Table:**
 1. Go to DynamoDB Console → Tables → Create table
@@ -116,7 +177,19 @@ Private Subnets
 3. TTL attribute: `expires_at`
 4. This auto-deletes old cart items
 
-### Step 2: Create DB Subnet Group
+### Step 3: Upload Product Images to S3
+
+1. Download sample images or use your own
+2. Go to S3 bucket → Upload
+3. Add files (name them: prod-001.jpg, prod-002.jpg, etc.)
+4. Upload
+
+**Image URL Format:**
+```
+https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-001.jpg
+```
+
+### Step 4: Create DB Subnet Group
 1. Go to RDS Console → Subnet groups
 2. Click "Create DB subnet group"
 3. Name: `ecommerce-db-subnet-group`
@@ -129,6 +202,8 @@ Private Subnets
 
 ### Step 2: Create DB Subnet Group
 
+### Step 4: Create DB Subnet Group
+
 1. Go to RDS Console → Subnet groups
 2. Click "Create DB subnet group"
 3. Name: `ecommerce-db-subnet-group`
@@ -139,7 +214,7 @@ Private Subnets
    - Select both private subnets
 7. Create
 
-### Step 3: Create Security Group for RDS
+### Step 5: Create Security Group for RDS
 1. Go to VPC Console → Security Groups
 2. Click "Create security group"
 3. Name: `ecommerce-rds-sg`
@@ -155,6 +230,8 @@ Private Subnets
 
 ### Step 3: Create Security Group for RDS
 
+### Step 5: Create Security Group for RDS
+
 1. Go to VPC Console → Security Groups
 2. Click "Create security group"
 3. Name: `ecommerce-rds-sg`
@@ -168,7 +245,7 @@ Private Subnets
 7. Outbound rules: Keep default (all traffic)
 8. Create
 
-### Step 4: Create RDS Instance
+### Step 6: Create RDS Instance
 ### Step 4: Create RDS Instance
 
 1. Go to RDS Console → Databases
@@ -508,7 +585,7 @@ Environment variables:
 ```
 DYNAMODB_TABLE=ecommerce-products
 AWS_REGION=ap-south-1
-ENVIRONMENT=production
+ENVIRONMENT=dev
 ```
 
 ### Cart Service (uses DynamoDB)
@@ -516,14 +593,14 @@ Environment variables:
 ```
 DYNAMODB_TABLE=ecommerce-cart
 AWS_REGION=ap-south-1
-ENVIRONMENT=production
+ENVIRONMENT=dev
 ```
 
 ### User Service (uses RDS)
 Environment variables:
 ```
 DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommerce_db
-ENVIRONMENT=production
+ENVIRONMENT=dev
 ```
 
 ### Order Service (uses RDS)
@@ -533,7 +610,7 @@ DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommerce_db
 USER_SERVICE_URL=http://user-service:8003
 CART_SERVICE_URL=http://cart-service:8002
 PRODUCT_SERVICE_URL=http://product-service:8001
-ENVIRONMENT=production
+ENVIRONMENT=dev
 ```
 
 ## Next Steps
