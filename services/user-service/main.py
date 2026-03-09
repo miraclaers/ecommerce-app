@@ -23,6 +23,13 @@ def startup_event():
 def health_check():
     return {"status": "healthy", "service": "user-service"}
 
+# Explicit OPTIONS handlers for CORS preflight
+@app.options("/users/profile")
+@app.options("/users/cognito/{cognito_id}")
+async def options_handler():
+    return {}
+
+
 @app.post("/users/profile", response_model=User)
 def create_user(user: UserCreate):
     """Create user profile after Cognito registration"""

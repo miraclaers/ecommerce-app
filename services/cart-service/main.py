@@ -43,6 +43,13 @@ def get_user_id_from_token(authorization: Optional[str] = Header(None)) -> str:
 def health_check():
     return {"status": "healthy", "service": "cart-service"}
 
+# Explicit OPTIONS handlers for CORS preflight
+@app.options("/cart")
+@app.options("/cart/items")
+@app.options("/cart/items/{product_id}")
+async def options_handler():
+    return {}
+
 @app.get("/cart", response_model=Cart)
 def get_cart(user_id: str = Header(None, alias="X-User-Id")):
     """Get user's cart. X-User-Id header for testing, JWT in production"""

@@ -39,6 +39,13 @@ def startup_event():
 def health_check():
     return {"status": "healthy", "service": "order-service"}
 
+# Explicit OPTIONS handlers for CORS preflight
+@app.options("/orders")
+@app.options("/orders/{order_id}")
+async def options_handler():
+    return {}
+
+
 @app.post("/orders", response_model=Order)
 async def create_order(order: OrderCreate, user_id: str = Header(None, alias="X-User-Id")):
     """Create order from cart"""
