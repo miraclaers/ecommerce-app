@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Optional
 from models import Order, OrderCreate, OrderItem
 from database import get_db_cursor, init_db
 from config import settings
 import httpx
 import boto3
 import json
+import base64
 
 app = FastAPI(title="Order Service")
 
@@ -39,6 +40,33 @@ def startup_event():
 def health_check():
     return {"status": "healthy", "service": "order-service"}
 
+def get_user_from_token(authorization: Optional[str] = Header(None)) -> str:
+    """Extract user ID from JWT token"""
+    if not authorization:
+        return "test-user-123"  # Fallback for local testing
+    
+    try:
+        # Extract token from "Bearer <token>"
+        token = authorization.replace("Bearer ", "")
+        
+        # Decode JWT payload (without verification for simplicity)
+        # In production, you should verify the signature
+        parts = token.split('.')
+        if len(parts) != 3:
+            return "test-user-123"
+        
+        # Decode payload (add padding if needed)
+        payload = parts[1]
+        payload += '=' * (4 - len(payload) % 4)
+        decoded = base64.urlsafe_b64decode(payload)
+        user_data = json.loads(decoded)
+        
+        # Extract 'sub' claim (user ID)
+        return user_data.get('sub', 'test-user-123')
+    except Exception as e:
+        print(f"Error decoding token: {e}")
+        return "test-user-123"
+
 # Explicit OPTIONS handlers for CORS preflight
 @app.options("/orders")
 @app.options("/orders/{order_id}")
@@ -47,10 +75,9 @@ async def options_handler():
 
 
 @app.post("/orders", response_model=Order)
-async def create_order(order: OrderCreate, user_id: str = Header(None, alias="X-User-Id")):
+async def create_order(order: OrderCreate, authorization: str = Header(None)):
     """Create order from cart"""
-    if not user_id:
-        user_id = "test-user-123"  # Default for local testing
+    user_id = get_user_from_token(authorization)
     
     async with httpx.AsyncClient() as client:
         # 1. Get user details
@@ -146,10 +173,9 @@ async def create_order(order: OrderCreate, user_id: str = Header(None, alias="X-
         return order_dict
 
 @app.get("/orders", response_model=List[Order])
-async def get_user_orders(user_id: str = Header(None, alias="X-User-Id")):
+async def get_user_orders(authorization: str = Header(None)):
     """Get all orders for a user"""
-    if not user_id:
-        user_id = "test-user-123"  # Default for local testing
+    user_id = get_user_from_token(authorization)
     
     # First get user's internal ID
     async with httpx.AsyncClient() as client:

@@ -6,6 +6,7 @@ from database import get_carts_table
 from datetime import datetime
 from decimal import Decimal
 import json
+import base64
 
 app = FastAPI(title="Cart Service")
 
@@ -32,12 +33,22 @@ def convert_floats_to_decimal(obj):
 def get_user_id_from_token(authorization: Optional[str] = Header(None)) -> str:
     """Extract user_id from JWT token. For local testing, use mock user_id"""
     if not authorization:
-        # For local testing without real Cognito
         return "test-user-123"
     
-    # In production, decode JWT and extract 'sub' claim
-    # For now, simple mock
-    return "test-user-123"
+    try:
+        token = authorization.replace("Bearer ", "")
+        parts = token.split('.')
+        if len(parts) != 3:
+            return "test-user-123"
+        
+        payload = parts[1]
+        payload += '=' * (4 - len(payload) % 4)
+        decoded = base64.urlsafe_b64decode(payload)
+        user_data = json.loads(decoded)
+        
+        return user_data.get('sub', 'test-user-123')
+    except Exception:
+        return "test-user-123"
 
 @app.get("/health")
 def health_check():
@@ -51,10 +62,9 @@ async def options_handler():
     return {}
 
 @app.get("/cart", response_model=Cart)
-def get_cart(user_id: str = Header(None, alias="X-User-Id")):
+def get_cart(authorization: str = Header(None)):
     """Get user's cart. X-User-Id header for testing, JWT in production"""
-    if not user_id:
-        user_id = "test-user-123"
+    user_id = get_user_id_from_token(authorization)
     
     table = get_carts_table()
     response = table.get_item(Key={'user_id': user_id})
@@ -66,7 +76,8 @@ def get_cart(user_id: str = Header(None, alias="X-User-Id")):
     return response['Item']
 
 @app.post("/cart/items")
-def add_item(request: AddItemRequest, user_id: str = Header(None, alias="X-User-Id")):
+def add_item(request: AddItemRequest, authorization: str = Header(None)):
+    user_id = get_user_id_from_token(authorization)
     if not user_id:
         user_id = "test-user-123"
     
@@ -96,7 +107,8 @@ def add_item(request: AddItemRequest, user_id: str = Header(None, alias="X-User-
     return {"message": "Item added to cart", "user_id": user_id}
 
 @app.put("/cart/items/{product_id}")
-def update_item(product_id: str, request: UpdateItemRequest, user_id: str = Header(None, alias="X-User-Id")):
+def update_item(product_id: str, request: UpdateItemRequest, authorization: str = Header(None)):
+    user_id = get_user_id_from_token(authorization)
     if not user_id:
         user_id = "test-user-123"
     
@@ -123,7 +135,8 @@ def update_item(product_id: str, request: UpdateItemRequest, user_id: str = Head
     return {"message": "Item updated"}
 
 @app.delete("/cart/items/{product_id}")
-def remove_item(product_id: str, user_id: str = Header(None, alias="X-User-Id")):
+def remove_item(product_id: str, authorization: str = Header(None)):
+    user_id = get_user_id_from_token(authorization)
     if not user_id:
         user_id = "test-user-123"
     
@@ -144,7 +157,7 @@ def remove_item(product_id: str, user_id: str = Header(None, alias="X-User-Id"))
     return {"message": "Item removed"}
 
 @app.delete("/cart")
-def clear_cart(user_id: str = Header(None, alias="X-User-Id")):
+def clear_cart(authorization: str = Header(None)):
     """Internal endpoint - called by Order Service after order creation"""
     if not user_id:
         user_id = "test-user-123"
