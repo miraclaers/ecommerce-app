@@ -166,8 +166,10 @@ def remove_item(product_id: str, authorization: str = Header(None), x_user_id: s
     return {"message": "Item removed"}
 
 @app.delete("/cart")
-def clear_cart(authorization: str = Header(None)):
+def clear_cart(authorization: str = Header(None), x_user_id: str = Header(None, alias="X-User-Id")):
     """Internal endpoint - called by Order Service after order creation"""
+    # Try JWT token first, fall back to X-User-Id for internal service calls
+    user_id = get_user_id_from_token(authorization) if authorization else x_user_id
     if not user_id:
         user_id = "test-user-123"
     
