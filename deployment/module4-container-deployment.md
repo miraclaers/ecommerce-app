@@ -195,10 +195,10 @@ For each service, create a target group:
 
 **Environment Variables by Service:**
 
-- **Product Service:** `ENVIRONMENT=dev` (uses DynamoDB defaults)
-- **Cart Service:** `ENVIRONMENT=dev` (uses DynamoDB defaults)
-- **User Service:** `ENVIRONMENT=dev`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
-- **Order Service:** `ENVIRONMENT=dev`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
+- **Product Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
+- **Cart Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
+- **User Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
+- **Order Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
 
 **Repeat for other services** with appropriate ports and environment variables.
 

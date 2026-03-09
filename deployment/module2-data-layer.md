@@ -584,26 +584,27 @@ aws ec2 delete-security-group \
 Environment variables for AWS deployment:
 ```
 ENVIRONMENT=dev
+AWS_REGION=ap-south-1
 ```
 
-That's it! The service uses defaults:
-- AWS_REGION=ap-south-1
+Defaults:
 - PRODUCTS_TABLE=ecommerce-products
 
 ### Cart Service (uses DynamoDB)
 Environment variables for AWS deployment:
 ```
 ENVIRONMENT=dev
+AWS_REGION=ap-south-1
 ```
 
 Defaults:
-- AWS_REGION=ap-south-1
 - CARTS_TABLE=ecommerce-cart
 
 ### User Service (uses RDS)
 Environment variables for AWS deployment:
 ```
 ENVIRONMENT=dev
+AWS_REGION=ap-south-1
 DB_HOST=<rds-endpoint>
 DB_PASSWORD=<your-password>
 ```
@@ -612,12 +613,12 @@ Defaults:
 - DB_PORT=5432
 - DB_NAME=ecommercedb
 - DB_USER=postgres
-- AWS_REGION=ap-south-1
 
 ### Order Service (uses RDS + SNS)
 Environment variables for AWS deployment:
 ```
 ENVIRONMENT=dev
+AWS_REGION=ap-south-1
 DB_HOST=<rds-endpoint>
 DB_PASSWORD=<your-password>
 SNS_TOPIC_ARN=<your-sns-topic-arn>
@@ -627,7 +628,6 @@ Defaults:
 - DB_PORT=5432
 - DB_NAME=ecommercedb
 - DB_USER=postgres
-- AWS_REGION=ap-south-1
 - Service URLs use ECS service discovery
 
 ## Next Steps
