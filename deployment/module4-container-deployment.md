@@ -187,12 +187,18 @@ For each service, create a target group:
    - Image URI: `<account-id>.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest`
    - Port mappings: 8001 (TCP)
    - Environment variables:
-     - DATABASE_URL: `postgresql://postgres:<password>@<db-endpoint>:5432/ecommercedb`
-     - ENVIRONMENT: `production`
+     - ENVIRONMENT: `dev`
    - Log configuration:
      - Log driver: awslogs
      - Log group: /ecs/product-service (auto-create)
 8. Create
+
+**Environment Variables by Service:**
+
+- **Product Service:** `ENVIRONMENT=dev` (uses DynamoDB defaults)
+- **Cart Service:** `ENVIRONMENT=dev` (uses DynamoDB defaults)
+- **User Service:** `ENVIRONMENT=dev`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
+- **Order Service:** `ENVIRONMENT=dev`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
 
 **Repeat for other services** with appropriate ports and environment variables.
 

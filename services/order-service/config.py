@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     environment: str = "local"
+    aws_region: str = "ap-south-1"
     db_host: str = "postgres"
     db_port: int = 5432
     db_name: str = "ecommercedb"
@@ -13,10 +14,9 @@ class Settings(BaseSettings):
     user_service_url: str = "http://user-service:8003"
     product_service_url: str = "http://product-service:8001"
     
-    # AWS
-    aws_region: str = "us-east-1"
+    # AWS SNS
     sns_endpoint: str = "http://localstack:4566"
-    sns_topic_arn: str = "arn:aws:sns:us-east-1:000000000000:order-events"
+    sns_topic_arn: str = "arn:aws:sns:ap-south-1:000000000000:order-events"
     
     class Config:
         env_file = ".env"

@@ -581,37 +581,54 @@ aws ec2 delete-security-group \
 ## Service Configuration
 
 ### Product Service (uses DynamoDB)
-Environment variables:
+Environment variables for AWS deployment:
 ```
-DYNAMODB_TABLE=ecommerce-products
-AWS_REGION=ap-south-1
 ENVIRONMENT=dev
 ```
+
+That's it! The service uses defaults:
+- AWS_REGION=ap-south-1
+- PRODUCTS_TABLE=ecommerce-products
 
 ### Cart Service (uses DynamoDB)
-Environment variables:
+Environment variables for AWS deployment:
 ```
-DYNAMODB_TABLE=ecommerce-cart
-AWS_REGION=ap-south-1
 ENVIRONMENT=dev
 ```
+
+Defaults:
+- AWS_REGION=ap-south-1
+- CARTS_TABLE=ecommerce-cart
 
 ### User Service (uses RDS)
-Environment variables:
+Environment variables for AWS deployment:
 ```
-DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommercedb
 ENVIRONMENT=dev
+DB_HOST=<rds-endpoint>
+DB_PASSWORD=<your-password>
 ```
 
-### Order Service (uses RDS)
-Environment variables:
+Defaults:
+- DB_PORT=5432
+- DB_NAME=ecommercedb
+- DB_USER=postgres
+- AWS_REGION=ap-south-1
+
+### Order Service (uses RDS + SNS)
+Environment variables for AWS deployment:
 ```
-DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommercedb
-USER_SERVICE_URL=http://user-service:8003
-CART_SERVICE_URL=http://cart-service:8002
-PRODUCT_SERVICE_URL=http://product-service:8001
 ENVIRONMENT=dev
+DB_HOST=<rds-endpoint>
+DB_PASSWORD=<your-password>
+SNS_TOPIC_ARN=<your-sns-topic-arn>
 ```
+
+Defaults:
+- DB_PORT=5432
+- DB_NAME=ecommercedb
+- DB_USER=postgres
+- AWS_REGION=ap-south-1
+- Service URLs use ECS service discovery
 
 ## Next Steps
 After completing this module:

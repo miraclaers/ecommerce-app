@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     environment: str = "local"
-    aws_region: str = "us-east-1"
+    aws_region: str = "ap-south-1"
     dynamodb_endpoint: str = "http://localstack:4566"
-    products_table: str = "products"
+    products_table: str = "ecommerce-products"
     
     class Config:
         env_file = ".env"
