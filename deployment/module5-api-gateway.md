@@ -56,8 +56,8 @@ API Gateway (HTTP API)
 2. Choose: HTTP API → Build
 3. Integrations:
    - Add integration: HTTP
-   - Integration type: HTTP proxy
-   - URL endpoint: `http://<alb-dns-name>` (paste your ALB DNS)
+   - URL endpoint: `http://<alb-dns-name>/{proxy}` (paste your ALB DNS with `/{proxy}` at the end)
+   - Example: `http://future-store-alb-1116120418.ap-south-1.elb.amazonaws.com/{proxy}`
    - Method: ANY
 4. API name: `ecommerce-api`
 5. Next
@@ -65,13 +65,14 @@ API Gateway (HTTP API)
 **Configure routes:**
 6. Route: `/{proxy+}` (catch-all route)
 7. Method: ANY
-8. Next
+8. Attach integration: Select the ALB integration you just created
+9. Next
 
 **Configure stages:**
-9. Stage name: $default (auto-deploy)
-10. Next
+10. Stage name: $default (auto-deploy)
+11. Next
 
-11. Review and Create
+12. Review and Create
 
 ### Step 3: Configure CORS
 
