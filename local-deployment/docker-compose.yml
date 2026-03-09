@@ -16,7 +16,7 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: ecommerce_db
+      POSTGRES_DB: ecommercedb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -72,7 +72,7 @@ services:
       - ENVIRONMENT=local
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=ecommerce_db
+      - DB_NAME=ecommercedb
       - DB_USER=postgres
       - DB_PASSWORD=postgres
     depends_on:
@@ -90,7 +90,7 @@ services:
       - ENVIRONMENT=local
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=ecommerce_db
+      - DB_NAME=ecommercedb
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - CART_SERVICE_URL=http://cart-service:8002

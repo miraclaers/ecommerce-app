@@ -187,7 +187,7 @@ For each service, create a target group:
    - Image URI: `<account-id>.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest`
    - Port mappings: 8001 (TCP)
    - Environment variables:
-     - DATABASE_URL: `postgresql://postgres:<password>@<db-endpoint>:5432/ecommerce_db`
+     - DATABASE_URL: `postgresql://postgres:<password>@<db-endpoint>:5432/ecommercedb`
      - ENVIRONMENT: `production`
    - Log configuration:
      - Log driver: awslogs

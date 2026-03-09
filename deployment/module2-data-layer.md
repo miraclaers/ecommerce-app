@@ -23,7 +23,7 @@ DynamoDB (Global, Serverless)
 
 Private Subnets
 ├── RDS PostgreSQL (Multi-AZ)
-│   ├── Database: ecommerce_db
+│   ├── Database: ecommercedb
 │   ├── Tables: users, orders, order_items
 │   └── Port: 5432
 └── Security Group: rds-sg
@@ -91,7 +91,7 @@ Private Subnets
 - Instance class: db.t3.micro (Free tier eligible)
 - Storage: 20 GB gp3
 - Multi-AZ: No (for cost savings in dev)
-- Database name: ecommerce_db
+- Database name: ecommercedb
 - Master username: postgres
 - Master password: (choose a strong password)
 - Subnet group: ecommerce-db-subnet-group
@@ -274,7 +274,7 @@ https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-
    - Availability Zone: No preference
 10. Database authentication: Password authentication
 11. Additional configuration:
-    - Initial database name: `ecommerce_db`
+    - Initial database name: `ecommercedb`
     - Backup retention period: 7 days
     - Enable encryption: Yes (default KMS key)
 12. Create database (takes 5-10 minutes)
@@ -418,7 +418,7 @@ aws rds create-db-instance \
   --storage-type gp3 \
   --db-subnet-group-name ecommerce-db-subnet-group \
   --vpc-security-group-ids $RDS_SG_ID \
-  --db-name ecommerce_db \
+  --db-name ecommercedb \
   --backup-retention-period 7 \
   --no-publicly-accessible \
   --storage-encrypted \
@@ -492,7 +492,7 @@ CREATE TABLE order_items (
 ### Connection String Format
 **RDS PostgreSQL:**
 ```
-postgresql://postgres:YourPassword@<DB_ENDPOINT>:5432/ecommerce_db
+postgresql://postgres:YourPassword@<DB_ENDPOINT>:5432/ecommercedb
 ```
 
 **DynamoDB:**
@@ -599,14 +599,14 @@ ENVIRONMENT=dev
 ### User Service (uses RDS)
 Environment variables:
 ```
-DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommerce_db
+DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommercedb
 ENVIRONMENT=dev
 ```
 
 ### Order Service (uses RDS)
 Environment variables:
 ```
-DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommerce_db
+DATABASE_URL=postgresql://postgres:<password>@<db-endpoint>:5432/ecommercedb
 USER_SERVICE_URL=http://user-service:8003
 CART_SERVICE_URL=http://cart-service:8002
 PRODUCT_SERVICE_URL=http://product-service:8001

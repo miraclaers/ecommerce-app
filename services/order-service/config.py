@@ -4,7 +4,7 @@ class Settings(BaseSettings):
     environment: str = "local"
     db_host: str = "postgres"
     db_port: int = 5432
-    db_name: str = "ecommerce_db"
+    db_name: str = "ecommercedb"
     db_user: str = "postgres"
     db_password: str = "postgres"
     

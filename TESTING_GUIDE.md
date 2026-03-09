@@ -127,7 +127,7 @@ awslocal dynamodb scan --table-name carts
 
 ```bash
 # Connect to database
-docker-compose exec postgres psql -U postgres -d ecommerce_db
+docker-compose exec postgres psql -U postgres -d ecommercedb
 
 # View users
 SELECT * FROM users;

@@ -42,7 +42,7 @@ curl http://localhost:8080/api/cart -H "X-User-Id: test-123"
 
 ```bash
 # PostgreSQL
-docker-compose exec postgres psql -U postgres -d ecommerce_db
+docker-compose exec postgres psql -U postgres -d ecommercedb
 
 # Inside psql
 \dt                    # List tables
@@ -330,7 +330,7 @@ SQS_ENDPOINT=http://localstack:4566
 SES_ENDPOINT=http://localstack:4566
 DB_HOST=postgres
 DB_PORT=5432
-DB_NAME=ecommerce_db
+DB_NAME=ecommercedb
 DB_USER=postgres
 DB_PASSWORD=postgres
 ```

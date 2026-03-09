@@ -176,7 +176,7 @@ curl -H "X-User-Id: test-user-123" \
 - **Cart Service**: http://localhost:8002
 - **User Service**: http://localhost:8003
 - **Order Service**: http://localhost:8004
-- **PostgreSQL**: localhost:5432 (user: postgres, password: postgres, db: ecommerce_db)
+- **PostgreSQL**: localhost:5432 (user: postgres, password: postgres, db: ecommercedb)
 - **LocalStack**: http://localhost:4566
 
 ## Inspecting LocalStack Resources
@@ -204,7 +204,7 @@ awslocal sqs list-queues
 
 ```bash
 # Connect to PostgreSQL
-docker-compose exec postgres psql -U postgres -d ecommerce_db
+docker-compose exec postgres psql -U postgres -d ecommercedb
 
 # View users
 SELECT * FROM users;
