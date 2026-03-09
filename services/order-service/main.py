@@ -127,7 +127,7 @@ async def create_order(order: OrderCreate, authorization: str = Header(None)):
                 INSERT INTO orders (user_id, user_email, total_amount, status)
                 VALUES (%s, %s, %s, %s)
                 RETURNING *
-            """, (user['id'], user['email'], total_amount, 'pending'))
+            """, (user['id'], user['email'], total_amount, 'Order Placed'))
             
             order_record = cursor.fetchone()
             order_id = order_record['id']
