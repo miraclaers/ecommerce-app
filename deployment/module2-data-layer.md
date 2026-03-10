@@ -233,5 +233,28 @@ CREATE TABLE order_items (
 );
 ```
 
+### Create Parameter Store Parameters
+
+After the RDS instance is created, store the database configuration in Parameter Store for the microservices:
+
+1. **Systems Manager Console → Parameter Store → Create parameter**
+
+**Database Host Parameter:**
+- **Name:** `/ecommerce/dev/db/host`
+- **Type:** String
+- **Value:** `<your-rds-endpoint>` (from RDS Console → Databases → ecommerce-db → Endpoint)
+
+**Database Password Parameter:**
+- **Name:** `/ecommerce/dev/db/password`
+- **Type:** SecureString
+- **Value:** `<your-database-password>`
+
+**AWS Region Parameter:**
+- **Name:** `/ecommerce/dev/aws/region`
+- **Type:** String
+- **Value:** `ap-south-1`
+
+These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
+
 ## Next Steps
 Proceed to **[Module 3: Authentication](./module3-authentication.md)** to set up Cognito User Pools.
