@@ -190,7 +190,6 @@ For each service, create a target group:
    - Environment variables:
      - `ENVIRONMENT`: dev
      - `AWS_REGION`: ap-south-1
-     - `aws_region`: ap-south-1
    - Log configuration:
      - Log driver: awslogs
      - Log group: /ecs/product-service (auto-create)
@@ -199,10 +198,12 @@ For each service, create a target group:
 
 **Environment Variables by Service:**
 
-- **Product Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`
-- **Cart Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`
-- **User Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
-- **Order Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
+- **Product Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
+- **Cart Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
+- **User Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
+- **Order Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
+
+**Note:** Pydantic automatically maps `AWS_REGION` environment variable to the `aws_region` field in the code.
 
 **Repeat for other services** with appropriate ports and environment variables:
 - `cart-service-task-definition` (port 8002)
