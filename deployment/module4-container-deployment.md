@@ -203,24 +203,6 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-s
 
 ---
 
-## 4.6 Create ECS Security Group
-
-### ECS Tasks Security Group
-
-1. **VPC Console → Security Groups → Create security group**
-2. **Name:** `ecommerce-ecs-sg`
-3. **Description:** "Security group for ECS tasks"
-4. **VPC:** Select `ecommerce-vpc`
-5. **Inbound rules:**
-   - Type: Custom TCP, Port: 8001, Source: `ecommerce-alb-sg`
-   - Type: Custom TCP, Port: 8002, Source: `ecommerce-alb-sg`
-   - Type: Custom TCP, Port: 8003, Source: `ecommerce-alb-sg`
-   - Type: Custom TCP, Port: 8004, Source: `ecommerce-alb-sg`
-6. **Outbound rules:** All traffic (default)
-7. **Create security group**
-
----
-
 ## 4.7 Create ECS Task Definitions
 
 ### Create Task Definition for Product Service
