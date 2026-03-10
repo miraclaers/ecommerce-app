@@ -195,10 +195,15 @@ aws ec2 wait nat-gateway-available --nat-gateway-ids $NAT_GW_ID --region ap-sout
 6. **Subnet associations tab → Edit subnet associations**
    - Associate both public subnets
 
-**Private Route Table:**
-1. **Create route table:** `ecommerce-private-rt`
+**Private ECS Route Table:**
+1. **Create route table:** `ecommerce-private-ecs-rt`
 2. **Add route:** `0.0.0.0/0` → NAT Gateway
-3. **Associate:** All 4 private subnets
+3. **Associate:** Both private ECS subnets
+
+**Private Database Route Table:**
+1. **Create route table:** `ecommerce-private-db-rt`
+2. **Add route:** `0.0.0.0/0` → NAT Gateway
+3. **Associate:** Both private database subnets
 
 ### AWS CLI
 ```bash
@@ -223,91 +228,53 @@ aws ec2 associate-route-table \
   --route-table-id $PUBLIC_RT_ID \
   --subnet-id $PUBLIC_SUBNET_2 --region ap-south-1
 
-# Create Private Route Table
-PRIVATE_RT_ID=$(aws ec2 create-route-table \
+# Create Private ECS Route Table
+PRIVATE_ECS_RT_ID=$(aws ec2 create-route-table \
   --vpc-id $VPC_ID \
-  --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=ecommerce-private-rt}]' \
+  --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=ecommerce-private-ecs-rt}]' \
   --query 'RouteTable.RouteTableId' --output text --region ap-south-1)
 
 # Add route to NAT Gateway
 aws ec2 create-route \
-  --route-table-id $PRIVATE_RT_ID \
+  --route-table-id $PRIVATE_ECS_RT_ID \
   --destination-cidr-block 0.0.0.0/0 \
   --nat-gateway-id $NAT_GW_ID --region ap-south-1
 
-# Associate private subnets
+# Associate private ECS subnets
 aws ec2 associate-route-table \
-  --route-table-id $PRIVATE_RT_ID \
+  --route-table-id $PRIVATE_ECS_RT_ID \
   --subnet-id $PRIVATE_ECS_SUBNET_1 --region ap-south-1
 
 aws ec2 associate-route-table \
-  --route-table-id $PRIVATE_RT_ID \
+  --route-table-id $PRIVATE_ECS_RT_ID \
   --subnet-id $PRIVATE_ECS_SUBNET_2 --region ap-south-1
 
+# Create Private Database Route Table
+PRIVATE_DB_RT_ID=$(aws ec2 create-route-table \
+  --vpc-id $VPC_ID \
+  --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=ecommerce-private-db-rt}]' \
+  --query 'RouteTable.RouteTableId' --output text --region ap-south-1)
+
+# Add route to NAT Gateway
+aws ec2 create-route \
+  --route-table-id $PRIVATE_DB_RT_ID \
+  --destination-cidr-block 0.0.0.0/0 \
+  --nat-gateway-id $NAT_GW_ID --region ap-south-1
+
+# Associate private database subnets
 aws ec2 associate-route-table \
-  --route-table-id $PRIVATE_RT_ID \
+  --route-table-id $PRIVATE_DB_RT_ID \
   --subnet-id $PRIVATE_DB_SUBNET_1 --region ap-south-1
 
 aws ec2 associate-route-table \
-  --route-table-id $PRIVATE_RT_ID \
+  --route-table-id $PRIVATE_DB_RT_ID \
   --subnet-id $PRIVATE_DB_SUBNET_2 --region ap-south-1
 
 echo "PUBLIC_RT_ID=$PUBLIC_RT_ID" >> deployment/vpc-resources.txt
-echo "PRIVATE_RT_ID=$PRIVATE_RT_ID" >> deployment/vpc-resources.txt
+echo "PRIVATE_ECS_RT_ID=$PRIVATE_ECS_RT_ID" >> deployment/vpc-resources.txt
+echo "PRIVATE_DB_RT_ID=$PRIVATE_DB_RT_ID" >> deployment/vpc-resources.txt
 echo "Created and configured route tables"
 ```
 
-## Step 6: Verification
-
-### Test Connectivity
-```bash
-# Verify VPC and subnets
-aws ec2 describe-vpcs --vpc-ids $VPC_ID --region ap-south-1 --query 'Vpcs[0].{VpcId:VpcId,CidrBlock:CidrBlock,State:State}'
-
-# List all subnets
-aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --region ap-south-1 --query 'Subnets[*].{Name:Tags[?Key==`Name`].Value|[0],SubnetId:SubnetId,CidrBlock:CidrBlock,AvailabilityZone:AvailabilityZone}' --output table
-
-# Check NAT Gateway status
-aws ec2 describe-nat-gateways --nat-gateway-ids $NAT_GW_ID --region ap-south-1 --query 'NatGateways[0].{NatGatewayId:NatGatewayId,State:State,SubnetId:SubnetId}'
-
-# Verify route tables
-aws ec2 describe-route-tables --route-table-ids $PUBLIC_RT_ID $PRIVATE_RT_ID --region ap-south-1 --query 'RouteTables[*].{RouteTableId:RouteTableId,Routes:Routes[*].{Destination:DestinationCidrBlock,Target:GatewayId}}' --output table
-```
-
-### Check Resource File
-```bash
-# View all created resources
-cat deployment/vpc-resources.txt
-```
-
-**Expected output:**
-```
-VPC_ID=vpc-xxxxxxxxx
-IGW_ID=igw-xxxxxxxxx
-PUBLIC_SUBNET_1=subnet-xxxxxxxxx
-PUBLIC_SUBNET_2=subnet-xxxxxxxxx
-PRIVATE_ECS_SUBNET_1=subnet-xxxxxxxxx
-PRIVATE_ECS_SUBNET_2=subnet-xxxxxxxxx
-PRIVATE_DB_SUBNET_1=subnet-xxxxxxxxx
-PRIVATE_DB_SUBNET_2=subnet-xxxxxxxxx
-EIP_ALLOC_ID=eipalloc-xxxxxxxxx
-NAT_GW_ID=nat-xxxxxxxxx
-PUBLIC_RT_ID=rtb-xxxxxxxxx
-PRIVATE_RT_ID=rtb-xxxxxxxxx
-```
-
-## Network Architecture Summary
-
-| Subnet Type | Name | CIDR | AZ | Purpose |
-|-------------|------|------|----|---------| 
-| Public | ecommerce-public-subnet-1 | 10.10.0.0/24 | ap-south-1a | NAT Gateway, Bastion |
-| Public | ecommerce-public-subnet-2 | 10.10.1.0/24 | ap-south-1b | Load Balancer (if public) |
-| Private ECS | ecommerce-private-ecs-1 | 10.10.10.0/24 | ap-south-1a | ECS Services |
-| Private ECS | ecommerce-private-ecs-2 | 10.10.11.0/24 | ap-south-1b | ECS Services |
-| Private DB | ecommerce-private-database-1 | 10.10.20.0/24 | ap-south-1a | RDS Primary |
-| Private DB | ecommerce-private-database-2 | 10.10.21.0/24 | ap-south-1b | RDS Standby |
-
 ## Next Steps
-- **Module 2:** Create databases in the private database subnets
-- **Module 4:** Deploy ECS services in the private ECS subnets
-- The `vpc-resources.txt` file will be used by subsequent modules
+Proceed to **[Module 2: Data Layer](./module2-data-layer.md)** to create the databases.
