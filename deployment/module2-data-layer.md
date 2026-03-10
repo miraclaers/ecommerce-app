@@ -11,7 +11,7 @@ This module creates the foundation for data storage across all microservices wit
 
 ---
 
-## S3 - Product Images Storage
+## 2.1 S3 - Product Images Storage
 
 ### Create S3 Bucket
 
@@ -80,7 +80,7 @@ https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/pr
 
 ---
 
-## DynamoDB - NoSQL Tables
+## 2.2 DynamoDB - NoSQL Tables
 
 ### Products Table
 
@@ -132,7 +132,7 @@ This script loads 20 sample products from `data/products.json` into your DynamoD
 
 ---
 
-## RDS - PostgreSQL Database
+## 2.3 RDS - PostgreSQL Database
 
 ### Create DB Subnet Group
 
@@ -232,9 +232,7 @@ CREATE TABLE order_items (
 
 ---
 
-## Parameter Store - Configuration Management
-
-## Parameter Store - Configuration Management
+## 2.4 Parameter Store - Configuration Management
 
 ### Create Database Configuration Parameters
 
