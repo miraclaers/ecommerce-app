@@ -3,28 +3,30 @@
 ## Overview
 Clean up all AWS resources created during this tutorial to avoid ongoing charges.
 
-## Resources to Delete
+## Cleanup Order
 
-### Module 8: DNS & SSL
-- Route53 hosted zone
+Delete resources in reverse order of creation to avoid dependency issues:
+
+### 1. DNS & SSL (Module 8)
+- Route53 DNS records (A records, CNAME records)
 - ACM SSL certificate
-- Route53 DNS records
+- Route53 hosted zone
 
-### Module 7: Event-Driven Architecture
-- SNS topic
+### 2. Event-Driven Architecture (Module 7)
+- SNS subscriptions (email, SQS)
 - SQS queue
-- SNS subscriptions
+- SNS topic
 
-### Module 6: Frontend Deployment
+### 3. Frontend Deployment (Module 6)
 - CloudFront distribution
 - S3 bucket (frontend files)
 
-### Module 5: API Gateway
+### 4. API Gateway (Module 5)
 - API Gateway HTTP API
 - VPC Link
 - JWT Authorizer
 
-### Module 4: Container Deployment
+### 5. Container Deployment (Module 4)
 - ECS services
 - ECS cluster
 - ECS task definitions
@@ -32,38 +34,27 @@ Clean up all AWS resources created during this tutorial to avoid ongoing charges
 - Application Load Balancer
 - Target groups
 - IAM role (ECS task role)
+- Security group (ECS tasks)
 
-### Module 3: Authentication
+### 6. Authentication (Module 3)
 - Cognito User Pool
 - Cognito App Client
 
-### Module 2: Data Layer
+### 7. Data Layer (Module 2)
 - RDS database instance
 - DB subnet group
+- Security group (RDS)
 - DynamoDB tables (products, cart)
 - S3 bucket (product images)
 - Parameter Store parameters
 
-### Module 1: Networking
+### 8. Networking (Module 1)
 - NAT Gateway
 - Elastic IP
 - Internet Gateway
-- Route tables
-- Subnets
+- Route tables (public, private ECS, private database)
+- Subnets (public, private ECS, private database)
+- Security groups (ALB)
 - VPC
-- Security groups
-
-## Cleanup Order
-
-Delete resources in reverse order of creation to avoid dependency issues:
-
-1. **Module 8 resources** (DNS & SSL)
-2. **Module 7 resources** (SNS/SQS)
-3. **Module 6 resources** (CloudFront, S3)
-4. **Module 5 resources** (API Gateway, VPC Link)
-5. **Module 4 resources** (ECS, ALB, ECR)
-6. **Module 3 resources** (Cognito)
-7. **Module 2 resources** (RDS, DynamoDB, S3, Parameter Store)
-8. **Module 1 resources** (VPC and networking components)
 
 **Important:** Always delete resources in the correct order to avoid dependency errors and ensure complete cleanup.
