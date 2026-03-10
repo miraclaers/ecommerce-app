@@ -84,8 +84,27 @@ async def create_order(order: OrderCreate, authorization: str = Header(None)):
     async with httpx.AsyncClient() as client:
         # 1. Get user details
         try:
+            # Extract email and name from JWT token to pass to user service
+            headers = {}
+            if authorization:
+                try:
+                    token = authorization.replace("Bearer ", "")
+                    parts = token.split('.')
+                    if len(parts) == 3:
+                        payload = parts[1]
+                        payload += '=' * (4 - len(payload) % 4)
+                        decoded = base64.urlsafe_b64decode(payload)
+                        user_data = json.loads(decoded)
+                        headers = {
+                            "X-User-Email": user_data.get('email', ''),
+                            "X-User-Name": user_data.get('name', user_data.get('username', ''))
+                        }
+                except Exception as e:
+                    print(f"Error extracting user data from token: {e}")
+            
             user_response = await client.get(
-                f"{settings.user_service_url}/users/cognito/{user_id}"
+                f"{settings.user_service_url}/users/cognito/{user_id}",
+                headers=headers
             )
             user_response.raise_for_status()
             user = user_response.json()

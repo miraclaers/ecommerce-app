@@ -8,8 +8,12 @@ const getAuthHeaders = async () => {
     const token = session.tokens?.idToken?.toString();
     
     if (token) {
+      const payload = session.tokens?.idToken?.payload;
       return {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'X-User-Id': payload?.sub || '',
+        'X-User-Email': payload?.email || '',
+        'X-User-Name': payload?.name || payload?.username || ''
       };
     }
     return {};

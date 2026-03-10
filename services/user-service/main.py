@@ -49,7 +49,7 @@ def create_user(user: UserCreate):
             raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/users/profile", response_model=User)
-def get_profile(user_id: str = Header(None, alias="X-User-Id")):
+def get_profile(user_id: str = Header(None, alias="X-User-Id"), user_email: str = Header(None, alias="X-User-Email"), user_name: str = Header(None, alias="X-User-Name")):
     """Get current user's profile"""
     if not user_id:
         user_id = "test-user-123"  # Default for local testing
@@ -59,12 +59,14 @@ def get_profile(user_id: str = Header(None, alias="X-User-Id")):
         result = cursor.fetchone()
         
         if not result:
-            # Auto-create user if they don't exist
+            # Auto-create user with details from headers
+            email = user_email or f"{user_id}@example.com"
+            name = user_name or user_id
             cursor.execute("""
                 INSERT INTO users (cognito_sub, email, name)
                 VALUES (%s, %s, %s)
                 RETURNING *
-            """, (user_id, f"{user_id}@example.com", user_id))
+            """, (user_id, email, name))
             result = cursor.fetchone()
         
         return result
@@ -121,14 +123,22 @@ def get_user_by_id(user_id: int):
         return result
 
 @app.get("/users/cognito/{cognito_sub}", response_model=User)
-def get_user_by_cognito_sub(cognito_sub: str):
+def get_user_by_cognito_sub(cognito_sub: str, user_email: str = Header(None, alias="X-User-Email"), user_name: str = Header(None, alias="X-User-Name")):
     """Internal endpoint - get user by Cognito sub (called by Order Service)"""
     with get_db_cursor() as cursor:
         cursor.execute("SELECT * FROM users WHERE cognito_sub = %s", (cognito_sub,))
         result = cursor.fetchone()
         
         if not result:
-            raise HTTPException(status_code=404, detail="User not found")
+            # Auto-create user with details from headers
+            email = user_email or f"{cognito_sub}@example.com"
+            name = user_name or cognito_sub
+            cursor.execute("""
+                INSERT INTO users (cognito_sub, email, name)
+                VALUES (%s, %s, %s)
+                RETURNING *
+            """, (cognito_sub, email, name))
+            result = cursor.fetchone()
         
         return result
 
