@@ -119,29 +119,35 @@ For each route below, select `cognito-authorizer`:
 
 **Note:** All routes use the same HTTP integration to ALB.
 
-### Step 6: Update Routes with Authorization
+### Step 6: Configure Routes and Authorization
 
-The catch-all route `/{proxy+}` forwards all requests to ALB. Now we need to add authorization to specific routes:
+The API Gateway needs specific routes to handle authentication properly:
 
-1. API → Routes
-2. Delete the catch-all route `ANY /{proxy+}`
-3. Create specific routes:
+1. **API → Routes**
+2. **Create these exact routes:**
 
-**Public Routes (no auth):**
-- `GET /products`
-- `GET /products/{id}`
+**Route 1: Public Products (No Auth)**
+- Route: `GET /products`
+- Method: GET
+- Integration: Select your ALB integration
+- Authorization: None
 
-**Authenticated Routes (add authorizer):**
-For each route below, select `cognito-authorizer`:
-- `GET /cart`
-- `POST /cart/items`
-- `DELETE /cart/items/{productId}`
-- `POST /orders`
-- `GET /orders`
-- `GET /users/profile`
-- `POST /users/profile`
+**Route 2: CORS Preflight (No Auth)**
+- Route: `OPTIONS /{proxy+}`
+- Method: OPTIONS  
+- Integration: Select your ALB integration
+- Authorization: None
 
-**Note:** All routes use the same HTTP integration to ALB.
+**Route 3: All Other Routes (With Auth)**
+- Route: `ANY /{proxy+}`
+- Method: ANY
+- Integration: Select your ALB integration
+- Authorization: Select `cognito-authorizer`
+
+This configuration allows:
+- Public access to product listings
+- CORS preflight requests to work
+- All other endpoints require authentication
 
 ### Step 7: Note API Endpoint
 

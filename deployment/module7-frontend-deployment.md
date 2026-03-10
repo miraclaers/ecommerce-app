@@ -126,38 +126,44 @@ aws s3 sync frontend/react-app/build/ s3://ecommerce-frontend-<id>/ --region ap-
 
 ### Step 6: Create CloudFront Distribution
 
-1. CloudFront Console → Create distribution
-2. Origin settings:
-   - Origin domain: Select your S3 bucket
+1. **CloudFront Console → Create distribution**
+2. **Origin settings:**
+   - Origin domain: Select your S3 bucket (e.g., `future-store-frontend-1773060673.s3.ap-south-1.amazonaws.com`)
    - Origin path: Leave empty
    - Name: Auto-filled
    - Origin access: Origin access control settings (recommended)
-     - Or use Legacy: Origin access identity → Select your OAI
+   - Origin access control: Create new OAC
+     - Name: `future-store-oac`
+     - Sign requests: Yes
+     - Origin type: S3
    - Enable Origin Shield: No
-3. Default cache behavior:
+
+3. **Default cache behavior:**
    - Viewer protocol policy: Redirect HTTP to HTTPS
-   - Allowed HTTP methods: GET, HEAD, OPTIONS
+   - Allowed HTTP methods: GET, HEAD (not OPTIONS - this causes issues)
    - Cache policy: CachingOptimized
    - Origin request policy: None
-4. Settings:
-   - Price class: Use all edge locations (or select based on your audience)
-   - Alternate domain name (CNAME): Leave empty (or add custom domain)
+   - Compress objects automatically: Yes
+
+4. **Settings:**
+   - Price class: Use all edge locations (best performance)
+   - Alternate domain name (CNAME): Leave empty for now
    - SSL certificate: Default CloudFront certificate
    - Default root object: `index.html`
-5. Create distribution (takes 10-15 minutes to deploy)
+
+5. **Create distribution** (takes 10-15 minutes to deploy)
 
 ### Step 7: Configure Error Pages (for React Router)
 
-1. Go to your distribution → Error pages tab
-2. Create custom error response:
+1. **Go to your distribution → Error pages tab**
+2. **Create custom error response:**
    - HTTP error code: 403
    - Customize error response: Yes
    - Response page path: `/index.html`
    - HTTP response code: 200
-3. Create another:
-   - HTTP error code: 404
-   - Customize error response: Yes
-   - Response page path: `/index.html`
+   - Error caching minimum TTL: 300
+
+**Note:** Only configure 403 error page. The 404 error is handled by React Router internally.
    - HTTP response code: 200
 
 This ensures React Router handles all routes.

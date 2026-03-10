@@ -174,40 +174,47 @@ For each service, create a target group:
 ### Step 9: Create Task Definitions
 
 **Product Service Task Definition:**
-1. ECS Console → Task Definitions → Create new task definition
-2. Task definition family: `product-service-task`
-3. Launch type: AWS Fargate
-4. Operating system: Linux
-5. Task size:
+1. **ECS Console → Task Definitions → Create new task definition**
+2. **Task definition family:** `product-service-task-definition`
+3. **Launch type:** AWS Fargate
+4. **Operating system:** Linux
+5. **Task size:**
    - CPU: .25 vCPU (256)
    - Memory: 0.5 GB (512)
-6. Task execution role: ecsTaskExecutionRole
-7. Container:
+6. **Task execution role:** ecsTaskExecutionRole
+7. **Task role:** `future-store-ecs-task-role` (for DynamoDB access)
+8. **Container:**
    - Name: product-service
    - Image URI: `<account-id>.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest`
    - Port mappings: 8001 (TCP)
    - Environment variables:
-     - ENVIRONMENT: `dev`
+     - `ENVIRONMENT`: dev
+     - `AWS_REGION`: ap-south-1
+     - `aws_region`: ap-south-1
    - Log configuration:
      - Log driver: awslogs
      - Log group: /ecs/product-service (auto-create)
-8. Create
+     - Stream prefix: ecs
+9. **Create**
 
 **Environment Variables by Service:**
 
-- **Product Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
-- **Cart Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
-- **User Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
-- **Order Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
+- **Product Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`
+- **Cart Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`
+- **User Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
+- **Order Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `aws_region=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
 
-**Repeat for other services** with appropriate ports and environment variables.
+**Repeat for other services** with appropriate ports and environment variables:
+- `cart-service-task-definition` (port 8002)
+- `user-service-task-definition` (port 8003)
+- `order-service-task-definition` (port 8004)
 
 ### Step 10: Create ECS Services
 
 **Product Service:**
 1. ECS Console → Clusters → ecommerce-cluster → Services → Create
 2. Launch type: Fargate
-3. Task definition: product-service-task (latest)
+3. Task definition: product-service-task-definition (latest)
 4. Service name: `product-service`
 5. Number of tasks: 1
 6. Deployment type: Rolling update
