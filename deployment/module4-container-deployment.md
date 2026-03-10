@@ -1,52 +1,41 @@
 # Module 4: Container Deployment with ECS
 
 ## Overview
-Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate.
+Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate, using AWS Systems Manager Parameter Store for centralized configuration management.
+
+## What We'll Build
+1. **ECR Repositories** - Store Docker images for each microservice
+2. **Security Groups** - Control network access between components
+3. **Internal Application Load Balancer** - Route traffic within VPC
+4. **Parameter Store Configuration** - Centralized configuration management
+5. **IAM Roles** - Permissions for ECS tasks to access AWS services
+6. **ECS Cluster & Services** - Container orchestration platform
+7. **Task Definitions** - Container specifications with minimal environment variables
 
 ## Architecture
 ```
-ECS Cluster
+ECS Cluster (Fargate)
 ├── Service: product-service (Port 8001)
-├── Service: cart-service (Port 8002)
+├── Service: cart-service (Port 8002)  
 ├── Service: user-service (Port 8003)
 ├── Service: order-service (Port 8004)
 └── Service: notification-service
 
-Application Load Balancer (Public)
+Internal Application Load Balancer
 ├── Target Group: product-tg → product-service
 ├── Target Group: cart-tg → cart-service
 ├── Target Group: user-tg → user-service
 └── Target Group: order-tg → order-service
+
+Parameter Store (/ecommerce/dev/)
+├── aws/region
+├── db/host
+├── db/password (SecureString)
+├── user-service-url
+├── cart-service-url
+├── product-service-url
+└── sns/topic-arn
 ```
-
-## Resources to Create
-
-### 1. ECR Repositories (for Docker images)
-- product-service
-- cart-service
-- user-service
-- order-service
-- notification-service
-
-### 2. Security Groups
-- ALB Security Group (allow HTTP/HTTPS from internet)
-- ECS Security Group (allow traffic from ALB)
-
-### 3. Application Load Balancer
-- Name: ecommerce-alb
-- Scheme: Internet-facing
-- Subnets: Both public subnets
-- Target groups for each service
-
-### 4. ECS Cluster
-- Name: ecommerce-cluster
-- Infrastructure: AWS Fargate
-
-### 5. Task Definitions
-- One for each microservice
-- CPU: 256 (.25 vCPU)
-- Memory: 512 MB
-- Environment variables for DB connection
 
 ### 6. ECS Services
 - One for each microservice
@@ -59,184 +48,57 @@ Application Load Balancer (Public)
 
 ### Step 1: Create ECR Repositories
 
-1. Go to ECR Console → Repositories
-2. Click "Create repository"
-3. For each service:
+## Step 1: Setup Parameter Store Configuration
+
+### AWS Console
+1. **Systems Manager Console → Parameter Store → Create parameter**
+2. **Create the following parameters:**
+
+| Parameter Name | Type | Value | Description |
+|----------------|------|-------|-------------|
+| `/ecommerce/dev/aws/region` | String | `ap-south-1` | AWS region |
+| `/ecommerce/dev/db/host` | String | `<RDS-endpoint>` | Database host |
+| `/ecommerce/dev/db/password` | SecureString | `<your-password>` | Database password |
+| `/ecommerce/dev/user-service-url` | String | `http://internal.alb.cloud11.io` | User service URL |
+| `/ecommerce/dev/cart-service-url` | String | `http://internal.alb.cloud11.io` | Cart service URL |
+| `/ecommerce/dev/product-service-url` | String | `http://internal.alb.cloud11.io` | Product service URL |
+| `/ecommerce/dev/sns/topic-arn` | String | `<SNS-topic-arn>` | SNS topic ARN |
+
+3. **For each parameter:**
+   - Name: (as above)
+   - Tier: Standard
+   - Type: String (or SecureString for password)
+   - Data type: text
+   - Value: (as specified)
+   - Create parameter
+
+### AWS CLI
+```bash
+# Get RDS endpoint and SNS topic ARN
+RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier ecommerce-db --query 'DBInstances[0].Endpoint.Address' --output text --region ap-south-1)
+SNS_TOPIC_ARN=$(aws sns list-topics --query 'Topics[?contains(TopicArn, `future-store-notification`)].TopicArn' --output text --region ap-south-1)
+
+# Create Parameter Store parameters
+aws ssm put-parameter --name "/ecommerce/dev/aws/region" --value "ap-south-1" --type "String" --region ap-south-1
+aws ssm put-parameter --name "/ecommerce/dev/db/host" --value "$RDS_ENDPOINT" --type "String" --region ap-south-1
+aws ssm put-parameter --name "/ecommerce/dev/db/password" --value "Coep2005" --type "SecureString" --region ap-south-1
+aws ssm put-parameter --name "/ecommerce/dev/user-service-url" --value "http://internal.alb.cloud11.io" --type "String" --region ap-south-1
+aws ssm put-parameter --name "/ecommerce/dev/cart-service-url" --value "http://internal.alb.cloud11.io" --type "String" --region ap-south-1
+aws ssm put-parameter --name "/ecommerce/dev/product-service-url" --value "http://internal.alb.cloud11.io" --type "String" --region ap-south-1
+aws ssm put-parameter --name "/ecommerce/dev/sns/topic-arn" --value "$SNS_TOPIC_ARN" --type "String" --region ap-south-1
+```
+
+## Step 2: Create ECR Repositories
+
+### AWS Console
+1. **ECR Console → Repositories → Create repository**
+2. **For each service create a repository:**
    - Repository name: `product-service`, `cart-service`, `user-service`, `order-service`, `notification-service`
    - Image tag mutability: Mutable
    - Scan on push: Enable
    - Create repository
 
-### Step 2: Build and Push Docker Images
-
-```bash
-# Login to ECR
-aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.ap-south-1.amazonaws.com
-
-# For each service
-cd services/product-service
-docker build -t product-service .
-docker tag product-service:latest <account-id>.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest
-docker push <account-id>.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest
-
-# Repeat for cart-service, user-service, order-service, notification-service
-```
-
-### Step 3: Create Security Groups
-
-**ALB Security Group:**
-1. VPC Console → Security Groups → Create
-2. Name: `ecommerce-alb-sg`
-3. VPC: ecommerce-vpc
-4. Inbound rules:
-   - HTTP (80) from 0.0.0.0/0
-   - HTTPS (443) from 0.0.0.0/0
-5. Create
-
-**ECS Security Group:**
-1. Name: `ecommerce-ecs-sg`
-2. VPC: ecommerce-vpc
-3. Inbound rules:
-   - Custom TCP 8001-8004 from ALB security group
-   - PostgreSQL (5432) - for RDS access (update RDS SG too)
-4. Create
-
-**Update RDS Security Group:**
-1. Go to RDS security group
-2. Add inbound rule:
-   - PostgreSQL (5432) from ECS security group
-
-### Step 4: Create Application Load Balancer
-
-1. EC2 Console → Load Balancers → Create
-2. Load balancer type: Application Load Balancer
-3. Name: `ecommerce-alb`
-4. Scheme: Internet-facing
-5. IP address type: IPv4
-6. Network mapping:
-   - VPC: ecommerce-vpc
-   - Subnets: Select both public subnets
-7. Security groups: Select `ecommerce-alb-sg`
-8. Listeners: HTTP (80) - we'll add target groups next
-9. Create load balancer
-
-### Step 5: Create Target Groups
-
-For each service, create a target group:
-
-**Product Service Target Group:**
-1. EC2 Console → Target Groups → Create
-2. Target type: IP addresses
-3. Name: `product-tg`
-4. Protocol: HTTP, Port: 8001
-5. VPC: ecommerce-vpc
-6. Health check:
-   - Path: /health
-   - Interval: 30 seconds
-   - Timeout: 5 seconds
-   - Healthy threshold: 2
-   - Unhealthy threshold: 3
-7. Create (don't register targets yet)
-
-**Repeat for:**
-- `cart-tg` (Port 8002, Path /health)
-- `user-tg` (Port 8003, Path /health)
-- `order-tg` (Port 8004, Path /health)
-
-### Step 6: Configure ALB Listener Rules
-
-1. Go to Load Balancer → Listeners tab
-2. Click on HTTP:80 listener
-3. Add rules:
-   - Path `/products*` → Forward to `product-tg`
-   - Path `/cart*` → Forward to `cart-tg`
-   - Path `/users*` → Forward to `user-tg`
-   - Path `/orders*` → Forward to `order-tg`
-4. Default action: Return fixed response (404)
-
-### Step 7: Create ECS Cluster
-
-1. ECS Console → Clusters → Create cluster
-2. Cluster name: `ecommerce-cluster`
-3. Infrastructure: AWS Fargate (serverless)
-4. Create
-
-### Step 8: Create Task Execution Role
-
-1. IAM Console → Roles → Create role
-2. Trusted entity: ECS Task
-3. Permissions:
-   - AmazonECSTaskExecutionRolePolicy
-   - CloudWatchLogsFullAccess (for logging)
-4. Role name: `ecsTaskExecutionRole`
-5. Create
-
-### Step 9: Create Task Definitions
-
-**Product Service Task Definition:**
-1. **ECS Console → Task Definitions → Create new task definition**
-2. **Task definition family:** `product-service-task-definition`
-3. **Launch type:** AWS Fargate
-4. **Operating system:** Linux
-5. **Task size:**
-   - CPU: .25 vCPU (256)
-   - Memory: 0.5 GB (512)
-6. **Task execution role:** ecsTaskExecutionRole
-7. **Task role:** `future-store-ecs-task-role` (for DynamoDB access)
-8. **Container:**
-   - Name: product-service
-   - Image URI: `<account-id>.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest`
-   - Port mappings: 8001 (TCP)
-   - Environment variables:
-     - `ENVIRONMENT`: dev
-     - `AWS_REGION`: ap-south-1
-   - Log configuration:
-     - Log driver: awslogs
-     - Log group: /ecs/product-service (auto-create)
-     - Stream prefix: ecs
-9. **Create**
-
-**Environment Variables by Service:**
-
-- **Product Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
-- **Cart Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`
-- **User Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`
-- **Order Service:** `ENVIRONMENT=dev`, `AWS_REGION=ap-south-1`, `DB_HOST=<rds-endpoint>`, `DB_PASSWORD=<password>`, `SNS_TOPIC_ARN=<arn>`
-
-**Note:** Pydantic automatically maps `AWS_REGION` environment variable to the `aws_region` field in the code.
-
-**Repeat for other services** with appropriate ports and environment variables:
-- `cart-service-task-definition` (port 8002)
-- `user-service-task-definition` (port 8003)
-- `order-service-task-definition` (port 8004)
-
-### Step 10: Create ECS Services
-
-**Product Service:**
-1. ECS Console → Clusters → ecommerce-cluster → Services → Create
-2. Launch type: Fargate
-3. Task definition: product-service-task-definition (latest)
-4. Service name: `product-service`
-5. Number of tasks: 1
-6. Deployment type: Rolling update
-7. Networking:
-   - VPC: ecommerce-vpc
-   - Subnets: Select both private subnets
-   - Security group: ecommerce-ecs-sg
-   - Auto-assign public IP: Disabled
-8. Load balancing:
-   - Load balancer type: Application Load Balancer
-   - Load balancer: ecommerce-alb
-   - Container to load balance: product-service:8001
-   - Target group: product-tg
-9. Service auto scaling: None (for now)
-10. Create service
-
-**Repeat for other services** with their respective task definitions and target groups.
-
-## CLI Commands
-
-### Create ECR Repositories
+### AWS CLI
 ```bash
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
@@ -250,7 +112,25 @@ done
 echo "ACCOUNT_ID=$ACCOUNT_ID" >> deployment/vpc-resources.txt
 ```
 
-### Build and Push Images
+## Step 3: Update IAM Role for Parameter Store Access
+
+### AWS Console
+1. **IAM Console → Roles → future-store-ecs-task-role**
+2. **Permissions tab → Attach policies**
+3. **Search and attach:** `AmazonSSMReadOnlyAccess`
+4. **Attach policy**
+
+### AWS CLI
+```bash
+aws iam attach-role-policy \
+  --role-name future-store-ecs-task-role \
+  --policy-arn arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess \
+  --region ap-south-1
+```
+
+## Step 4: Build and Push Docker Images
+
+### Build Process
 ```bash
 # Login to ECR
 aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
@@ -259,6 +139,116 @@ aws ecr get-login-password --region ap-south-1 | docker login --username AWS --p
 for service in product-service cart-service user-service order-service notification-service; do
   cd services/$service
   docker build -t $service .
+  docker tag $service:latest $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$service:latest
+  docker push $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$service:latest
+  cd ../..
+done
+```
+
+## Step 5: Create Security Groups
+
+### AWS Console
+
+**Internal ALB Security Group:**
+1. **VPC Console → Security Groups → Create security group**
+2. **Name:** `ecommerce-internal-alb-sg`
+3. **VPC:** ecommerce-vpc
+4. **Inbound rules:**
+   - HTTP (80) from VPC CIDR (10.0.0.0/16)
+   - HTTPS (443) from VPC CIDR (10.0.0.0/16)
+5. **Create security group**
+
+**ECS Security Group:**
+1. **Name:** `ecommerce-ecs-sg`
+2. **VPC:** ecommerce-vpc
+3. **Inbound rules:**
+   - Custom TCP 8001-8004 from Internal ALB security group
+4. **Create security group**
+
+**Update RDS Security Group:**
+1. **Go to existing RDS security group**
+2. **Add inbound rule:**
+   - PostgreSQL (5432) from ECS security group
+
+### AWS CLI
+```bash
+VPC_ID=$(grep "VPC_ID=" deployment/vpc-resources.txt | cut -d'=' -f2)
+
+# Create Internal ALB Security Group
+INTERNAL_ALB_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-internal-alb-sg \
+  --description "Security group for internal ALB" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text --region ap-south-1)
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $INTERNAL_ALB_SG \
+  --protocol tcp --port 80 --cidr 10.0.0.0/16 \
+  --region ap-south-1
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $INTERNAL_ALB_SG \
+  --protocol tcp --port 443 --cidr 10.0.0.0/16 \
+  --region ap-south-1
+
+# Create ECS Security Group
+ECS_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-ecs-sg \
+  --description "Security group for ECS services" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text --region ap-south-1)
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $ECS_SG \
+  --protocol tcp --port 8001-8004 \
+  --source-group $INTERNAL_ALB_SG \
+  --region ap-south-1
+
+echo "INTERNAL_ALB_SG=$INTERNAL_ALB_SG" >> deployment/vpc-resources.txt
+echo "ECS_SG=$ECS_SG" >> deployment/vpc-resources.txt
+```
+
+## Step 6: Create Internal Application Load Balancer
+
+### AWS Console
+1. **EC2 Console → Load Balancers → Create load balancer**
+2. **Load balancer type:** Application Load Balancer
+3. **Name:** `ecommerce-internal-alb`
+4. **Scheme:** Internal
+5. **IP address type:** IPv4
+6. **Network mapping:**
+   - VPC: ecommerce-vpc
+   - Subnets: Select both private subnets
+7. **Security groups:** Select `ecommerce-internal-alb-sg`
+8. **Listeners:** HTTP (80) - we'll add target groups next
+9. **Create load balancer**
+
+### AWS CLI
+```bash
+PRIVATE_SUBNET_1=$(grep "PRIVATE_SUBNET_1=" deployment/vpc-resources.txt | cut -d'=' -f2)
+PRIVATE_SUBNET_2=$(grep "PRIVATE_SUBNET_2=" deployment/vpc-resources.txt | cut -d'=' -f2)
+
+INTERNAL_ALB_ARN=$(aws elbv2 create-load-balancer \
+  --name ecommerce-internal-alb \
+  --subnets $PRIVATE_SUBNET_1 $PRIVATE_SUBNET_2 \
+  --security-groups $INTERNAL_ALB_SG \
+  --scheme internal \
+  --type application \
+  --query 'LoadBalancers[0].LoadBalancerArn' --output text --region ap-south-1)
+
+INTERNAL_ALB_DNS=$(aws elbv2 describe-load-balancers \
+  --load-balancer-arns $INTERNAL_ALB_ARN \
+  --query 'LoadBalancers[0].DNSName' --output text --region ap-south-1)
+
+echo "INTERNAL_ALB_ARN=$INTERNAL_ALB_ARN" >> deployment/vpc-resources.txt
+echo "INTERNAL_ALB_DNS=$INTERNAL_ALB_DNS" >> deployment/vpc-resources.txt
+```
+
+## Step 7: Create Target Groups
+
+### AWS Console
+
+**Note:** Cleanup steps have been removed from individual modules. A dedicated cleanup module will be provided at the end of the tutorial.
   docker tag $service:latest $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$service:latest
   docker push $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/$service:latest
   cd ../..
