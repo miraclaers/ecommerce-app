@@ -140,13 +140,10 @@ const awsConfig = {
 };
 ```
 
-2. Rebuild and deploy:
-```bash
-cd frontend/react-app
-npm run build
-aws s3 sync build/ s3://$BUCKET_NAME/ --delete
-aws cloudfront create-invalidation --distribution-id $CF_DISTRIBUTION_ID --paths "/*"
-```
+2. **Rebuild and deploy:**
+   - Build: `npm run build`
+   - Upload to S3 bucket
+   - Invalidate CloudFront cache
 
 ### Step 9: Test Custom Domain
 
