@@ -5,6 +5,7 @@ Set up the data storage layer for the ecommerce application:
 - **S3** for product images with public read access
 - **DynamoDB** for high-performance NoSQL data (products, cart)
 - **RDS PostgreSQL** for relational data (users, orders) in private subnets
+- **Parameter Store** for database configuration management
 
 This module creates the foundation for data storage across all microservices with proper security and performance considerations.
 
@@ -189,9 +190,55 @@ This script loads 20 sample products from `data/products.json` into your DynamoD
     - Enable encryption: Yes
 11. **Create database** (takes 5-10 minutes)
 
-### Create Parameter Store Parameters
+<details>
+<summary><strong>📋 Database Schema Reference (Click to expand)</strong></summary>
 
-After the RDS instance is created, store the database configuration in Parameter Store for the microservices:
+The database schema will be automatically created by each microservice on startup:
+
+**Users Table** (user-service):
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    cognito_sub VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
+    phone VARCHAR(50),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Orders Table** (order-service):
+```sql
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    user_email VARCHAR(255) NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(id),
+    product_id VARCHAR(255) NOT NULL,
+    quantity INTEGER NOT NULL,
+    price DECIMAL(10, 2) NOT NULL
+);
+```
+
+</details>
+
+---
+
+## Parameter Store - Configuration Management
+
+## Parameter Store - Configuration Management
+
+### Create Database Configuration Parameters
+
+After the RDS instance is created, store the database configuration in Parameter Store for secure access by microservices:
 
 1. **Systems Manager Console → Parameter Store → Create parameter**
 
