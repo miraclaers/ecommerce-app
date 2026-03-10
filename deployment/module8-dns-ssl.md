@@ -147,45 +147,26 @@ const awsConfig = {
 
 ### Step 9: Test Custom Domain
 
-1. Open browser: `https://yourdomain.com`
-2. Verify SSL certificate (should show valid)
-3. Test all functionality:
-   - Browse products
-   - Sign in/Sign up
-   - Add to cart
-   - Place order
+**Test in Browser:**
+1. **Open browser:** `https://yourdomain.com`
+2. **Verify SSL certificate:** Should show secure/valid certificate (green lock icon)
+3. **Test all functionality:**
+   - Browse products (should load from API)
+   - Sign in/Sign up (Cognito authentication)
+   - Add items to cart
+   - Place test order
+   - Check that all features work with custom domain
+
+**Expected Results:**
+- ✅ Website loads with custom domain
+- ✅ SSL certificate is valid (green lock icon)
+- ✅ All API calls work properly
+- ✅ Authentication flows work correctly
+- ✅ No mixed content warnings
 
 ## CLI Commands (Optional)
 
 For users who prefer command-line verification and testing:
-
-## Verification
-
-### Check DNS Propagation
-```bash
-# Check A record
-dig $DOMAIN_NAME
-
-# Check www
-dig www.$DOMAIN_NAME
-
-# Check nameservers
-dig NS $DOMAIN_NAME
-```
-
-### Check SSL Certificate
-```bash
-# Check certificate
-openssl s_client -connect $DOMAIN_NAME:443 -servername $DOMAIN_NAME < /dev/null
-
-# Or use online tool: https://www.ssllabs.com/ssltest/
-```
-
-### Test Website
-```bash
-curl -I https://$DOMAIN_NAME
-curl -I https://www.$DOMAIN_NAME
-```
 
 ## Optional: Custom Domain for API Gateway
 
@@ -221,87 +202,6 @@ If you want a custom domain for your API (e.g., `api.yourdomain.com`):
 ### Update Frontend
 ```javascript
 const API_BASE_URL = 'https://api.yourdomain.com';
-```
-
-## Monitoring
-
-### Route53 Query Metrics
-```bash
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/Route53 \
-  --metric-name QueryCount \
-  --dimensions Name=HostedZoneId,Value=$HOSTED_ZONE_ID \
-  --start-time 2024-01-01T00:00:00Z \
-  --end-time 2024-01-02T00:00:00Z \
-  --period 3600 \
-  --statistics Sum
-```
-
-## Cost Considerations
-- Route53 Hosted Zone: $0.50/month
-- Route53 Queries: $0.40 per million queries
-- ACM Certificate: Free
-- Domain registration: $12-15/year (varies by TLD)
-
-## Cleanup Commands
-```bash
-# Delete Route53 records (except NS and SOA)
-aws route53 list-resource-record-sets \
-  --hosted-zone-id $HOSTED_ZONE_ID \
-  --query 'ResourceRecordSets[?Type!=`NS` && Type!=`SOA`]' \
-  --output json > /tmp/records.json
-
-# Delete each record (manual or script)
-
-# Delete hosted zone
-aws route53 delete-hosted-zone \
-  --id $HOSTED_ZONE_ID
-
-# Delete certificate
-aws acm delete-certificate \
-  --certificate-arn $CERT_ARN \
-  --region us-east-1
-```
-
-## Final Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Internet                             │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                    ┌────▼────┐
-                    │ Route53 │ (yourdomain.com)
-                    └────┬────┘
-                         │
-                  ┌──────▼──────┐
-                  │ CloudFront  │ (SSL/CDN)
-                  └──────┬──────┘
-                         │
-            ┌────────────┴────────────┐
-            │                         │
-       ┌────▼────┐              ┌────▼────────┐
-       │   S3    │              │ API Gateway │
-       │Frontend │              │   (JWT)     │
-       └─────────┘              └────┬────────┘
-                                     │
-                              ┌──────▼──────┐
-                              │     ALB     │
-                              └──────┬──────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    │                │                │
-              ┌─────▼─────┐    ┌────▼────┐    ┌─────▼─────┐
-              │    ECS    │    │   ECS   │    │    ECS    │
-              │ Services  │    │Services │    │ Services  │
-              └─────┬─────┘    └────┬────┘    └─────┬─────┘
-                    │               │               │
-                    └───────────────┼───────────────┘
-                                    │
-                              ┌─────▼─────┐
-                              │    RDS    │
-                              │PostgreSQL │
-                              └───────────┘
 ```
 
 ## Congratulations! 🎉
