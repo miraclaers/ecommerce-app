@@ -226,4 +226,4 @@ curl https://d1234567890.cloudfront.net
 - Verify redirect URLs match exactly
 
 ## Next Steps
-Proceed to **[Module 7: Event-Driven Architecture](./module7-events.md)** to set up SNS and SQS for notifications.
+Proceed to **[Module 7: Event-Driven Architecture](./module7-event-driven.md)** to set up SNS and SQS for notifications.

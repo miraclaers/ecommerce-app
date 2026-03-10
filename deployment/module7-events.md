@@ -1,112 +1,100 @@
-# Module 7: Frontend Deployment (S3 + CloudFront)
+# Module 7: Event-Driven Architecture
 
 ## Overview
-Deploy the React frontend as a static website using S3 and CloudFront for global content delivery.
+Set up event-driven architecture using Amazon SNS and SQS for asynchronous order processing and email notifications in the ecommerce application.
+
+## What We'll Build
+- **7.1** SNS topic for order events
+- **7.2** SQS queue for order processing
+- **7.3** Email subscription for notifications
+- **7.4** Configure SNS-SQS integration
+- **7.5** Update Parameter Store with SNS topic ARN
+- **7.6** Test event-driven workflow
 
 ## Architecture
 ```
-User → CloudFront (CDN) → S3 Bucket (Static Website)
-                ↓
-        API Gateway (Backend APIs)
+Order Service → SNS Topic → SQS Queue → Notification Service
+                    ↓
+               Email Subscription
 ```
 
-## Why S3 + CloudFront?
-- S3: Cost-effective static website hosting
-- CloudFront: Global CDN for fast content delivery
-- HTTPS: Free SSL certificate with CloudFront
-- Caching: Reduced load on origin, faster response
-- Security: Origin Access Identity (OAI) to restrict S3 access
+When an order is placed:
+1. **Order Service** publishes message to SNS topic
+2. **SNS** delivers message to SQS queue and email subscriber
+3. **Notification Service** processes SQS messages for additional logic
+4. **Email notification** sent directly via SNS
 
-## Resources to Create
+---
 
-### 1. S3 Bucket
-- Name: ecommerce-frontend-<unique-id>
-- Purpose: Store React build files
-- Public access: Blocked (CloudFront will access via OAI)
+## 7.1 Create SNS Topic
 
-### 2. CloudFront Distribution
-- Origin: S3 bucket
-- Default root object: index.html
-- Error pages: Redirect to index.html (for React Router)
-- SSL: CloudFront default certificate
+### SNS Topic Configuration
 
-### 3. Origin Access Identity (OAI)
-- Allows CloudFront to access private S3 bucket
+1. **SNS Console → Topics → Create topic**
+2. **Type:** Standard
+3. **Name:** `ecommerce-order-notifications`
+4. **Display name:** `eCommerce Order Notifications`
+5. **Create topic**
 
-## Console Steps
+### Note Topic ARN
 
-### Step 1: Build React Application
+6. **Copy the Topic ARN** (e.g., `arn:aws:sns:<region>:<account-id>:ecommerce-order-notifications`)
+7. **Save this ARN** - we'll use it in Parameter Store and order service
 
-1. Update frontend configuration with production values:
+---
 
-**Update `frontend/react-app/.env.production`:**
-```
-REACT_APP_API_URL=https://<api-id>.execute-api.ap-south-1.amazonaws.com
-```
+## 7.2 Create SQS Queue
 
-**Update `frontend/react-app/src/aws-config.js`:**
-```javascript
-const awsConfig = {
-  Auth: {
-    Cognito: {
-      userPoolId: 'ap-south-1_xxxxxxxxx',
-      userPoolClientId: 'xxxxxxxxxxxxxxxxxxxxxxxxxx',
-      loginWith: {
-        oauth: {
-          domain: 'ecommerce-xxxxx.auth.ap-south-1.amazoncognito.com',
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: ['https://<cloudfront-domain>'],  // Update after CloudFront creation
-          redirectSignOut: ['https://<cloudfront-domain>'],
-          responseType: 'code'
-        }
-      }
-    }
-  }
-};
-```
+### SQS Queue Configuration
 
-2. Build the application:
-```bash
-cd frontend/react-app
-npm run build
-```
+1. **SQS Console → Queues → Create queue**
+2. **Type:** Standard queue
+3. **Name:** `ecommerce-order-processing`
+4. **Configuration:** Keep defaults
+   - Visibility timeout: 30 seconds
+   - Message retention period: 4 days
+   - Delivery delay: 0 seconds
+5. **Create queue**
 
-This creates a `build/` directory with optimized production files.
+### Note Queue Details
 
-### Step 2: Create S3 Bucket
+6. **Copy the Queue URL** (e.g., `https://sqs.<region>.amazonaws.com/<account-id>/ecommerce-order-processing`)
+7. **Copy the Queue ARN** (from queue details)
 
-1. Go to S3 Console → Create bucket
-2. Bucket name: `ecommerce-frontend-<random-number>` (must be globally unique)
-3. Region: ap-south-1
-4. Block all public access: ✅ Enable (CloudFront will access it)
-5. Bucket versioning: Disable (optional: enable for rollback capability)
-6. Encryption: Enable (SSE-S3)
-7. Create bucket
+---
 
-### Step 3: Upload Build Files to S3
+## 7.3 Create Email Subscription
 
-1. Open your bucket
-2. Click "Upload"
-3. Add files: Select all files from `frontend/react-app/build/` directory
-4. Upload
+### Email Subscription Configuration
 
-**Or use CLI:**
-```bash
-aws s3 sync frontend/react-app/build/ s3://ecommerce-frontend-<id>/ --region ap-south-1
-```
+1. **Go to SNS topic → Subscriptions → Create subscription**
+2. **Topic ARN:** Select `ecommerce-order-notifications`
+3. **Protocol:** Email
+4. **Endpoint:** Enter your email address (e.g., `admin@yourcompany.com`)
+5. **Create subscription**
 
-### Step 4: Create CloudFront Origin Access Identity
+### Confirm Email Subscription
 
-1. Go to CloudFront Console → Origin access → Origin access identities
-2. Create origin access identity
-3. Name: `ecommerce-s3-oai`
-4. Comment: "OAI for ecommerce frontend"
-5. Create
+6. **Check your email** for confirmation message from AWS
+7. **Click "Confirm subscription"** in the email
+8. **Verify status** shows "Confirmed" in SNS console
 
-### Step 5: Update S3 Bucket Policy
+---
 
-1. Go to S3 bucket → Permissions → Bucket policy
-2. Add policy to allow CloudFront OAI:
+## 7.4 Configure SNS-SQS Integration
+
+### Create SQS Subscription
+
+1. **Go to SNS topic → Subscriptions → Create subscription**
+2. **Topic ARN:** Select `ecommerce-order-notifications`
+3. **Protocol:** Amazon SQS
+4. **Endpoint:** Enter the SQS queue ARN from step 7.2
+5. **Create subscription**
+
+### Configure SQS Queue Policy
+
+1. **Go to SQS queue → Access policy → Edit**
+2. **Add policy to allow SNS to send messages:**
 
 ```json
 {
@@ -115,376 +103,107 @@ aws s3 sync frontend/react-app/build/ s3://ecommerce-frontend-<id>/ --region ap-
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <OAI-ID>"
+        "Service": "sns.amazonaws.com"
       },
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::ecommerce-frontend-<id>/*"
-    }
-  ]
-}
-```
-
-### Step 6: Create CloudFront Distribution
-
-1. **CloudFront Console → Create distribution**
-2. **Origin settings:**
-   - Origin domain: Select your S3 bucket (e.g., `future-store-frontend-1773060673.s3.ap-south-1.amazonaws.com`)
-   - Origin path: Leave empty
-   - Name: Auto-filled
-   - Origin access: Origin access control settings (recommended)
-   - Origin access control: Create new OAC
-     - Name: `future-store-oac`
-     - Sign requests: Yes
-     - Origin type: S3
-   - Enable Origin Shield: No
-
-3. **Default cache behavior:**
-   - Viewer protocol policy: Redirect HTTP to HTTPS
-   - Allowed HTTP methods: GET, HEAD (not OPTIONS - this causes issues)
-   - Cache policy: CachingOptimized
-   - Origin request policy: None
-   - Compress objects automatically: Yes
-
-4. **Settings:**
-   - Price class: Use all edge locations (best performance)
-   - Alternate domain name (CNAME): Leave empty for now
-   - SSL certificate: Default CloudFront certificate
-   - Default root object: `index.html`
-
-5. **Create distribution** (takes 10-15 minutes to deploy)
-
-### Step 7: Configure Error Pages (for React Router)
-
-1. **Go to your distribution → Error pages tab**
-2. **Create custom error response:**
-   - HTTP error code: 403
-   - Customize error response: Yes
-   - Response page path: `/index.html`
-   - HTTP response code: 200
-   - Error caching minimum TTL: 300
-
-**Note:** Only configure 403 error page. The 404 error is handled by React Router internally.
-   - HTTP response code: 200
-
-This ensures React Router handles all routes.
-
-### Step 8: Update Cognito Callback URLs
-
-1. Go to Cognito Console → User pools → ecommerce-users
-2. App integration → App client
-3. Edit Hosted UI settings:
-   - Add callback URL: `https://<cloudfront-domain>`
-   - Add sign-out URL: `https://<cloudfront-domain>`
-4. Save changes
-
-### Step 9: Test the Application
-
-1. Get CloudFront domain: `https://d1234567890abc.cloudfront.net`
-2. Open in browser
-3. Test:
-   - Browse products
-   - Sign up / Sign in
-   - Add to cart
-   - Place order
-   - Check email for confirmation
-
-## CLI Commands
-
-### Build React App
-```bash
-cd frontend/react-app
-
-# Update .env.production with API Gateway URL
-cat > .env.production <<EOF
-REACT_APP_API_URL=$API_ENDPOINT
-EOF
-
-# Build
-npm run build
-cd ../..
-```
-
-### Create S3 Bucket
-```bash
-BUCKET_NAME="ecommerce-frontend-$RANDOM"
-
-aws s3 mb s3://$BUCKET_NAME --region ap-south-1
-
-# Block public access
-aws s3api put-public-access-block \
-  --bucket $BUCKET_NAME \
-  --public-access-block-configuration \
-    BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true \
-  --region ap-south-1
-
-echo "BUCKET_NAME=$BUCKET_NAME" >> deployment/vpc-resources.txt
-```
-
-### Upload Build Files
-```bash
-aws s3 sync frontend/react-app/build/ s3://$BUCKET_NAME/ \
-  --region ap-south-1 \
-  --delete
-```
-
-### Create CloudFront OAI
-```bash
-OAI_ID=$(aws cloudfront create-cloud-front-origin-access-identity \
-  --cloud-front-origin-access-identity-config \
-    CallerReference=$(date +%s),Comment="OAI for ecommerce frontend" \
-  --query 'CloudFrontOriginAccessIdentity.Id' \
-  --output text)
-
-echo "OAI_ID=$OAI_ID" >> deployment/vpc-resources.txt
-```
-
-### Update S3 Bucket Policy
-```bash
-cat > /tmp/bucket-policy.json <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity $OAI_ID"
-      },
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::$BUCKET_NAME/*"
-    }
-  ]
-}
-EOF
-
-aws s3api put-bucket-policy \
-  --bucket $BUCKET_NAME \
-  --policy file:///tmp/bucket-policy.json \
-  --region ap-south-1
-```
-
-### Create CloudFront Distribution
-```bash
-cat > /tmp/cf-config.json <<EOF
-{
-  "CallerReference": "$(date +%s)",
-  "Comment": "Ecommerce Frontend Distribution",
-  "DefaultRootObject": "index.html",
-  "Origins": {
-    "Quantity": 1,
-    "Items": [
-      {
-        "Id": "S3-$BUCKET_NAME",
-        "DomainName": "$BUCKET_NAME.s3.ap-south-1.amazonaws.com",
-        "S3OriginConfig": {
-          "OriginAccessIdentity": "origin-access-identity/cloudfront/$OAI_ID"
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-order-processing",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceArn": "arn:aws:sns:<region>:<account-id>:ecommerce-order-notifications"
         }
       }
-    ]
-  },
-  "DefaultCacheBehavior": {
-    "TargetOriginId": "S3-$BUCKET_NAME",
-    "ViewerProtocolPolicy": "redirect-to-https",
-    "AllowedMethods": {
-      "Quantity": 3,
-      "Items": ["GET", "HEAD", "OPTIONS"],
-      "CachedMethods": {
-        "Quantity": 2,
-        "Items": ["GET", "HEAD"]
-      }
-    },
-    "Compress": true,
-    "ForwardedValues": {
-      "QueryString": false,
-      "Cookies": {"Forward": "none"}
-    },
-    "MinTTL": 0,
-    "DefaultTTL": 86400,
-    "MaxTTL": 31536000,
-    "TrustedSigners": {
-      "Enabled": false,
-      "Quantity": 0
     }
-  },
-  "CustomErrorResponses": {
-    "Quantity": 2,
-    "Items": [
-      {
-        "ErrorCode": 403,
-        "ResponsePagePath": "/index.html",
-        "ResponseCode": "200",
-        "ErrorCachingMinTTL": 300
-      },
-      {
-        "ErrorCode": 404,
-        "ResponsePagePath": "/index.html",
-        "ResponseCode": "200",
-        "ErrorCachingMinTTL": 300
-      }
-    ]
-  },
-  "Enabled": true
+  ]
 }
-EOF
-
-CF_DISTRIBUTION_ID=$(aws cloudfront create-distribution \
-  --distribution-config file:///tmp/cf-config.json \
-  --query 'Distribution.Id' \
-  --output text)
-
-CF_DOMAIN=$(aws cloudfront get-distribution \
-  --id $CF_DISTRIBUTION_ID \
-  --query 'Distribution.DomainName' \
-  --output text)
-
-echo "CF_DISTRIBUTION_ID=$CF_DISTRIBUTION_ID" >> deployment/vpc-resources.txt
-echo "CF_DOMAIN=$CF_DOMAIN" >> deployment/vpc-resources.txt
-echo "CloudFront Domain: https://$CF_DOMAIN"
 ```
 
-### Wait for Distribution to Deploy
-```bash
-echo "Waiting for CloudFront distribution to deploy (this takes 10-15 minutes)..."
-aws cloudfront wait distribution-deployed \
-  --id $CF_DISTRIBUTION_ID
+3. **Replace `<region>` and `<account-id>`** with your actual values
+4. **Save policy**
 
-echo "Distribution deployed!"
+---
+
+## 7.5 Update Parameter Store
+
+### SNS Topic ARN Parameter
+
+1. **Systems Manager Console → Parameter Store → Create parameter**
+2. **Name:** `/ecommerce/dev/sns/topic-arn`
+3. **Type:** String
+4. **Value:** `arn:aws:sns:<region>:<account-id>:ecommerce-order-notifications`
+
+This parameter will be used by the order service to publish messages to SNS.
+
+---
+
+## 7.6 Test Event-Driven Workflow
+
+### Test SNS Topic
+
+**Publish Test Message:**
+1. **Go to SNS topic → Publish message**
+2. **Subject:** `Test Order Notification`
+3. **Message body:**
+```json
+{
+  "orderId": "test-001",
+  "userId": "user-123",
+  "totalAmount": 99.99,
+  "status": "confirmed",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
 ```
+4. **Publish message**
 
-### Update Cognito Callback URLs
-```bash
-# Get current app client config
-aws cognito-idp describe-user-pool-client \
-  --user-pool-id $USER_POOL_ID \
-  --client-id $APP_CLIENT_ID \
-  --region ap-south-1
+### Verify Message Delivery
 
-# Update with CloudFront domain
-aws cognito-idp update-user-pool-client \
-  --user-pool-id $USER_POOL_ID \
-  --client-id $APP_CLIENT_ID \
-  --callback-urls "http://localhost:3000" "https://$CF_DOMAIN" \
-  --logout-urls "http://localhost:3000" "https://$CF_DOMAIN" \
-  --region ap-south-1
-```
+**Check Email:**
+- You should receive an email notification with the test message
 
-## Updating the Frontend
+**Check SQS Queue:**
+1. **Go to SQS queue → Send and receive messages**
+2. **Poll for messages**
+3. **Verify test message** appears in the queue
 
-When you make changes to the React app:
+### Test with Order Service
 
-```bash
-# 1. Build
-cd frontend/react-app
-npm run build
+Once the order service is deployed (from Module 4), it will automatically:
+1. **Read SNS topic ARN** from Parameter Store
+2. **Publish messages** when orders are created
+3. **Trigger notifications** via SNS to both email and SQS
 
-# 2. Upload to S3
-aws s3 sync build/ s3://$BUCKET_NAME/ --delete --region ap-south-1
+### Message Flow Verification
 
-# 3. Invalidate CloudFront cache
-aws cloudfront create-invalidation \
-  --distribution-id $CF_DISTRIBUTION_ID \
-  --paths "/*"
-```
+**Expected Flow:**
+1. **Order placed** → Order service publishes to SNS
+2. **SNS delivers** → Email notification sent
+3. **SNS delivers** → Message queued in SQS
+4. **Notification service** → Processes SQS messages (future enhancement)
 
-## Verification
+### Troubleshooting
 
-### Check S3 Files
-```bash
-aws s3 ls s3://$BUCKET_NAME/ --recursive --region ap-south-1
-```
+**Email not received:**
+- Check email subscription is confirmed
+- Verify email address is correct
+- Check spam folder
 
-### Check CloudFront Status
-```bash
-aws cloudfront get-distribution \
-  --id $CF_DISTRIBUTION_ID \
-  --query 'Distribution.[Id,Status,DomainName]' \
-  --output table
-```
+**SQS not receiving messages:**
+- Verify SQS queue policy allows SNS access
+- Check SNS subscription is confirmed
+- Ensure queue ARN is correct in subscription
 
-### Test Website
-```bash
-curl -I https://$CF_DOMAIN
-```
+**Order service not publishing:**
+- Verify Parameter Store has correct SNS topic ARN
+- Check ECS task role has SNS publish permissions
+- Review CloudWatch logs for errors
 
-## Performance Optimization
+## Architecture Benefits
 
-### Enable Compression
-CloudFront automatically compresses files (already configured above).
-
-### Set Cache Headers in S3
-```bash
-# Set cache headers for static assets
-aws s3 cp s3://$BUCKET_NAME/static/ s3://$BUCKET_NAME/static/ \
-  --recursive \
-  --metadata-directive REPLACE \
-  --cache-control "public, max-age=31536000, immutable" \
-  --region ap-south-1
-
-# Set cache headers for index.html (no cache)
-aws s3 cp s3://$BUCKET_NAME/index.html s3://$BUCKET_NAME/index.html \
-  --metadata-directive REPLACE \
-  --cache-control "no-cache, no-store, must-revalidate" \
-  --region ap-south-1
-```
-
-## Monitoring
-
-### CloudFront Metrics
-- Requests
-- Bytes downloaded
-- Error rate (4xx, 5xx)
-- Cache hit rate
-
-### View Metrics
-```bash
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/CloudFront \
-  --metric-name Requests \
-  --dimensions Name=DistributionId,Value=$CF_DISTRIBUTION_ID \
-  --start-time 2024-01-01T00:00:00Z \
-  --end-time 2024-01-02T00:00:00Z \
-  --period 3600 \
-  --statistics Sum
-```
-
-## Cost Considerations
-- S3: $0.023/GB storage + $0.09/GB data transfer
-- CloudFront: $0.085/GB data transfer (first 10TB)
-- For low traffic: ~$5-10/month
-
-## Cleanup Commands
-```bash
-# Delete CloudFront distribution
-aws cloudfront get-distribution-config \
-  --id $CF_DISTRIBUTION_ID \
-  --query 'DistributionConfig' > /tmp/dist-config.json
-
-# Disable distribution first
-aws cloudfront update-distribution \
-  --id $CF_DISTRIBUTION_ID \
-  --if-match $(aws cloudfront get-distribution --id $CF_DISTRIBUTION_ID --query 'ETag' --output text) \
-  --distribution-config file:///tmp/dist-config.json
-
-# Wait for deployment
-aws cloudfront wait distribution-deployed --id $CF_DISTRIBUTION_ID
-
-# Delete distribution
-aws cloudfront delete-distribution \
-  --id $CF_DISTRIBUTION_ID \
-  --if-match $(aws cloudfront get-distribution --id $CF_DISTRIBUTION_ID --query 'ETag' --output text)
-
-# Delete OAI
-aws cloudfront delete-cloud-front-origin-access-identity \
-  --id $OAI_ID \
-  --if-match $(aws cloudfront get-cloud-front-origin-access-identity --id $OAI_ID --query 'ETag' --output text)
-
-# Empty and delete S3 bucket
-aws s3 rm s3://$BUCKET_NAME --recursive --region ap-south-1
-aws s3 rb s3://$BUCKET_NAME --region ap-south-1
-```
+1. **Decoupled Services:** Order service doesn't directly handle notifications
+2. **Scalable Processing:** SQS allows asynchronous message processing
+3. **Multiple Subscribers:** Easy to add more notification channels
+4. **Reliable Delivery:** SNS ensures message delivery to all subscribers
+5. **Event-Driven:** Reactive architecture based on business events
+6. **Future Extensibility:** Easy to add more services and notification types
 
 ## Next Steps
-After completing this module:
-- ✅ Frontend deployed globally via CloudFront
-- ✅ HTTPS enabled by default
-- ✅ Fast content delivery with CDN
-- Ready for Module 8: DNS & SSL (Custom Domain)
+Proceed to **[Module 8: DNS & SSL](./module8-dns-ssl.md)** to configure custom domain and SSL certificates.
