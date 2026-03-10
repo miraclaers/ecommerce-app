@@ -205,3 +205,6 @@ const API_BASE_URL = 'https://api.yourdomain.com';
 ```
 
 You have successfully deployed a production-ready ecommerce application on AWS with custom domain and SSL certificate.
+
+## Next Steps
+Proceed to **[Module 9: Cleanup](./module9-cleanup.md)** to remove all AWS resources and avoid ongoing charges.
