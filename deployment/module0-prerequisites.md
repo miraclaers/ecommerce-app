@@ -60,19 +60,4 @@ ls -la
 # - local-deployment/  (local testing setup)
 ```
 
-## Quick Verification
-
-Run these commands to ensure everything is ready:
-
-```bash
-# 1. AWS CLI working
-aws sts get-caller-identity
-
-# 2. Docker working  
-docker --version
-
-# 3. Repository cloned
-ls services/
-```
-
 If all commands work without errors, you're ready to proceed to **[Module 1: Networking Foundation](./module1-networking.md)**.
