@@ -26,6 +26,15 @@ User → Route53 → CloudFront → S3 (Frontend)
                              (Products, Cart)
 ```
 
+## Security Architecture
+
+- **Internal ALB** (not internet-facing) for enhanced security
+- **VPC Link** for secure API Gateway to ALB communication
+- **Parameter Store** for centralized configuration management
+- **Encrypted secrets** using SecureString parameters
+- **Private subnets** for all application components
+- **Cognito JWT authentication** for API access
+
 ## Deployment Modules
 
 Complete these modules in order:
@@ -95,32 +104,20 @@ Complete these modules in order:
 - **Certificate Manager:** us-east-1 (required for CloudFront)
 - Keep all other resources in ap-south-1
 
-### Security Architecture
-- Internal ALB (not internet-facing) for enhanced security
-- VPC Link for secure API Gateway to ALB communication
-- Parameter Store for centralized configuration management
-- Encrypted secrets using SecureString parameters
+## Cost Estimate (24-hour deployment)
 
-## Cost Estimate (Monthly)
+| Service | Daily Cost |
+|---------|------------|
+| VPC (NAT Gateway) | $1.07 |
+| DynamoDB (On-Demand) | $0.03-0.17 |
+| RDS (db.t3.micro) | $0.50-0.67 |
+| ECS Fargate (4 services) | $3.83 |
+| Internal ALB | $0.53 |
+| API Gateway + VPC Link | $0.93 |
+| SNS/SQS/SES | <$0.03 |
+| S3 + CloudFront | $0.33-0.50 |
+| Route53 | $0.03 |
+| **Total per day** | **~$7.24-7.79** |
 
-| Service | Cost |
-|---------|------|
-| VPC (NAT Gateway) | $32 |
-| DynamoDB (On-Demand) | $1-5 |
-| RDS (db.t3.micro) | $15-20 |
-| ECS Fargate (4 services) | $115 |
-| Internal ALB | $16 |
-| API Gateway + VPC Link | $28 |
-| SNS/SQS/SES | <$1 |
-| S3 + CloudFront | $10-15 |
-| Route53 | $1 |
-| **Total** | **~$218-233/month** |
-
-**Development Cost:**
-- **4-hour session:** ~$10-15
-- **24-hour deployment:** ~$50-75
-
-**Cost Optimization Tips:**
-- Stop ECS services when not in use (dev/test)
-- Use Spot instances for non-critical workloads
-- Review and delete unused resources regularly
+**If completed in 4 hours:** ~$1.20-1.30  
+**Monthly production cost:** ~$218-233
