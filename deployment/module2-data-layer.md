@@ -1,123 +1,33 @@
 # Module 2: Data Layer
 
 ## Overview
-Set up databases for the ecommerce application:
+Set up the data storage layer for the ecommerce application:
+- **S3** for product images with public read access
 - **DynamoDB** for high-performance NoSQL data (products, cart)
-- **RDS PostgreSQL** for relational data (users, orders)
-- **S3** for product images
-- Security groups for database access
+- **RDS PostgreSQL** for relational data (users, orders) in private subnets
 
-## Architecture
-```
-S3 Bucket (Public Read)
-└── Product Images
+This module creates the foundation for data storage across all microservices with proper security and performance considerations.
 
-DynamoDB (Global, Serverless)
-├── Table: products
-│   ├── Partition Key: product_id (String)
-│   └── Attributes: name, description, price, stock, image_key (S3 key)
-└── Table: cart
-    ├── Partition Key: user_id (String)
-    ├── Sort Key: product_id (String)
-    └── Attributes: quantity, price, added_at
+---
 
-Private Subnets
-├── RDS PostgreSQL (Multi-AZ)
-│   ├── Database: ecommercedb
-│   ├── Tables: users, orders, order_items
-│   └── Port: 5432
-└── Security Group: rds-sg
-    └── Inbound: Port 5432 from ECS tasks
-```
+## S3 - Product Images Storage
 
-## Why This Design?
+### Create S3 Bucket
 
-**DynamoDB for Products & Cart:**
-- High read/write throughput for product catalog
-- Low latency for cart operations
-- Automatic scaling
-- No schema migrations needed
-- Pay per request (cost-effective for variable traffic)
+1. **S3 Console → Buckets → Create bucket**
+2. **Bucket name:** `ecommerce-product-images-<random-number>` (must be globally unique)
+3. **Region:** ap-south-1
+4. **Block all public access:** **Uncheck** (we need public read for images)
+5. **Acknowledge the warning**
+6. **Bucket versioning:** Disable
+7. **Encryption:** Enable (SSE-S3)
+8. **Create bucket**
 
-**RDS PostgreSQL for Users & Orders:**
-- ACID transactions for order processing
-- Complex queries and joins
-- Referential integrity
-- Consistent data for financial records
+### Configure Public Read Access
 
-**S3 for Product Images:**
-- Cost-effective storage
-- High availability and durability
-- Direct browser access via CloudFront
-- No load on application servers
-
-## Resources to Create
-
-### 1. S3 Bucket for Product Images
-- Bucket name: ecommerce-product-images-<unique-id>
-- Public read access for images
-- CORS configuration for web access
-
-### 2. DynamoDB Tables
-
-**Products Table:**
-- Table name: ecommerce-products
-- Partition key: product_id (String)
-- Billing mode: On-demand (pay per request)
-- Encryption: Enabled
-- Attributes include: image_key (S3 object key)
-
-**Cart Table:**
-- Table name: ecommerce-cart
-- Partition key: user_id (String)
-- Sort key: product_id (String)
-- Billing mode: On-demand
-- TTL: enabled on `expires_at` attribute (optional)
-- Encryption: Enabled
-
-### 3. DB Subnet Group
-- Name: ecommerce-db-subnet-group
-- Subnets: Both private subnets (from Module 1)
-
-### 4. Security Group for RDS
-- Name: ecommerce-rds-sg
-- VPC: ecommerce-vpc
-- Inbound Rules:
-  - PostgreSQL (5432) from ECS security group (will create in Module 4)
-  - For now: PostgreSQL (5432) from VPC CIDR (10.0.0.0/16)
-
-### 5. RDS PostgreSQL Instance
-- Engine: PostgreSQL 15
-- Instance class: db.t3.micro (Free tier eligible)
-- Storage: 20 GB gp3
-- Multi-AZ: No (for cost savings in dev)
-- Database name: ecommercedb
-- Master username: postgres
-- Master password: (choose a strong password)
-- Subnet group: ecommerce-db-subnet-group
-- Security group: ecommerce-rds-sg
-- Backup retention: 7 days
-- Public access: No
-
-### 6. IAM Policy for DynamoDB Access
-- Allow ECS tasks to read/write DynamoDB tables
-
-## Console Steps
-
-### Step 1: Create S3 Bucket for Product Images
-
-1. Go to S3 Console → Buckets → Create bucket
-2. Bucket name: `ecommerce-product-images-<random-number>` (must be globally unique)
-3. Region: ap-south-1
-4. Block all public access: **Uncheck** (we need public read for images)
-5. Acknowledge the warning
-6. Bucket versioning: Disable
-7. Encryption: Enable (SSE-S3)
-8. Create bucket
-
-**Configure Bucket Policy for Public Read:**
-1. Go to bucket → Permissions → Bucket policy
-2. Add policy:
+**Bucket Policy:**
+1. **Go to bucket → Permissions → Bucket policy**
+2. **Add policy:**
 ```json
 {
   "Version": "2012-10-17",
@@ -133,9 +43,9 @@ Private Subnets
 }
 ```
 
-**Configure CORS:**
-1. Go to bucket → Permissions → CORS
-2. Add configuration:
+**CORS Configuration:**
+1. **Go to bucket → Permissions → CORS**
+2. **Add configuration:**
 ```json
 [
   {
@@ -147,303 +57,148 @@ Private Subnets
 ]
 ```
 
-### Step 2: Create DynamoDB Tables
+### Upload Product Images
 
-### Step 2: Create DynamoDB Tables
+**Using Upload Script:**
+```bash
+cd scripts
+./upload-images.sh ecommerce-product-images-<your-bucket-name>
+```
 
-**Products Table:**
-1. Go to DynamoDB Console → Tables → Create table
-2. Table name: `ecommerce-products`
-3. Partition key: `product_id` (String)
-4. Table settings: Customize settings
-5. Table class: DynamoDB Standard
-6. Capacity mode: On-demand
-7. Encryption: Amazon DynamoDB owned key (or use AWS managed key)
-8. Create table
+This script uploads sample product images (prod-001.jpg through prod-020.jpg) to your S3 bucket.
 
-**Cart Table:**
-1. DynamoDB Console → Tables → Create table
-2. Table name: `ecommerce-cart`
-3. Partition key: `user_id` (String)
-4. Sort key: `product_id` (String)
-5. Table settings: Customize settings
-6. Capacity mode: On-demand
-7. Encryption: Amazon DynamoDB owned key
-8. Create table
-
-**Optional - Enable TTL for Cart:**
-1. Go to cart table → Additional settings → Time to Live (TTL)
-2. Enable TTL
-3. TTL attribute: `expires_at`
-4. This auto-deletes old cart items
-
-### Step 3: Upload Product Images to S3
-
-1. Download sample images or use your own
-2. Go to S3 bucket → Upload
-3. Add files (name them: prod-001.jpg, prod-002.jpg, etc.)
-4. Upload
+**Manual Upload:**
+1. **Go to S3 bucket → Upload**
+2. **Add files** (name them: prod-001.jpg, prod-002.jpg, etc.)
+3. **Upload**
 
 **Image URL Format:**
 ```
 https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-001.jpg
 ```
 
-### Step 4: Create DB Subnet Group
-1. Go to RDS Console → Subnet groups
-2. Click "Create DB subnet group"
-3. Name: `ecommerce-db-subnet-group`
-4. Description: "Subnet group for ecommerce RDS"
-5. VPC: Select `ecommerce-vpc`
-6. Add subnets:
-   - Select both availability zones (ap-south-1a, ap-south-1b)
-   - Select both private subnets
-7. Create
+---
 
-### Step 2: Create DB Subnet Group
+## DynamoDB - NoSQL Tables
 
-### Step 4: Create DB Subnet Group
+### Products Table
 
-1. Go to RDS Console → Subnet groups
-2. Click "Create DB subnet group"
-3. Name: `ecommerce-db-subnet-group`
-4. Description: "Subnet group for ecommerce RDS"
-5. VPC: Select `ecommerce-vpc`
-6. Add subnets:
-   - Select both availability zones (ap-south-1a, ap-south-1b)
-   - Select both private subnets
-7. Create
+1. **DynamoDB Console → Tables → Create table**
+2. **Table name:** `ecommerce-products`
+3. **Partition key:** `product_id` (String)
+4. **Table settings:** Customize settings
+5. **Table class:** DynamoDB Standard
+6. **Capacity mode:** On-demand
+7. **Encryption:** Amazon DynamoDB owned key
+8. **Create table**
 
-### Step 5: Create Security Group for RDS
-1. Go to VPC Console → Security Groups
-2. Click "Create security group"
-3. Name: `ecommerce-rds-sg`
-4. Description: "Security group for RDS PostgreSQL"
-5. VPC: Select `ecommerce-vpc`
-6. Inbound rules:
-   - Type: PostgreSQL
-   - Port: 5432
-   - Source: Custom - 10.0.0.0/16 (VPC CIDR)
-   - Description: "Allow PostgreSQL from VPC"
-7. Outbound rules: Keep default (all traffic)
-8. Create
+### Cart Table
 
-### Step 3: Create Security Group for RDS
+1. **DynamoDB Console → Tables → Create table**
+2. **Table name:** `ecommerce-cart`
+3. **Partition key:** `user_id` (String)
+4. **Sort key:** `product_id` (String)
+5. **Table settings:** Customize settings
+6. **Capacity mode:** On-demand
+7. **Encryption:** Amazon DynamoDB owned key
+8. **Create table**
 
-### Step 5: Create Security Group for RDS
+### Load Sample Products Data
 
-1. Go to VPC Console → Security Groups
-2. Click "Create security group"
-3. Name: `ecommerce-rds-sg`
-4. Description: "Security group for RDS PostgreSQL"
-5. VPC: Select `ecommerce-vpc`
-6. Inbound rules:
-   - Type: PostgreSQL
-   - Port: 5432
-   - Source: Custom - 10.0.0.0/16 (VPC CIDR)
-   - Description: "Allow PostgreSQL from VPC"
-7. Outbound rules: Keep default (all traffic)
-8. Create
+**Using Load Script:**
+```bash
+cd scripts
+./load-products.sh ecommerce-products ap-south-1
+```
 
-### Step 6: Create RDS Instance
-### Step 4: Create RDS Instance
+This script loads 20 sample products from `data/products.json` into your DynamoDB table.
 
-1. Go to RDS Console → Databases
-2. Click "Create database"
-3. Choose creation method: Standard create
-4. Engine options:
-   - Engine type: PostgreSQL
-   - Version: PostgreSQL 15.x (latest)
-5. Templates: Free tier (or Dev/Test)
-6. Settings:
-   - DB instance identifier: `ecommerce-db`
-   - Master username: `postgres`
-   - Master password: (create strong password - save it!)
-   - Confirm password
-7. Instance configuration:
-   - DB instance class: Burstable classes - db.t3.micro
-8. Storage:
-   - Storage type: gp3
-   - Allocated storage: 20 GiB
-   - Storage autoscaling: Disable (for cost control)
-9. Connectivity:
-   - VPC: `ecommerce-vpc`
-   - DB subnet group: `ecommerce-db-subnet-group`
-   - Public access: No
-   - VPC security group: Choose existing - `ecommerce-rds-sg`
-   - Availability Zone: No preference
-10. Database authentication: Password authentication
-11. Additional configuration:
-    - Initial database name: `ecommercedb`
-    - Backup retention period: 7 days
-    - Enable encryption: Yes (default KMS key)
-12. Create database (takes 5-10 minutes)
-
-### Step 5: Seed DynamoDB Tables with Sample Data
-
-**Products Table:**
-1. Go to DynamoDB Console → Tables → ecommerce-products
-2. Actions → Create item
-3. Add sample products (or use CLI below)
-
-**Sample Product:**
+**Manual Data Entry:**
+1. **Go to DynamoDB Console → Tables → ecommerce-products**
+2. **Actions → Create item**
+3. **Add sample product:**
 ```json
 {
   "product_id": "prod-001",
-  "name": "Laptop",
-  "description": "High-performance laptop",
-  "price": 999.99,
-  "stock": 50,
-  "image_url": "https://example.com/laptop.jpg",
+  "name": "Wireless Bluetooth Headphones",
+  "description": "Premium noise-cancelling over-ear headphones",
+  "price": 89.99,
+  "stock": 150,
+  "image_url": "https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-001.jpg",
   "category": "Electronics"
 }
 ```
 
-## CLI Commands
+### Optional: Enable TTL for Cart
 
-### Create DynamoDB Tables
+1. **Go to cart table → Additional settings → Time to Live (TTL)**
+2. **Enable TTL**
+3. **TTL attribute:** `expires_at`
+4. **This auto-deletes old cart items**
 
-**Products Table:**
-```bash
-aws dynamodb create-table \
-  --table-name ecommerce-products \
-  --attribute-definitions \
-    AttributeName=product_id,AttributeType=S \
-  --key-schema \
-    AttributeName=product_id,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --sse-specification Enabled=true \
-  --region ap-south-1
+---
 
-echo "PRODUCTS_TABLE=ecommerce-products" >> deployment/vpc-resources.txt
-```
-
-**Cart Table:**
-```bash
-aws dynamodb create-table \
-  --table-name ecommerce-cart \
-  --attribute-definitions \
-    AttributeName=user_id,AttributeType=S \
-    AttributeName=product_id,AttributeType=S \
-  --key-schema \
-    AttributeName=user_id,KeyType=HASH \
-    AttributeName=product_id,KeyType=RANGE \
-  --billing-mode PAY_PER_REQUEST \
-  --sse-specification Enabled=true \
-  --region ap-south-1
-
-echo "CART_TABLE=ecommerce-cart" >> deployment/vpc-resources.txt
-```
-
-**Enable TTL on Cart Table (Optional):**
-```bash
-aws dynamodb update-time-to-live \
-  --table-name ecommerce-cart \
-  --time-to-live-specification "Enabled=true,AttributeName=expires_at" \
-  --region ap-south-1
-```
-
-### Seed Products Table with Sample Data
-
-**Option 1: Use provided data file (Recommended)**
-```bash
-cd data
-./load-products.sh ecommerce-products ap-south-1
-```
-
-This loads 20 sample products from `data/products.json`.
-
-**Option 2: Manual CLI commands**
-```bash
-# Product 1
-aws dynamodb put-item \
-  --table-name ecommerce-products \
-  --item '{
-    "product_id": {"S": "prod-001"},
-    "name": {"S": "Wireless Bluetooth Headphones"},
-    "description": {"S": "Premium noise-cancelling over-ear headphones"},
-    "price": {"N": "89.99"},
-    "stock": {"N": "150"},
-    "image_url": {"S": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"},
-    "category": {"S": "Electronics"}
-  }' \
-  --region ap-south-1
-```
-
-See `data/products.json` for all 20 products.
+## RDS - PostgreSQL Database
 
 ### Create DB Subnet Group
-```bash
-# Load VPC resource IDs
-source deployment/vpc-resources.txt
 
-aws rds create-db-subnet-group \
-  --db-subnet-group-name ecommerce-db-subnet-group \
-  --db-subnet-group-description "Subnet group for ecommerce RDS" \
-  --subnet-ids $PRIVATE_SUBNET_1 $PRIVATE_SUBNET_2 \
-  --tags Key=Name,Value=ecommerce-db-subnet-group \
-  --region ap-south-1
-```
+1. **RDS Console → Subnet groups → Create DB subnet group**
+2. **Name:** `ecommerce-db-subnet-group`
+3. **Description:** "Subnet group for ecommerce RDS"
+4. **VPC:** Select `ecommerce-vpc`
+5. **Add subnets:**
+   - Select both availability zones (ap-south-1a, ap-south-1b)
+   - Select both private database subnets
+6. **Create**
 
 ### Create Security Group for RDS
-```bash
-RDS_SG_ID=$(aws ec2 create-security-group \
-  --group-name ecommerce-rds-sg \
-  --description "Security group for RDS PostgreSQL" \
-  --vpc-id $VPC_ID \
-  --region ap-south-1 \
-  --query 'GroupId' \
-  --output text)
 
-aws ec2 authorize-security-group-ingress \
-  --group-id $RDS_SG_ID \
-  --protocol tcp \
-  --port 5432 \
-  --cidr 10.0.0.0/16 \
-  --region ap-south-1
-
-echo "RDS_SG_ID=$RDS_SG_ID" >> deployment/vpc-resources.txt
-```
+1. **VPC Console → Security Groups → Create security group**
+2. **Name:** `ecommerce-rds-sg`
+3. **Description:** "Security group for RDS PostgreSQL"
+4. **VPC:** Select `ecommerce-vpc`
+5. **Inbound rules:**
+   - Type: PostgreSQL
+   - Port: 5432
+   - Source: Custom - 10.10.0.0/16 (VPC CIDR)
+   - Description: "Allow PostgreSQL from VPC"
+6. **Outbound rules:** Keep default (all traffic)
+7. **Create**
 
 ### Create RDS Instance
-```bash
-aws rds create-db-instance \
-  --db-instance-identifier ecommerce-db \
-  --db-instance-class db.t3.micro \
-  --engine postgres \
-  --engine-version 15.5 \
-  --master-username postgres \
-  --master-user-password '<YOUR_SECURE_PASSWORD_HERE>' \
-  --allocated-storage 20 \
-  --storage-type gp3 \
-  --db-subnet-group-name ecommerce-db-subnet-group \
-  --vpc-security-group-ids $RDS_SG_ID \
-  --db-name ecommercedb \
-  --backup-retention-period 7 \
-  --no-publicly-accessible \
-  --storage-encrypted \
-  --region ap-south-1
 
-# Wait for DB to be available (takes 5-10 minutes)
-aws rds wait db-instance-available \
-  --db-instance-identifier ecommerce-db \
-  --region ap-south-1
+1. **RDS Console → Databases → Create database**
+2. **Choose creation method:** Standard create
+3. **Engine options:**
+   - Engine type: PostgreSQL
+   - Version: PostgreSQL 15.x (latest)
+4. **Templates:** Dev/Test
+5. **Settings:**
+   - DB instance identifier: `ecommerce-db`
+   - Master username: `postgres`
+   - Master password: (create strong password - save it!)
+6. **Instance configuration:**
+   - DB instance class: Burstable classes - db.t3.micro
+7. **Storage:**
+   - Storage type: gp3
+   - Allocated storage: 20 GiB
+   - Storage autoscaling: Disable
+8. **Connectivity:**
+   - VPC: `ecommerce-vpc`
+   - DB subnet group: `ecommerce-db-subnet-group`
+   - Public access: No
+   - VPC security group: Choose existing - `ecommerce-rds-sg`
+   - Availability Zone: No preference (Single-AZ for Dev/Test)
+9. **Database authentication:** Password authentication
+10. **Additional configuration:**
+    - Initial database name: `ecommercedb`
+    - Backup retention period: 7 days
+    - Enable encryption: Yes
+11. **Create database** (takes 5-10 minutes)
 
-# Get DB endpoint
-DB_ENDPOINT=$(aws rds describe-db-instances \
-  --db-instance-identifier ecommerce-db \
-  --region ap-south-1 \
-  --query 'DBInstances[0].Endpoint.Address' \
-  --output text)
+### Database Schema
 
-echo "DB_ENDPOINT=$DB_ENDPOINT" >> deployment/vpc-resources.txt
-echo "Database endpoint: $DB_ENDPOINT"
-```
-
-## Initialize Database Schema
-
-### RDS PostgreSQL Schema
-Once RDS is created, the schema will be automatically created by each microservice on startup:
+The database schema will be automatically created by each microservice on startup:
 
 **Users Table** (user-service):
 ```sql
@@ -478,162 +233,5 @@ CREATE TABLE order_items (
 );
 ```
 
-### DynamoDB Schema
-
-**Products Table:**
-- Partition Key: `product_id` (String)
-- Attributes: name, description, price, stock, image_url, category
-
-**Cart Table:**
-- Partition Key: `user_id` (String)
-- Sort Key: `product_id` (String)
-- Attributes: quantity, price, added_at, expires_at (optional TTL)
-
-### Connection String Format
-**RDS PostgreSQL:**
-```
-postgresql://postgres:<YOUR_PASSWORD>@<DB_ENDPOINT>:5432/ecommercedb
-```
-
-**DynamoDB:**
-- Use AWS SDK with IAM role credentials
-- No connection string needed
-
-## Verification
-
-### Check DynamoDB Tables
-```bash
-# List tables
-aws dynamodb list-tables --region ap-south-1
-
-# Describe products table
-aws dynamodb describe-table \
-  --table-name ecommerce-products \
-  --region ap-south-1 \
-  --query 'Table.[TableName,TableStatus,ItemCount]' \
-  --output table
-
-# Scan products (get all items)
-aws dynamodb scan \
-  --table-name ecommerce-products \
-  --region ap-south-1
-
-# Get specific product
-aws dynamodb get-item \
-  --table-name ecommerce-products \
-  --key '{"product_id": {"S": "prod-001"}}' \
-  --region ap-south-1
-```
-
-### Check RDS Status
-```bash
-aws rds describe-db-instances \
-  --db-instance-identifier ecommerce-db \
-  --region ap-south-1 \
-  --query 'DBInstances[0].[DBInstanceStatus,Endpoint.Address,Endpoint.Port]' \
-  --output table
-```
-
-## Cost Considerations
-- **DynamoDB On-Demand:**
-  - First 25 GB storage: Free
-  - Write: $1.25 per million requests
-  - Read: $0.25 per million requests
-  - For low traffic: ~$1-5/month
-- **RDS db.t3.micro:** ~$15-20/month (free tier eligible for 12 months)
-- **RDS Storage (20GB gp3):** ~$2.50/month
-- **RDS Backup storage:** First 20GB free
-- **Total:** ~$18-28/month (or ~$3-8/month with free tier)
-
-## Cleanup Commands
-```bash
-# Delete DynamoDB tables
-aws dynamodb delete-table \
-  --table-name ecommerce-products \
-  --region ap-south-1
-
-aws dynamodb delete-table \
-  --table-name ecommerce-cart \
-  --region ap-south-1
-
-# Delete RDS instance (skip final snapshot for dev)
-aws rds delete-db-instance \
-  --db-instance-identifier ecommerce-db \
-  --skip-final-snapshot \
-  --region ap-south-1
-
-# Wait for deletion
-aws rds wait db-instance-deleted \
-  --db-instance-identifier ecommerce-db \
-  --region ap-south-1
-
-# Delete subnet group
-aws rds delete-db-subnet-group \
-  --db-subnet-group-name ecommerce-db-subnet-group \
-  --region ap-south-1
-
-# Delete security group
-aws ec2 delete-security-group \
-  --group-id $RDS_SG_ID \
-  --region ap-south-1
-```
-
-## Service Configuration
-
-### Product Service (uses DynamoDB)
-Environment variables for AWS deployment:
-```
-ENVIRONMENT=dev
-AWS_REGION=ap-south-1
-```
-
-Defaults:
-- PRODUCTS_TABLE=ecommerce-products
-
-### Cart Service (uses DynamoDB)
-Environment variables for AWS deployment:
-```
-ENVIRONMENT=dev
-AWS_REGION=ap-south-1
-```
-
-Defaults:
-- CARTS_TABLE=ecommerce-cart
-
-### User Service (uses RDS)
-Environment variables for AWS deployment:
-```
-ENVIRONMENT=dev
-AWS_REGION=ap-south-1
-DB_HOST=<rds-endpoint>
-DB_PASSWORD=<your-password>
-```
-
-Defaults:
-- DB_PORT=5432
-- DB_NAME=ecommercedb
-- DB_USER=postgres
-
-### Order Service (uses RDS + SNS)
-Environment variables for AWS deployment:
-```
-ENVIRONMENT=dev
-AWS_REGION=ap-south-1
-DB_HOST=<rds-endpoint>
-DB_PASSWORD=<your-password>
-SNS_TOPIC_ARN=<your-sns-topic-arn>
-```
-
-Defaults:
-- DB_PORT=5432
-- DB_NAME=ecommercedb
-- DB_USER=postgres
-- Service URLs use ECS service discovery
-
 ## Next Steps
-After completing this module:
-- ✅ DynamoDB tables created for products and cart
-- ✅ RDS PostgreSQL instance running in private subnets for users and orders
-- ✅ Security group configured for database access
-- ✅ Sample products loaded
-- Ready for Module 3: Authentication (Cognito)
+Proceed to **[Module 3: Authentication](./module3-authentication.md)** to set up Cognito User Pools.
