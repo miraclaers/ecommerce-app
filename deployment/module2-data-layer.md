@@ -254,45 +254,5 @@ After the RDS instance is created, store the database configuration in Parameter
 
 These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
 
-<details>
-<summary><strong>📋 Database Schema Reference (Click to expand)</strong></summary>
-
-The database schema will be automatically created by each microservice on startup:
-
-**Users Table** (user-service):
-```sql
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    cognito_sub VARCHAR(255) UNIQUE NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    name VARCHAR(255),
-    phone VARCHAR(50),
-    address TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-**Orders Table** (order-service):
-```sql
-CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    user_email VARCHAR(255) NOT NULL,
-    total_amount DECIMAL(10, 2) NOT NULL,
-    status VARCHAR(50) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE order_items (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER REFERENCES orders(id),
-    product_id VARCHAR(255) NOT NULL,
-    quantity INTEGER NOT NULL,
-    price DECIMAL(10, 2) NOT NULL
-);
-```
-
-</details>
-
 ## Next Steps
 Proceed to **[Module 3: Authentication](./module3-authentication.md)** to set up Cognito User Pools.
