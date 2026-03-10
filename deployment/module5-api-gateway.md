@@ -1,315 +1,291 @@
 # Module 5: API Gateway with VPC Link
 
 ## Overview
-Create an API Gateway HTTP API with VPC Link integration to securely connect to the internal Application Load Balancer, providing a unified entry point for all microservices with Cognito authentication.
+Create an HTTP API Gateway that connects to the internal Application Load Balancer using VPC Link, providing a public endpoint for the frontend application to access all microservices.
 
 ## What We'll Build
-1. **VPC Link** - Secure connection from API Gateway to internal ALB
-2. **HTTP API** - Modern API Gateway with better performance and lower cost
-3. **Cognito JWT Authorizer** - Authentication for protected routes
-4. **API Routes** - Public and authenticated endpoints
-5. **HTTP Integrations** - Route traffic to internal ALB via VPC Link
-6. **CORS Configuration** - Enable cross-origin requests for frontend
+- **5.1** VPC Link for secure connection to internal ALB
+- **5.2** HTTP API Gateway with $default stage
+- **5.3** Single HTTP proxy integration to internal ALB
+- **5.4** JWT Authorizer for Cognito authentication
+- **5.5** Three API routes: public products, authenticated proxy, and CORS
+- **5.6** CORS configuration for frontend access
+- **5.7** API endpoint testing with mixed authentication
+- **5.8** Parameter Store configuration for API URL
 
 ## Architecture
 ```
-Internet → API Gateway (HTTP API) → VPC Link → Internal ALB → ECS Services
-                ↓
-         Cognito JWT Authorizer
-                ↓
-Routes:
-├── GET /products (public) → Internal ALB/products
-├── GET /cart/* (auth) → Internal ALB/cart/*
-├── POST /orders/* (auth) → Internal ALB/orders/*
-└── GET /users/* (auth) → Internal ALB/users/*
+Internet → API Gateway → VPC Link → Internal ALB → ECS Services
 ```
 
-## Step 1: Create VPC Link
+The API Gateway will have three specific routes:
+- `GET /products` → Product Service (public, no auth)
+- `ANY /{proxy+}` → All Services (authenticated, JWT required)
+- `OPTIONS /{proxy+}` → CORS preflight (public, no auth)
 
-### AWS Console
+---
+
+## 5.1 Create VPC Link
+
+### VPC Link Configuration
+
 1. **API Gateway Console → VPC Links → Create VPC Link**
 2. **Name:** `ecommerce-vpc-link`
-3. **Target type:** Application Load Balancer
-4. **VPC:** ecommerce-vpc
-5. **Target:** Select `ecommerce-internal-alb`
+3. **Description:** "VPC Link for ecommerce internal ALB"
+4. **Target:** Application Load Balancer
+5. **Load balancer:** Select `ecommerce-internal-alb`
 6. **Create VPC Link**
 
-**Note:** VPC Link creation takes 5-10 minutes. Wait for status to become "Available".
+**Note:** VPC Link creation takes 5-10 minutes. Wait for status to become "Available" before proceeding.
 
-### AWS CLI
-```bash
-INTERNAL_ALB_ARN=$(grep "INTERNAL_ALB_ARN=" deployment/vpc-resources.txt | cut -d'=' -f2)
+---
 
-VPC_LINK_ID=$(aws apigatewayv2 create-vpc-link \
-  --name ecommerce-vpc-link \
-  --subnet-ids $(grep "PRIVATE_SUBNET_1=" deployment/vpc-resources.txt | cut -d'=' -f2) $(grep "PRIVATE_SUBNET_2=" deployment/vpc-resources.txt | cut -d'=' -f2) \
-  --query 'VpcLinkId' --output text --region ap-south-1)
+## 5.2 Create HTTP API Gateway
 
-echo "VPC_LINK_ID=$VPC_LINK_ID" >> deployment/vpc-resources.txt
+### API Gateway Configuration
 
-# Wait for VPC Link to be available
-echo "Waiting for VPC Link to be available..."
-aws apigatewayv2 get-vpc-link --vpc-link-id $VPC_LINK_ID --region ap-south-1 --query 'VpcLinkStatus' --output text
-```
-
-## Step 2: Create HTTP API
-
-### AWS Console
 1. **API Gateway Console → APIs → Create API**
 2. **Choose:** HTTP API → Build
 3. **API name:** `ecommerce-api`
-4. **Description:** `eCommerce microservices API`
-5. **Create API**
+4. **Description:** "eCommerce HTTP API"
+5. **Next**
 
-### AWS CLI
-```bash
-API_ID=$(aws apigatewayv2 create-api \
-  --name ecommerce-api \
-  --protocol-type HTTP \
-  --description "eCommerce microservices API" \
-  --cors-configuration AllowOrigins="*",AllowMethods="*",AllowHeaders="*" \
-  --query 'ApiId' --output text --region ap-south-1)
+### Skip Integrations and Routes
+6. **Skip adding integrations** - we'll configure these manually
+7. **Next**
 
-API_ENDPOINT=$(aws apigatewayv2 get-api \
-  --api-id $API_ID \
-  --query 'ApiEndpoint' --output text --region ap-south-1)
+### Configure Stages
+8. **Stage name:** `$default`
+9. **Auto-deploy:** Yes
+10. **Next**
 
-echo "API_ID=$API_ID" >> deployment/vpc-resources.txt
-echo "API_ENDPOINT=$API_ENDPOINT" >> deployment/vpc-resources.txt
-echo "API Gateway Endpoint: $API_ENDPOINT"
-```
+### Review and Create
+11. **Review settings**
+12. **Create**
 
-## Step 3: Create Cognito JWT Authorizer
+---
 
-### AWS Console
-1. **API Gateway Console → APIs → ecommerce-api → Authorization → Authorizers**
-2. **Create authorizer**
-3. **Name:** `cognito-authorizer`
-4. **Authorizer type:** JWT
-5. **Identity source:** `$request.header.Authorization`
-6. **Issuer URL:** `https://cognito-idp.ap-south-1.amazonaws.com/<user-pool-id>`
-7. **Audience:** `<cognito-app-client-id>`
-8. **Create authorizer**
+## 5.3 Create HTTP Proxy Integration
 
-### AWS CLI
-```bash
-USER_POOL_ID=$(grep "USER_POOL_ID=" deployment/vpc-resources.txt | cut -d'=' -f2)
-APP_CLIENT_ID=$(grep "APP_CLIENT_ID=" deployment/vpc-resources.txt | cut -d'=' -f2)
+### Integration Configuration
 
-AUTHORIZER_ID=$(aws apigatewayv2 create-authorizer \
-  --api-id $API_ID \
-  --authorizer-type JWT \
-  --name cognito-authorizer \
-  --identity-sources '$request.header.Authorization' \
-  --jwt-configuration Audience="$APP_CLIENT_ID",Issuer="https://cognito-idp.ap-south-1.amazonaws.com/$USER_POOL_ID" \
-  --query 'AuthorizerId' --output text --region ap-south-1)
-
-echo "AUTHORIZER_ID=$AUTHORIZER_ID" >> deployment/vpc-resources.txt
-```
-
-## Step 4: Create HTTP Integration
-
-### AWS Console
-1. **API Gateway Console → APIs → ecommerce-api → Integrations → Create integration**
-2. **Integration type:** HTTP
+1. **Go to your API → Integrations → Create integration**
+2. **Integration type:** HTTP proxy integration
 3. **Integration method:** ANY
-4. **Integration URI:** `http://ecommerce-internal-alb-dns/{proxy}`
-5. **Connection type:** VPC Link
-6. **VPC Link:** Select `ecommerce-vpc-link`
-7. **Create integration**
+4. **Integration URI:** `http://<internal-alb-dns-name>/{proxy}`
+   - Replace `<internal-alb-dns-name>` with your actual ALB DNS name
+5. **VPC Link:** Select `ecommerce-vpc-link`
+6. **Create integration**
 
-### AWS CLI
-```bash
-INTERNAL_ALB_DNS=$(grep "INTERNAL_ALB_DNS=" deployment/vpc-resources.txt | cut -d'=' -f2)
+**Note:** The `{proxy}` parameter captures the entire request path and forwards it to the ALB.
 
-INTEGRATION_ID=$(aws apigatewayv2 create-integration \
-  --api-id $API_ID \
-  --integration-type HTTP_PROXY \
-  --integration-method ANY \
-  --integration-uri "http://$INTERNAL_ALB_DNS/{proxy}" \
-  --connection-type VPC_LINK \
-  --connection-id $VPC_LINK_ID \
-  --payload-format-version "1.0" \
-  --query 'IntegrationId' --output text --region ap-south-1)
+---
 
-echo "INTEGRATION_ID=$INTEGRATION_ID" >> deployment/vpc-resources.txt
-```
+## 5.4 Create JWT Authorizer
 
-## Step 5: Create API Routes
+### Cognito JWT Authorizer Configuration
 
-### AWS Console
+1. **Go to your API → Authorization → Authorizers → Create authorizer**
+2. **Name:** `cognito-jwt-authorizer`
+3. **Authorizer type:** JWT
+4. **Identity source:** `$request.header.Authorization`
+5. **Issuer URL:** `https://cognito-idp.<your-region>.amazonaws.com/<user-pool-id>`
+   - Replace `<your-region>` and `<user-pool-id>` with your values
+6. **Audience:** `<your-app-client-id>`
+   - Use the App Client ID from Module 3
+7. **Create authorizer**
 
-**Public Route (Products):**
-1. **Routes → Create route**
+---
+
+## 5.5 Create API Routes
+
+### Route 1: Public Products Route
+
+1. **Go to your API → Routes → Create route**
 2. **Method:** GET
 3. **Resource path:** `/products`
-4. **Integration:** Select the HTTP integration
+4. **Integration:** Select the HTTP proxy integration created above
 5. **Authorization:** None
 6. **Create route**
 
-**Authenticated Routes:**
-1. **Create route for each:**
-   - `ANY /{proxy+}` (catch-all for authenticated routes)
-   - Method: ANY
-   - Resource path: `/{proxy+}`
-   - Integration: HTTP integration
-   - Authorization: cognito-authorizer
-   - Create route
+### Route 2: Authenticated Proxy Route
 
-### AWS CLI
+1. **Create route**
+2. **Method:** ANY
+3. **Resource path:** `/{proxy+}`
+4. **Integration:** Select the HTTP proxy integration created above
+5. **Authorization:** JWT
+6. **Authorizer:** Select `cognito-jwt-authorizer`
+7. **Create route**
+
+### Route 3: CORS Preflight Route
+
+1. **Create route**
+2. **Method:** OPTIONS
+3. **Resource path:** `/{proxy+}`
+4. **Integration:** Select the HTTP proxy integration created above
+5. **Authorization:** None
+6. **Create route**
+
+**Note:** 
+- `/products` is public (no authentication required)
+- `/{proxy+}` requires JWT authentication for all other endpoints
+- `OPTIONS /{proxy+}` handles CORS preflight requests without authentication
+
+---
+
+## 5.6 Configure CORS
+
+### CORS Configuration
+
+1. **Go to your API → CORS → Configure**
+2. **Access-Control-Allow-Origin:** `*` (or specify your frontend domain)
+3. **Access-Control-Allow-Headers:** 
+   ```
+   Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token
+   ```
+4. **Access-Control-Allow-Methods:** 
+   ```
+   GET,POST,PUT,DELETE,OPTIONS
+   ```
+5. **Save**
+
+---
+
+## 5.7 Test API Gateway
+
+### Get API Gateway URL
+
+1. **Go to your API → Stages → $default**
+2. **Copy the Invoke URL** (e.g., `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`)
+
+### Get JWT Token for Testing
+
+Before testing authenticated endpoints, you need to get a JWT token from Cognito:
+
+**Get JWT Token using AWS CLI:**
 ```bash
-# Create public products route
-aws apigatewayv2 create-route \
-  --api-id $API_ID \
-  --route-key "GET /products" \
-  --target "integrations/$INTEGRATION_ID" \
-  --region ap-south-1
+# Replace with your values from Module 3
+USER_POOL_ID="<your-user-pool-id>"
+CLIENT_ID="<your-app-client-id>"
+USERNAME="<test-user-email>"
+PASSWORD="<test-user-password>"
 
-# Create catch-all authenticated route
-aws apigatewayv2 create-route \
-  --api-id $API_ID \
-  --route-key "ANY /{proxy+}" \
-  --target "integrations/$INTEGRATION_ID" \
-  --authorization-type JWT \
-  --authorizer-id $AUTHORIZER_ID \
-  --region ap-south-1
+# Get JWT token
+JWT_TOKEN=$(aws cognito-idp admin-initiate-auth \
+  --user-pool-id $USER_POOL_ID \
+  --client-id $CLIENT_ID \
+  --auth-flow ADMIN_NO_SRP_AUTH \
+  --auth-parameters USERNAME=$USERNAME,PASSWORD=$PASSWORD \
+  --query 'AuthenticationResult.IdToken' \
+  --output text)
 
-# Create OPTIONS route for CORS preflight
-aws apigatewayv2 create-route \
-  --api-id $API_ID \
-  --route-key "OPTIONS /{proxy+}" \
-  --target "integrations/$INTEGRATION_ID" \
-  --region ap-south-1
+echo "JWT Token: $JWT_TOKEN"
 ```
 
-## Step 6: Deploy API
-
-### AWS Console
-1. **API Gateway Console → APIs → ecommerce-api → Deploy**
-2. **Stage name:** `$default` (auto-deployment)
-3. **Deploy**
-
-### AWS CLI
+**Create Test User (if needed):**
 ```bash
-# API Gateway HTTP APIs auto-deploy to $default stage
-echo "API deployed automatically to \$default stage"
-echo "API Gateway URL: $API_ENDPOINT"
+# Create a test user
+aws cognito-idp admin-create-user \
+  --user-pool-id $USER_POOL_ID \
+  --username testuser@example.com \
+  --user-attributes Name=email,Value=testuser@example.com Name=name,Value="Test User" \
+  --temporary-password "TempPass123!" \
+  --message-action SUPPRESS
+
+# Set permanent password
+aws cognito-idp admin-set-user-password \
+  --user-pool-id $USER_POOL_ID \
+  --username testuser@example.com \
+  --password "TestPass123!" \
+  --permanent
 ```
 
-## Step 7: Update CORS Configuration
+### Test All Service Endpoints
 
-### AWS Console
-1. **API Gateway Console → APIs → ecommerce-api → CORS**
-2. **Configure CORS:**
-   - Access-Control-Allow-Origin: `*`
-   - Access-Control-Allow-Headers: `*`
-   - Access-Control-Allow-Methods: `*`
-   - Access-Control-Max-Age: `86400`
-3. **Save**
-
-### AWS CLI
+**Test Public Products Endpoint (No Auth Required):**
 ```bash
-aws apigatewayv2 update-api \
-  --api-id $API_ID \
-  --cors-configuration AllowOrigins="*",AllowMethods="*",AllowHeaders="*",MaxAge=86400 \
-  --region ap-south-1
+curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/products
 ```
 
-## Step 8: Verification
-
-### Test Public Endpoints
+**Test Authenticated Endpoints (JWT Required):**
 ```bash
-API_ENDPOINT=$(grep "API_ENDPOINT=" deployment/vpc-resources.txt | cut -d'=' -f2)
+# Use the JWT token obtained above
+curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart
 
-# Test public products endpoint
-curl "$API_ENDPOINT/products"
+curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/users
 
-# Test health endpoints (should work without auth)
-curl "$API_ENDPOINT/users/health"
-curl "$API_ENDPOINT/cart/health"
-curl "$API_ENDPOINT/orders/health"
+curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
 ```
 
-### Test Authenticated Endpoints
+**Test CORS Preflight (No Auth Required):**
 ```bash
-# These should return 401 Unauthorized without proper JWT token
-curl "$API_ENDPOINT/users/profile"
-curl "$API_ENDPOINT/cart"
-curl "$API_ENDPOINT/orders"
-
-# Test with invalid token (should return 401)
-curl -H "Authorization: Bearer invalid-token" "$API_ENDPOINT/users/profile"
-```
-
-### Test CORS
-```bash
-# Test CORS preflight request
-curl -X OPTIONS "$API_ENDPOINT/products" \
+curl -X OPTIONS https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart \
   -H "Origin: http://localhost:3000" \
   -H "Access-Control-Request-Method: GET" \
-  -H "Access-Control-Request-Headers: Content-Type" \
+  -H "Access-Control-Request-Headers: Authorization" \
   -v
 ```
 
-### Verify VPC Link Status
+**Test Without Token on Protected Endpoints (Should Return 401):**
 ```bash
-aws apigatewayv2 get-vpc-link \
-  --vpc-link-id $VPC_LINK_ID \
-  --region ap-south-1 \
-  --query '{Name:Name,Status:VpcLinkStatus,StatusMessage:VpcLinkStatusMessage}'
+curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart
+curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/users
+curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
+# Expected: {"message":"Unauthorized"}
 ```
 
-### Check API Gateway Logs
-```bash
-# Enable logging (optional)
-aws apigatewayv2 update-stage \
-  --api-id $API_ID \
-  --stage-name '$default' \
-  --access-log-settings DestinationArn="arn:aws:logs:ap-south-1:$(aws sts get-caller-identity --query Account --output text):log-group:/aws/apigateway/ecommerce-api",Format='$requestId $ip $requestTime $httpMethod $resourcePath $status $error.message $error.messageString' \
-  --region ap-south-1
-```
+### Expected Response
+Each endpoint should return a JSON response from the respective microservice when a valid JWT token is provided. If you get errors, verify:
+- VPC Link status is "Available"
+- Internal ALB is healthy and accessible
+- ECS services are running and registered with target groups
+- Security groups allow traffic flow
+- **JWT token is valid and not expired**
+- **Cognito User Pool ID and App Client ID are correct in authorizer**
 
-## Current API Routes
+### Troubleshooting
 
-Based on the deployed configuration, the API Gateway has these routes:
+**401 Unauthorized:**
+- Check JWT token is valid and not expired
+- Verify Cognito User Pool ID in authorizer configuration
+- Ensure App Client ID matches in authorizer audience
 
-| Method | Path | Auth Required | Target Service |
-|--------|------|---------------|----------------|
-| `GET` | `/products` | No | product-service |
-| `ANY` | `/{proxy+}` | Yes (JWT) | All services via ALB |
-| `OPTIONS` | `/{proxy+}` | No | CORS preflight |
+**403 Forbidden:**
+- Check JWT token format (should be `Bearer <token>`)
+- Verify token is from correct Cognito User Pool
 
-## Testing with Frontend
+**502 Bad Gateway:**
+- Check VPC Link status
+- Verify internal ALB DNS name in integration URI
+- Ensure ALB target groups are healthy
 
-Update your frontend configuration to use the API Gateway endpoint:
+**504 Gateway Timeout:**
+- Check ECS service health
+- Verify ALB listener rules are configured correctly
+- Check security group rules
 
-```javascript
-// In your React app's config
-const API_BASE_URL = 'https://your-api-id.execute-api.ap-south-1.amazonaws.com';
+---
 
-// Example API calls
-const getProducts = () => fetch(`${API_BASE_URL}/products`);
-const getUserProfile = (token) => fetch(`${API_BASE_URL}/users/profile`, {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
-```
+## 5.8 Update Parameter Store
 
-## Security Benefits
+### API Gateway URL Parameter
 
-1. **Network Isolation:** Internal ALB not exposed to internet
-2. **VPC Link:** Secure connection between API Gateway and ALB
-3. **JWT Authentication:** Cognito-based authentication for protected routes
-4. **Rate Limiting:** Built-in API Gateway throttling
-5. **WAF Integration:** Can add AWS WAF for additional protection
+1. **Systems Manager Console → Parameter Store → Create parameter**
+2. **Name:** `/ecommerce/dev/api-gateway-url`
+3. **Type:** String
+4. **Value:** `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`
 
-## Cost Optimization
+This parameter can be used by the frontend application to know the API base URL.
 
-- **HTTP API:** ~60% cheaper than REST API
-- **VPC Link:** $0.025/hour (~$18/month)
-- **API Gateway:** $1.00 per million requests
-- **Data Transfer:** $0.09/GB for VPC Link data transfer
+## Architecture Benefits
+
+1. **Mixed Authentication:** Public products endpoint, authenticated for other services
+2. **CORS Support:** Dedicated OPTIONS route for preflight requests
+3. **ALB Handles Logic:** Path-based routing managed by ALB (already configured)
+4. **Secure Connection:** VPC Link ensures private communication
+5. **Flexible Access:** Public product browsing, authenticated user actions
+6. **Cost Effective:** Minimal API Gateway configuration reduces complexity
 
 ## Next Steps
-- Module 6: Configure event-driven architecture with SNS/SQS
-- The API Gateway endpoint will be used with custom domain in Module 8
-**Note:** Cleanup steps have been removed from individual modules. A dedicated cleanup module will be provided at the end of the tutorial.
+Proceed to **[Module 6: Frontend Deployment](./module6-frontend-deployment.md)** to deploy the React application.
