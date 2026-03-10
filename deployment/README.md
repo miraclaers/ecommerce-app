@@ -1,16 +1,17 @@
 # AWS Deployment Guide - Ecommerce Application
 
 ## Overview
-This guide walks you through deploying a production-ready microservices ecommerce application on AWS.
+This guide walks you through deploying a production-ready microservices ecommerce application on AWS using modern cloud architecture patterns.
 
 ## Learning Objectives
-- Deep hands-on experience with core AWS services
-- Understanding of cloud architecture patterns
+- Hands-on experience with core AWS services
+- Understanding of microservices architecture on AWS
 - Best practices for security, scalability, and reliability
+- Event-driven architecture patterns
 
 ## Prerequisites
 - AWS Account with admin access
-- AWS CLI configured
+- AWS CLI configured (`aws configure`)
 - Docker installed
 - Node.js and npm installed
 - Basic understanding of networking and containers
@@ -35,19 +36,119 @@ User → Route53 → CloudFront → S3 (Frontend)
                             (Users, Orders)
                                     
                               DynamoDB (Global)
-                          (Products, Cart - Module 2)
+                          (Products, Cart)
 ```
 
-## Modules
+## Deployment Modules
+
+Complete these modules in order:
 
 ### [Module 1: Networking Foundation](./module1-networking.md)
 **Time:** 30-45 minutes  
 **Services:** VPC, Subnets, Internet Gateway, NAT Gateway, Route Tables
+- Create VPC with public and private subnets across 2 AZs
+- Set up Internet Gateway and NAT Gateway for connectivity
 
-Create the network infrastructure:
-- VPC with public and private subnets across 2 AZs
-- Internet Gateway for public access
-- NAT Gateway for private subnet outbound access
+### [Module 2: Data Layer](./module2-data-layer.md)
+**Time:** 45-60 minutes  
+**Services:** DynamoDB, RDS PostgreSQL, S3
+- DynamoDB tables for products and cart data
+- RDS PostgreSQL for users and orders
+- S3 bucket for product images
+
+### [Module 3: Authentication](./module3-authentication.md)
+**Time:** 30-45 minutes  
+**Services:** Cognito User Pools
+- User registration and authentication
+- JWT token management
+
+### [Module 4: Container Deployment](./module4-container-deployment.md)
+**Time:** 60-90 minutes  
+**Services:** ECR, ECS, Fargate, Application Load Balancer
+- Build and push Docker images
+- Deploy microservices on ECS Fargate
+- Configure load balancing
+
+### [Module 5: API Gateway](./module5-api-gateway.md)
+**Time:** 30-45 minutes  
+**Services:** API Gateway, VPC Link
+- Create unified API endpoint
+- Integrate Cognito authentication
+- Route requests to microservices
+
+### [Module 6: Event-Driven Architecture](./module6-event-driven.md)
+**Time:** 45-60 minutes  
+**Services:** SNS, SQS, SES, Lambda
+- Asynchronous order notifications
+- Email delivery system
+
+### [Module 7: Frontend Deployment](./module7-frontend-deployment.md)
+**Time:** 30-45 minutes  
+**Services:** S3, CloudFront, Route53
+- Deploy React frontend to S3
+- Configure CDN with CloudFront
+
+### [Module 8: DNS & SSL](./module8-dns-ssl.md)
+**Time:** 30-45 minutes (Optional)  
+**Services:** Route53, Certificate Manager
+- Custom domain setup
+- SSL certificate configuration
+
+## Important Notes
+
+### User Creation Fix
+The application automatically creates user profiles when users place orders or access protected endpoints. Users are created with their real email and name from Cognito instead of placeholder values.
+
+### Region Consistency
+- **Primary Region:** ap-south-1 (Mumbai)
+- **Certificate Manager:** us-east-1 (required for CloudFront)
+- Keep all other resources in ap-south-1
+
+### Cost Management
+- **Development:** ~$10-15 for 4-hour session
+- **24-hour deployment:** ~$50-75
+- Remember to clean up resources after learning
+
+### Security Best Practices
+- Use least privilege IAM policies
+- Enable VPC Flow Logs for monitoring
+- Configure security groups with minimal required access
+- Use private subnets for databases and application servers
+
+## Quick Commands
+
+```bash
+# Check AWS CLI configuration
+aws sts get-caller-identity
+
+# Set region
+export AWS_DEFAULT_REGION=ap-south-1
+
+# View ECS service logs
+aws logs tail /ecs/service-name --follow
+
+# Check API Gateway logs
+aws logs tail /aws/apigateway/api-name --follow
+```
+
+## Troubleshooting
+
+### Common Issues
+1. **ECS Tasks failing to start:** Check security groups and subnet routing
+2. **API Gateway 403 errors:** Verify Cognito authorizer configuration
+3. **Database connection issues:** Ensure security groups allow ECS access
+4. **Frontend not loading:** Check S3 bucket policy and CloudFront distribution
+
+### Getting Help
+- Check AWS CloudWatch logs for detailed error messages
+- Use AWS CLI describe commands to verify resource configurations
+- Ensure all resources are in the correct region (ap-south-1)
+
+## Next Steps
+After completing all modules, consider adding:
+- **Module 9:** Search functionality with OpenSearch
+- **Module 10:** CI/CD pipeline with CodePipeline
+- **Module 11:** Monitoring and alerting with CloudWatch
 - Security groups for network isolation
 
 **Key Concepts:**

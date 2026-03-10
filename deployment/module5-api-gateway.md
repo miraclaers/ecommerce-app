@@ -119,8 +119,31 @@ For each route below, select `cognito-authorizer`:
 
 **Note:** All routes use the same HTTP integration to ALB.
 
-### Step 6: Note API Endpoint
-### Step 6: Note API Endpoint
+### Step 6: Update Routes with Authorization
+
+The catch-all route `/{proxy+}` forwards all requests to ALB. Now we need to add authorization to specific routes:
+
+1. API → Routes
+2. Delete the catch-all route `ANY /{proxy+}`
+3. Create specific routes:
+
+**Public Routes (no auth):**
+- `GET /products`
+- `GET /products/{id}`
+
+**Authenticated Routes (add authorizer):**
+For each route below, select `cognito-authorizer`:
+- `GET /cart`
+- `POST /cart/items`
+- `DELETE /cart/items/{productId}`
+- `POST /orders`
+- `GET /orders`
+- `GET /users/profile`
+- `POST /users/profile`
+
+**Note:** All routes use the same HTTP integration to ALB.
+
+### Step 7: Note API Endpoint
 
 1. Go to API → Stages → $default
 2. Copy the Invoke URL (e.g., `https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com`)
