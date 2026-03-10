@@ -16,7 +16,7 @@ This module creates the foundation for data storage across all microservices wit
 
 1. **S3 Console → Buckets → Create bucket**
 2. **Bucket name:** `ecommerce-product-images-<random-number>` (must be globally unique)
-3. **Region:** ap-south-1
+3. **Region:** Choose your preferred region
 4. **Block all public access:** **Uncheck** (we need public read for images)
 5. **Acknowledge the warning**
 6. **Bucket versioning:** Disable
@@ -74,7 +74,7 @@ This script uploads sample product images (prod-001.jpg through prod-020.jpg) to
 
 **Image URL Format:**
 ```
-https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-001.jpg
+https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg
 ```
 
 ---
@@ -108,7 +108,7 @@ https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-
 **Using Load Script:**
 ```bash
 cd scripts
-./load-products.sh ecommerce-products ap-south-1
+./load-products.sh ecommerce-products <your-region>
 ```
 
 This script loads 20 sample products from `data/products.json` into your DynamoDB table.
@@ -124,17 +124,10 @@ This script loads 20 sample products from `data/products.json` into your DynamoD
   "description": "Premium noise-cancelling over-ear headphones",
   "price": 89.99,
   "stock": 150,
-  "image_url": "https://ecommerce-product-images-<bucket-name>.s3.ap-south-1.amazonaws.com/prod-001.jpg",
+  "image_url": "https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg",
   "category": "Electronics"
 }
 ```
-
-### Optional: Enable TTL for Cart
-
-1. **Go to cart table → Additional settings → Time to Live (TTL)**
-2. **Enable TTL**
-3. **TTL attribute:** `expires_at`
-4. **This auto-deletes old cart items**
 
 ---
 
@@ -192,11 +185,30 @@ This script loads 20 sample products from `data/products.json` into your DynamoD
 9. **Database authentication:** Password authentication
 10. **Additional configuration:**
     - Initial database name: `ecommercedb`
-    - Backup retention period: 7 days
+    - Backup retention period: 0 days (disable backups for tutorial)
     - Enable encryption: Yes
 11. **Create database** (takes 5-10 minutes)
 
-### Database Schema
+### Create Parameter Store Parameters
+
+After the RDS instance is created, store the database configuration in Parameter Store for the microservices:
+
+1. **Systems Manager Console → Parameter Store → Create parameter**
+
+**Database Host Parameter:**
+- **Name:** `/ecommerce/dev/db/host`
+- **Type:** String
+- **Value:** `<your-rds-endpoint>` (from RDS Console → Databases → ecommerce-db → Endpoint)
+
+**Database Password Parameter:**
+- **Name:** `/ecommerce/dev/db/password`
+- **Type:** SecureString
+- **Value:** `<your-database-password>`
+
+These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
+
+<details>
+<summary><strong>📋 Database Schema Reference (Click to expand)</strong></summary>
 
 The database schema will be automatically created by each microservice on startup:
 
@@ -233,28 +245,7 @@ CREATE TABLE order_items (
 );
 ```
 
-### Create Parameter Store Parameters
-
-After the RDS instance is created, store the database configuration in Parameter Store for the microservices:
-
-1. **Systems Manager Console → Parameter Store → Create parameter**
-
-**Database Host Parameter:**
-- **Name:** `/ecommerce/dev/db/host`
-- **Type:** String
-- **Value:** `<your-rds-endpoint>` (from RDS Console → Databases → ecommerce-db → Endpoint)
-
-**Database Password Parameter:**
-- **Name:** `/ecommerce/dev/db/password`
-- **Type:** SecureString
-- **Value:** `<your-database-password>`
-
-**AWS Region Parameter:**
-- **Name:** `/ecommerce/dev/aws/region`
-- **Type:** String
-- **Value:** `ap-south-1`
-
-These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
+</details>
 
 ## Next Steps
 Proceed to **[Module 3: Authentication](./module3-authentication.md)** to set up Cognito User Pools.
