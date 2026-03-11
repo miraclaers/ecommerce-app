@@ -5,39 +5,205 @@ echo "=========================================="
 echo "Installing Prerequisites for eCommerce App"
 echo "=========================================="
 
-# Update system packages
-echo "Updating system packages..."
-sudo yum update -y
+# Detect OS
+OS="$(uname -s)"
+case "${OS}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    *)          MACHINE="UNKNOWN:${OS}"
+esac
 
-# Install Docker
-echo "Installing Docker..."
-sudo yum install docker -y
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -a -G docker $USER
+echo "Detected OS: $MACHINE"
+echo ""
 
-# Install Docker Compose
-echo "Installing Docker Compose..."
-COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
-sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+if [ "$MACHINE" = "UNKNOWN:${OS}" ]; then
+    echo "Unsupported operating system: ${OS}"
+    echo "This script supports Linux and macOS only."
+    exit 1
+fi
 
-# Install Docker Buildx
-echo "Installing Docker Buildx..."
-BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
-mkdir -p ~/.docker/cli-plugins
-curl -L "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64" -o ~/.docker/cli-plugins/docker-buildx
-chmod +x ~/.docker/cli-plugins/docker-buildx
+# ==========================================
+# macOS Installation
+# ==========================================
+if [ "$MACHINE" = "Mac" ]; then
+    echo "Installing prerequisites for macOS..."
+    echo ""
+    
+    # Check if Homebrew is installed
+    if ! command -v brew &> /dev/null; then
+        echo "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    else
+        echo "Homebrew already installed"
+    fi
+    
+    # Install Docker Desktop
+    if ! command -v docker &> /dev/null; then
+        echo "Installing Docker Desktop..."
+        echo "Please download and install Docker Desktop from:"
+        echo "https://www.docker.com/products/docker-desktop"
+        echo ""
+        echo "After installation, start Docker Desktop and return here."
+        read -p "Press Enter once Docker Desktop is installed and running..."
+    else
+        echo "Docker already installed"
+    fi
+    
+    # Install Node.js
+    if ! command -v node &> /dev/null; then
+        echo "Installing Node.js 20 LTS..."
+        brew install node@20
+        brew link node@20
+    else
+        echo "Node.js already installed"
+    fi
+    
+    # Install Git
+    if ! command -v git &> /dev/null; then
+        echo "Installing Git..."
+        brew install git
+    else
+        echo "Git already installed"
+    fi
+    
+    # Install AWS CLI
+    if ! command -v aws &> /dev/null; then
+        echo "Installing AWS CLI..."
+        brew install awscli
+    else
+        echo "AWS CLI already installed"
+    fi
 
-# Install Node.js 20 LTS
-echo "Installing Node.js 20 LTS..."
-curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-sudo yum install nodejs -y
-
-# Install Git (if not already installed)
-echo "Installing Git..."
-sudo yum install git -y
+# ==========================================
+# Linux Installation
+# ==========================================
+elif [ "$MACHINE" = "Linux" ]; then
+    echo "Installing prerequisites for Linux..."
+    echo ""
+    
+    # Detect Linux distribution
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        DISTRO=$ID
+    else
+        echo "Cannot detect Linux distribution"
+        exit 1
+    fi
+    
+    echo "Detected distribution: $DISTRO"
+    echo ""
+    
+    # Ubuntu/Debian
+    if [ "$DISTRO" = "ubuntu" ] || [ "$DISTRO" = "debian" ]; then
+        echo "Using apt package manager..."
+        
+        # Update packages
+        sudo apt-get update -y
+        
+        # Install Docker
+        if ! command -v docker &> /dev/null; then
+            echo "Installing Docker..."
+            sudo apt-get install -y docker.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker $USER
+        else
+            echo "Docker already installed"
+        fi
+        
+        # Install Docker Compose
+        if ! command -v docker-compose &> /dev/null; then
+            echo "Installing Docker Compose..."
+            sudo apt-get install -y docker-compose
+        else
+            echo "Docker Compose already installed"
+        fi
+        
+        # Install Node.js
+        if ! command -v node &> /dev/null; then
+            echo "Installing Node.js 20 LTS..."
+            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+        else
+            echo "Node.js already installed"
+        fi
+        
+        # Install Git
+        if ! command -v git &> /dev/null; then
+            echo "Installing Git..."
+            sudo apt-get install -y git
+        else
+            echo "Git already installed"
+        fi
+        
+        # Install AWS CLI
+        if ! command -v aws &> /dev/null; then
+            echo "Installing AWS CLI..."
+            sudo apt-get install -y awscli
+        else
+            echo "AWS CLI already installed"
+        fi
+    
+    # Amazon Linux / RHEL / CentOS
+    elif [ "$DISTRO" = "amzn" ] || [ "$DISTRO" = "rhel" ] || [ "$DISTRO" = "centos" ]; then
+        echo "Using yum package manager..."
+        
+        # Update packages
+        sudo yum update -y
+        
+        # Install Docker
+        if ! command -v docker &> /dev/null; then
+            echo "Installing Docker..."
+            sudo yum install -y docker
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker $USER
+        else
+            echo "Docker already installed"
+        fi
+        
+        # Install Docker Compose
+        if ! command -v docker-compose &> /dev/null; then
+            echo "Installing Docker Compose..."
+            COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+            sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+        else
+            echo "Docker Compose already installed"
+        fi
+        
+        # Install Node.js
+        if ! command -v node &> /dev/null; then
+            echo "Installing Node.js 20 LTS..."
+            curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+            sudo yum install -y nodejs
+        else
+            echo "Node.js already installed"
+        fi
+        
+        # Install Git
+        if ! command -v git &> /dev/null; then
+            echo "Installing Git..."
+            sudo yum install -y git
+        else
+            echo "Git already installed"
+        fi
+        
+        # Install AWS CLI
+        if ! command -v aws &> /dev/null; then
+            echo "Installing AWS CLI..."
+            sudo yum install -y aws-cli
+        else
+            echo "AWS CLI already installed"
+        fi
+    
+    else
+        echo "Unsupported Linux distribution: $DISTRO"
+        echo "Please install Docker, Docker Compose, Node.js 20, Git, and AWS CLI manually."
+        exit 1
+    fi
+fi
 
 echo ""
 echo "=========================================="
@@ -46,8 +212,23 @@ echo "=========================================="
 echo ""
 echo "Installed versions:"
 docker --version
-docker-compose --version
-docker buildx version
+docker-compose --version || docker compose version
+node --version
+npm --version
+git --version
+aws --version
+
+echo ""
+if [ "$MACHINE" = "Linux" ]; then
+    echo "IMPORTANT: You need to log out and log back in for Docker group permissions to take effect."
+    echo "Or run: newgrp docker"
+fi
+
+echo ""
+echo "Next steps:"
+echo "1. Follow the Local Deployment Guide: local-deployment/README.md"
+echo "2. Then proceed to AWS Deployment: deployment/README.md"
+echo ""
 node --version
 npm --version
 git --version
