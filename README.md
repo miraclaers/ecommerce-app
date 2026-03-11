@@ -57,7 +57,14 @@ Before you begin, ensure you have the following tools installed on your local wo
 
 **Option 1: Automated Installation (Recommended)**
 
-Run the installation script that automatically detects your OS and installs all prerequisites:
+First, clone the repository:
+
+```bash
+git clone https://github.com/awswithchetan/ecommerce-web-app.git
+cd ecommerce-web-app
+```
+
+Then run the installation script that automatically detects your OS and installs all prerequisites:
 
 ```bash
 ./install-prerequisites.sh
