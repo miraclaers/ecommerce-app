@@ -2,6 +2,20 @@
 
 A production-grade microservices-based eCommerce application built for learning AWS cloud services and modern application architecture.
 
+**Author**: Chetan Agrawal  
+**Website**: [www.awswithchetan.com](https://www.awswithchetan.com)
+
+## Table of Contents
+
+- [Architecture Overview](#architecture-overview)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+  - [Local Deployment](#step-1-local-deployment-recommended)
+  - [AWS Deployment](#step-2-aws-deployment)
+- [Cost Estimates](#cost-estimates)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+
 ## Architecture Overview
 
 This project demonstrates a complete cloud-native application using:
@@ -24,7 +38,7 @@ This project demonstrates a complete cloud-native application using:
 
 ### Architecture Diagram
 
-Architecture diagram will be generated during local deployment setup.
+![AWS Architecture](docs/architecture-diagram.png)
 
 ## Prerequisites
 
@@ -99,37 +113,6 @@ The deployment is organized into modules:
 
 > **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
 
-## Learning Objectives
-
-By completing this project, you will learn:
-
-1. **Microservices Architecture**
-   - Service decomposition
-   - Inter-service communication
-   - API design
-
-2. **Containerization**
-   - Docker image creation
-   - Multi-stage builds
-   - Container orchestration
-
-3. **AWS Core Services**
-   - Compute: ECS/Fargate
-   - Storage: S3, RDS, DynamoDB
-   - Networking: VPC, ALB, API Gateway
-   - Security: IAM, Security Groups, Cognito
-   - Messaging: SNS, SQS, SES
-
-4. **DevOps Practices**
-   - Infrastructure as Code
-   - CI/CD concepts
-   - Monitoring and logging
-
-5. **Cloud Architecture Patterns**
-   - Event-driven architecture
-   - Serverless components
-   - High availability design
-
 ## Project Structure
 
 ```
@@ -170,17 +153,6 @@ ecommerce-aws-tutorial/
 - Docker & Docker Compose
 - LocalStack (local AWS emulation)
 - Nginx (reverse proxy)
-
-## Contributing
-
-This is a learning project. Feel free to:
-- Report issues
-- Suggest improvements
-- Share your learning experience
-
-## License
-
-MIT License - Feel free to use this project for learning purposes.
 
 ## Next Steps
 
