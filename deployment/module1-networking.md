@@ -26,9 +26,8 @@ ecommerce-vpc (10.10.0.0/16)
     └── ecommerce-private-database-2 (10.10.21.0/24) - ap-south-1b
 ```
 
-## Step 1: Create VPC
+## 1.1: Create VPC
 
-### AWS Console
 1. **VPC Console → Your VPCs → Create VPC**
 2. **Name:** `ecommerce-vpc`
 3. **IPv4 CIDR block:** `10.10.0.0/16`
@@ -36,9 +35,8 @@ ecommerce-vpc (10.10.0.0/16)
 5. **Tenancy:** Default
 6. **Create VPC**
 
-## Step 2: Create Internet Gateway
+## 1.2: Create Internet Gateway
 
-### AWS Console
 1. **VPC Console → Internet Gateways → Create internet gateway**
 2. **Name:** `ecommerce-igw`
 3. **Create internet gateway**
@@ -46,9 +44,7 @@ ecommerce-vpc (10.10.0.0/16)
 5. **Select:** ecommerce-vpc
 6. **Attach internet gateway**
 
-## Step 3: Create Subnets
-
-### AWS Console
+## 1.3: Create Subnets
 
 **Public Subnet 1:**
 1. **VPC Console → Subnets → Create subnet**
@@ -60,9 +56,8 @@ ecommerce-vpc (10.10.0.0/16)
 
 **Repeat for all 6 subnets** with the CIDR blocks shown in architecture.
 
-## Step 4: Create NAT Gateway
+## 1.4: Create NAT Gateway
 
-### AWS Console
 1. **VPC Console → NAT Gateways → Create NAT gateway**
 2. **Name:** `ecommerce-nat-gateway`
 3. **Subnet:** ecommerce-public-subnet-1
@@ -70,9 +65,7 @@ ecommerce-vpc (10.10.0.0/16)
 5. **Elastic IP allocation:** Allocate Elastic IP
 6. **Create NAT gateway**
 
-## Step 5: Create Route Tables
-
-### AWS Console
+## 1.5: Create Route Tables
 
 **Public Route Table:**
 1. **VPC Console → Route Tables → Create route table**
