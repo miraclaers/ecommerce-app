@@ -1,221 +1,194 @@
-# AWS eCommerce Tutorial - Local Deployment
+# AWS eCommerce Application - Learning Project
 
-A microservices-based eCommerce application running locally with LocalStack (AWS emulator).
+A production-grade microservices-based eCommerce application built for learning AWS cloud services and modern application architecture.
 
-## Architecture
+## 🏗️ Architecture Overview
 
-### Services
-- **Product Service** - Product catalog (DynamoDB)
-- **Cart Service** - Shopping cart (DynamoDB)
-- **User Service** - User profiles (PostgreSQL)
-- **Order Service** - Order processing (PostgreSQL)
-- **Notification Service** - Email notifications (SNS/SQS/SES)
+This project demonstrates a complete cloud-native application using:
 
-### Tech Stack
-- **Backend**: Python FastAPI microservices
-- **Frontend**: React application
-- **Database**: PostgreSQL + DynamoDB (LocalStack)
-- **Auth**: AWS Cognito User Pools
-- **Messaging**: SNS + SQS (LocalStack)
-- **API Gateway**: Nginx (simulates AWS ALB)
+### Microservices Architecture
+- **Product Service** - Product catalog management (DynamoDB)
+- **Cart Service** - Shopping cart operations (DynamoDB)  
+- **User Service** - User profile management (RDS PostgreSQL)
+- **Order Service** - Order processing and orchestration (RDS PostgreSQL)
+- **Notification Service** - Asynchronous email notifications (SNS/SQS/SES)
 
-## Prerequisites
+### AWS Services
+- **Frontend**: S3 + CloudFront + Route53
+- **API Layer**: API Gateway (HTTP API) + VPC Link
+- **Compute**: ECS/Fargate + Application Load Balancer
+- **Authentication**: Cognito User Pools
+- **Databases**: DynamoDB + RDS PostgreSQL
+- **Messaging**: SNS + SQS + SES
+- **Networking**: VPC, Subnets, Security Groups, NAT Gateway
 
-- Docker & Docker Compose
-- Node.js 16+ and npm
-- AWS CLI (for LocalStack)
-- AWS Cognito User Pool (for authentication)
+### Architecture Diagram
 
-## Quick Start
+![AWS Architecture](generated-diagrams/ecommerce-architecture-detailed.png)
 
-### 1. Set Up AWS Cognito
+## 📋 Prerequisites
 
-Create a Cognito User Pool in AWS Console:
+Before you begin, ensure you have the following tools installed:
 
-1. Go to AWS Cognito → Create User Pool
-2. Configure sign-in options: Email
-3. Configure security: Default settings
-4. Configure sign-up: Enable self-registration
-5. Configure message delivery: Email with Cognito
-6. Create App Client: Public client, enable Cognito Hosted UI
-7. Note down:
-   - User Pool ID
-   - App Client ID
-   - Cognito Domain
+- **Docker** - Container runtime
+- **Docker Compose** - Multi-container orchestration
+- **Node.js 20+** - Frontend development
+- **Git** - Version control
+- **AWS CLI** - AWS service interaction
 
-### 2. Configure Frontend
+### Quick Installation
 
-Edit `frontend/react-app/src/aws-config.js`:
-
-```javascript
-const awsConfig = {
-  region: 'YOUR_REGION',
-  userPoolId: 'YOUR_USER_POOL_ID',
-  userPoolWebClientId: 'YOUR_APP_CLIENT_ID',
-  oauth: {
-    domain: 'YOUR_COGNITO_DOMAIN.auth.YOUR_REGION.amazoncognito.com',
-    redirectSignIn: 'http://localhost:3000/',
-    redirectSignOut: 'http://localhost:3000/',
-    responseType: 'code'
-  }
-};
-```
-
-### 3. Start Backend Services
+For Amazon Linux 2023 or similar systems, run:
 
 ```bash
-cd local-deployment
-docker compose up -d
+./install-prerequisites.sh
 ```
 
-This starts:
-- LocalStack (DynamoDB, SNS, SQS, SES)
-- PostgreSQL
-- 5 microservices (product, cart, user, order, notification)
-- Nginx (API gateway on port 8080)
+This script installs:
+- Docker and Docker Compose
+- Node.js 20 LTS
+- Git
 
-### 4. Load Product Data
+After installation, log out and log back in for Docker group permissions to take effect.
 
-```bash
-cd local-deployment/data
-./load-products-local.sh
-```
+## 🚀 Getting Started
 
-This loads 20 sample products into DynamoDB.
+### Step 1: Local Deployment (Recommended)
 
-### 5. Start Frontend
+Before deploying to AWS, it's highly recommended to test the application locally. This helps verify that:
+- Docker images build correctly
+- Services communicate properly
+- Application logic works as expected
+- You understand the application flow
 
-```bash
-cd frontend/react-app
-npm install
-npm start
-```
+**👉 [Local Deployment Guide](local-deployment/README.md)**
 
-Frontend runs on http://localhost:3000
+Local deployment uses:
+- **LocalStack** - AWS service emulator (DynamoDB, SNS, SQS, SES)
+- **PostgreSQL** - Local database
+- **Nginx** - API Gateway simulator
+- **React Dev Server** - Frontend
 
-### 6. Test the Application
+**Time required**: ~15 minutes
 
-1. Open http://localhost:3000
-2. Sign up with email/password
-3. Browse products
-4. Add items to cart
-5. Place an order
+### Step 2: AWS Deployment
 
-## API Endpoints
+Once you've verified the application works locally, deploy it to AWS to learn cloud services hands-on.
 
-All APIs available at `http://localhost:8080/api`:
+**👉 [AWS Deployment Guide](deployment/README.md)**
 
-- `GET /api/products` - List all products
-- `GET /api/cart` - Get user's cart
-- `POST /api/cart` - Add item to cart
-- `GET /api/users/profile` - Get user profile
-- `POST /api/users/profile` - Create/update profile
-- `GET /api/orders` - List user's orders
-- `POST /api/orders` - Create new order
+The deployment is organized into modules:
+- Module 0: Prerequisites
+- Module 1: Networking (VPC, Subnets, Security Groups)
+- Module 2: Data Layer (RDS, DynamoDB)
+- Module 3: Authentication (Cognito)
+- Module 4: Container Deployment (ECR, ECS/Fargate, ALB)
+- Module 5: API Gateway (HTTP API, VPC Link)
+- Module 6: Frontend Deployment (S3, CloudFront)
+- Module 7: Event-Driven Architecture (SNS, SQS)
+- Module 8: DNS & SSL (Route53, ACM)
+- Module 9: Cleanup
 
-## Verify Services
+**Time required**: 3-4 hours
 
-```bash
-# Check all containers are running
-docker compose ps
+## 💰 Cost Estimates
 
-# Check product count
-aws dynamodb scan --table-name products --endpoint-url http://localhost:4566 --region us-east-1 --query 'Count'
+- **Local Development**: $0 (runs on your machine)
+- **AWS Deployment** (4-hour session): ~$10-15
+- **AWS Deployment** (24 hours): ~$50-75
 
-# Check PostgreSQL
-docker compose exec postgres psql -U postgres -d ecommercedb -c "\dt"
+> **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
 
-# Test API
-curl http://localhost:8080/api/products
-```
+## 📚 Learning Objectives
 
-## Troubleshooting
+By completing this project, you will learn:
 
-### CORS Errors
-The nginx configuration allows all origins. If you see CORS errors, restart nginx:
-```bash
-docker compose restart nginx
-```
+1. **Microservices Architecture**
+   - Service decomposition
+   - Inter-service communication
+   - API design
 
-### Database Issues
-Reset PostgreSQL tables:
-```bash
-docker compose exec postgres psql -U postgres -d ecommercedb -c "DROP TABLE IF EXISTS order_items CASCADE; DROP TABLE IF EXISTS orders CASCADE; DROP TABLE IF EXISTS users CASCADE;"
-docker compose restart user-service order-service
-```
+2. **Containerization**
+   - Docker image creation
+   - Multi-stage builds
+   - Container orchestration
 
-### LocalStack Issues
-Restart LocalStack:
-```bash
-docker compose restart localstack
-cd data && ./load-products-local.sh
-```
+3. **AWS Core Services**
+   - Compute: ECS/Fargate
+   - Storage: S3, RDS, DynamoDB
+   - Networking: VPC, ALB, API Gateway
+   - Security: IAM, Security Groups, Cognito
+   - Messaging: SNS, SQS, SES
 
-### Images Not Loading
-Verify nginx is serving images:
-```bash
-curl -I http://localhost:8080/images/prod-001.jpg
-```
+4. **DevOps Practices**
+   - Infrastructure as Code
+   - CI/CD concepts
+   - Monitoring and logging
 
-## Clean Up
+5. **Cloud Architecture Patterns**
+   - Event-driven architecture
+   - Serverless components
+   - High availability design
 
-```bash
-cd local-deployment
-docker compose down -v
-```
-
-This removes all containers and volumes.
-
-## Project Structure
+## 🗂️ Project Structure
 
 ```
 ecommerce-aws-tutorial/
-├── services/               # Backend microservices
-│   ├── product-service/
-│   ├── cart-service/
-│   ├── user-service/
-│   ├── order-service/
-│   └── notification-service/
+├── services/                    # Backend microservices
+│   ├── product-service/         # Python FastAPI
+│   ├── cart-service/            # Python FastAPI
+│   ├── user-service/            # Python FastAPI
+│   ├── order-service/           # Python FastAPI
+│   └── notification-service/    # Python FastAPI
 ├── frontend/
-│   └── react-app/         # React frontend
-└── local-deployment/
-    ├── docker-compose.yml
-    ├── nginx.conf
-    ├── data/
-    │   ├── products-local.json
-    │   ├── product-images/
-    │   └── load-products-local.sh
-    └── localstack-init/
+│   └── react-app/               # React application
+├── local-deployment/            # Local development setup
+│   ├── README.md                # Local deployment guide
+│   ├── docker-compose.yml       # LocalStack + services
+│   ├── nginx.conf               # API Gateway simulator
+│   └── data/                    # Sample product data
+├── deployment/                  # AWS deployment guides
+│   ├── README.md                # Deployment overview
+│   └── module*.md               # Step-by-step modules
+├── generated-diagrams/          # Architecture diagrams
+└── install-prerequisites.sh     # Tool installation script
 ```
 
-## Development
+## 🛠️ Technology Stack
 
-### View Logs
+**Backend**
+- Python 3.11
+- FastAPI
+- SQLAlchemy
+- Boto3 (AWS SDK)
 
-```bash
-# All services
-docker compose logs -f
+**Frontend**
+- React 18
+- AWS Amplify (Authentication)
+- Axios (HTTP client)
 
-# Specific service
-docker compose logs -f product-service
-```
+**Infrastructure**
+- Docker & Docker Compose
+- LocalStack (local AWS emulation)
+- Nginx (reverse proxy)
 
-### Rebuild Services
+## 🤝 Contributing
 
-```bash
-docker compose up -d --build
-```
+This is a learning project. Feel free to:
+- Report issues
+- Suggest improvements
+- Share your learning experience
 
-### Access Databases
+## 📄 License
 
-```bash
-# PostgreSQL
-docker compose exec postgres psql -U postgres -d ecommercedb
+MIT License - Feel free to use this project for learning purposes.
 
-# DynamoDB (via AWS CLI)
-aws dynamodb scan --table-name products --endpoint-url http://localhost:4566 --region us-east-1
-```
+## 🎯 Next Steps
 
-## License
+1. ✅ Install prerequisites using `./install-prerequisites.sh`
+2. ✅ Follow the [Local Deployment Guide](local-deployment/README.md)
+3. ✅ Test the application locally
+4. ✅ Proceed to [AWS Deployment](deployment/README.md)
+5. ✅ Clean up resources after learning
 
-MIT
+Happy Learning! 🚀
