@@ -7,70 +7,94 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
 
 ## 3.1 Create User Pool
 
-### Basic Configuration
+### Step-by-Step Configuration
 
-1. **Cognito Console → User Pools → Create user pool**
+1. Go to **AWS Cognito Console** → **User pools** → **Create user pool**
 
-**Configure sign-in experience:**
-2. **Cognito user pool sign-in options:** Email
-3. **User name requirements:** Keep defaults
-4. **Next**
+2. **Configure sign-in experience:**
+   - Cognito user pool sign-in options: **Email**
+   - User name requirements: Keep defaults
+   - Click **Next**
 
-**Configure security requirements:**
-5. **Password policy:** Cognito defaults
-6. **MFA:** No MFA (for development)
-7. **User account recovery:** Enable self-service account recovery - Email only
-8. **Next**
+3. **Configure security requirements:**
+   - Password policy: **Cognito defaults**
+   - Multi-factor authentication: **No MFA** (for development)
+   - User account recovery: **Enable self-service account recovery - Recommended**
+   - Delivery method for user account recovery messages: **Email only**
+   - Click **Next**
 
-**Configure message delivery:**
-9. **Email provider:** Send email with Cognito (for development)
-10. **FROM email address:** no-reply@verificationemail.com (default)
-11. **Next**
+4. **Configure sign-up experience:**
+   - Self-registration: **Enable self-registration**
+   - Attribute verification and user account confirmation: **Allow Cognito to automatically send messages to verify and confirm - Recommended**
+   - Attributes to verify: **Send email message, verify email address**
+   - Required attributes: Select **name** and **email**
+   - Click **Next**
 
-**Integrate your app:**
-12. **User pool name:** `ecommerce-users`
-13. **Use the Cognito Hosted UI:** No (we'll use custom authentication)
-14. **Next**
+5. **Configure message delivery:**
+   - Email provider: **Send email with Cognito** (for development)
+   - FROM email address: **no-reply@verificationemail.com** (default)
+   - Click **Next**
 
-**Review and create:**
-15. **Review all settings**
-16. **Create user pool**
+6. **Integrate your app:**
+   - User pool name: `ecommerce-user-pool`
+   - Hosted authentication pages: **Use the Cognito Hosted UI**
+   - Cognito domain: Choose **Use a Cognito domain**
+   - Cognito domain: Enter a unique domain prefix (e.g., `ecommerce-app-yourname`)
+   - Initial app client:
+     - App type: **Public client**
+     - App client name: `ecommerce-web-client`
+     - Client secret: **Don't generate a client secret**
+   - Allowed callback URLs: `https://yourdomain.com/` (update this later with your CloudFront URL)
+   - Allowed sign-out URLs: `https://yourdomain.com/` (update this later with your CloudFront URL)
+   - Advanced app client settings:
+     - OAuth 2.0 grant types: **Authorization code grant**
+     - OpenID Connect scopes: **OpenID, Email, Profile**
+   - Click **Next**
 
----
-
-## 3.2 Create App Client
-
-### App Client Configuration
-
-1. **Go to your user pool → App integration tab**
-2. **Create app client**
-
-**App client information:**
-3. **App type:** Public client
-4. **App client name:** `ecommerce-web-client`
-5. **Client secret:** Don't generate a client secret
-
-**Authentication flows:**
-6. **ALLOW_USER_PASSWORD_AUTH** ✅
-7. **ALLOW_REFRESH_TOKEN_AUTH** ✅
-8. **ALLOW_USER_SRP_AUTH** ✅
-
-9. **Create app client**
+7. **Review and create:**
+   - Review all settings
+   - Click **Create user pool**
 
 ---
 
-## 3.3 Note Configuration Values
+## 3.2 Note Configuration Values
 
-From your User Pool, collect these values for later use:
+After creating the user pool, collect these values:
 
 ### User Pool Information
-- **User Pool ID:** `<region>_xxxxxxxxx` (from General settings)
-- **User Pool ARN:** `arn:aws:cognito-idp:<region>:<account>:userpool/<pool-id>`
+1. Go to **User pool overview**
+2. **User Pool ID:** Copy the value (format: `<region>_xxxxxxxxx`)
+3. **User Pool ARN:** Copy the ARN (format: `arn:aws:cognito-idp:<region>:<account>:userpool/<pool-id>`)
 
 ### App Client Information  
-- **App Client ID:** `xxxxxxxxxxxxxxxxxxxxxxxxxx` (from App integration tab)
+1. Go to **App integration** tab → **App client list**
+2. Click on `ecommerce-web-client`
+3. **App Client ID:** Copy the Client ID
 
-These values will be used in Module 4 when configuring the microservices and in Module 6 for frontend integration.
+### Cognito Domain
+1. Go to **App integration** tab → **Domain**
+2. **Cognito domain:** Note your domain (format: `https://<your-prefix>.auth.<region>.amazoncognito.com`)
+
+### Save These Values
+You'll need these for:
+- **Module 4:** Configuring microservices
+- **Module 6:** Frontend deployment and configuration
+
+---
+
+## 3.3 Update Callback URLs (After Frontend Deployment)
+
+After deploying your frontend in Module 6, you'll need to update the callback URLs:
+
+1. Go to **App integration** tab → **App client list**
+2. Click on `ecommerce-web-client`
+3. Click **Edit**
+4. Update:
+   - **Allowed callback URLs:** Add your CloudFront URL (e.g., `https://d1234567890.cloudfront.net/`)
+   - **Allowed sign-out URLs:** Add your CloudFront URL
+5. **Save changes**
+
+---
 
 ## Next Steps
 Proceed to **[Module 4: Container Deployment](./module4-container-deployment.md)** to deploy the microservices to ECS.
