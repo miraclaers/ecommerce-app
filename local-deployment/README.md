@@ -92,14 +92,14 @@ Edit `frontend/react-app/src/aws-config.js`:
 
 ```javascript
 const awsConfig = {
-  region: 'YOUR_REGION',
-  userPoolId: 'YOUR_USER_POOL_ID',
-  userPoolWebClientId: 'YOUR_APP_CLIENT_ID',
-  oauth: {
-    domain: 'YOUR_COGNITO_DOMAIN.auth.YOUR_REGION.amazoncognito.com',
-    redirectSignIn: 'http://localhost:3000/',
-    redirectSignOut: 'http://localhost:3000/',
-    responseType: 'code'
+  Auth: {
+    Cognito: {
+      userPoolId: 'ap-south-1_xxxxxxxxx',      // Your actual User Pool ID
+      userPoolClientId: '1a2b3c4d5e6f7g8h9i0j1k2l3m',    // Your actual App Client ID
+      loginWith: {
+        email: true,
+      },
+    }
   }
 };
 ```
