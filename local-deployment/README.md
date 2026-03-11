@@ -106,15 +106,14 @@ const awsConfig = {
 
 ### 3. Start Backend Services
 
-**You must specify the AWS region:**
-
 ```bash
 cd local-deployment
-AWS_REGION=us-east-1 docker compose up -d
+AWS_REGION=<region> docker-compose up -d
+
+Example: AWS_REGION=ap-south-1 docker-compose up -d
+
+Note: Depending on your environment you may have to use "docker compose" instead of "docker-compose" command.
 ```
-
-Replace `us-east-1` with your preferred region (e.g., `ap-south-1`, `eu-west-1`, etc.).
-
 This starts:
 - LocalStack (DynamoDB, SNS, SQS, SES)
 - PostgreSQL
@@ -125,7 +124,10 @@ This starts:
 
 ```bash
 cd local-deployment/data
-./load-products-local.sh us-east-1
+bash load-products-local.sh <region>
+
+Example: bash load-products-local.sh ap-south-1
+
 ```
 
 This loads 20 sample products into DynamoDB.
@@ -194,7 +196,7 @@ docker compose restart user-service order-service
 ### LocalStack Issues
 Restart LocalStack:
 ```bash
-docker compose restart localstack
+docker-compose restart localstack
 cd data && ./load-products-local.sh
 ```
 
@@ -241,26 +243,26 @@ ecommerce-aws-tutorial/
 
 ```bash
 # All services
-docker compose logs -f
+docker-compose logs -f
 
 # Specific service
-docker compose logs -f product-service
+docker-compose logs -f product-service
 ```
 
 ### Rebuild Services
 
 ```bash
-docker compose up -d --build
+docker-compose up -d --build
 ```
 
 ### Access Databases
 
 ```bash
 # PostgreSQL
-docker compose exec postgres psql -U postgres -d ecommercedb
+docker-compose exec postgres psql -U postgres -d ecommercedb
 
 # DynamoDB (via AWS CLI)
-aws dynamodb scan --table-name products --endpoint-url http://localhost:4566 --region us-east-1
+aws dynamodb scan --table-name products --endpoint-url http://localhost:4566 --region <region>
 ```
 
 ## License
