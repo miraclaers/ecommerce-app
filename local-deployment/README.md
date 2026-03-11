@@ -118,7 +118,9 @@ This starts:
 - Nginx (API gateway on port 8080)
 
 **To use a different AWS region:**
-Edit `local-deployment/.env` and change `AWS_REGION=us-east-1` to your preferred region, then restart:
+1. Copy the example environment file: `cp .env.example .env`
+2. Edit `.env` and change `AWS_REGION=us-east-1` to your preferred region
+3. Restart containers:
 ```bash
 docker compose down
 docker compose up -d
