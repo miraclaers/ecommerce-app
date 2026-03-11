@@ -106,30 +106,20 @@ const awsConfig = {
 
 ### 3. Start Backend Services
 
+**You must specify the AWS region:**
+
 ```bash
 cd local-deployment
-docker compose up -d
+AWS_REGION=us-east-1 docker compose up -d
 ```
+
+Replace `us-east-1` with your preferred region (e.g., `ap-south-1`, `eu-west-1`, etc.).
 
 This starts:
 - LocalStack (DynamoDB, SNS, SQS, SES)
 - PostgreSQL
 - 5 microservices (product, cart, user, order, notification)
 - Nginx (API gateway on port 8080)
-
-**To use a different AWS region:**
-
-**Option 1: Set environment variable (Recommended)**
-```bash
-AWS_REGION=ap-south-1 docker compose up -d
-```
-
-**Option 2: Use .env file**
-```bash
-cp .env.example .env
-# Edit .env and change AWS_REGION=us-east-1 to your preferred region
-docker compose up -d
-```
 
 ### 4. Load Product Data
 
