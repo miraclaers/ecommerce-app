@@ -139,7 +139,11 @@ elif [ "$MACHINE" = "Linux" ]; then
         # Install AWS CLI
         if ! command -v aws &> /dev/null; then
             echo "Installing AWS CLI..."
-            sudo apt-get install -y awscli
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            sudo apt-get install -y unzip
+            unzip awscliv2.zip
+            sudo ./aws/install
+            rm -rf aws awscliv2.zip
         else
             echo "AWS CLI already installed"
         fi
