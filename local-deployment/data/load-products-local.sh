@@ -21,6 +21,25 @@ echo "Endpoint: $ENDPOINT"
 echo "Region: $REGION"
 echo ""
 
+# Check if table exists, create if it doesn't
+echo "Checking if products table exists..."
+if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --endpoint-url "$ENDPOINT" --region "$REGION" > /dev/null 2>&1; then
+    echo "Table $TABLE_NAME does not exist. Creating..."
+    aws dynamodb create-table \
+        --table-name "$TABLE_NAME" \
+        --attribute-definitions AttributeName=product_id,AttributeType=S \
+        --key-schema AttributeName=product_id,KeyType=HASH \
+        --billing-mode PAY_PER_REQUEST \
+        --endpoint-url "$ENDPOINT" \
+        --region "$REGION" > /dev/null
+    
+    echo "Table $TABLE_NAME created successfully"
+    sleep 2
+else
+    echo "Table $TABLE_NAME already exists"
+fi
+echo ""
+
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then
     echo "Error: jq is required but not installed."
