@@ -57,7 +57,7 @@ services:
       - ENVIRONMENT=local
       - AWS_REGION=${AWS_REGION?Error: AWS_REGION environment variable is required}
       - DYNAMODB_ENDPOINT=http://localstack:4566
-      - CARTS_TABLE=carts
+      - CARTS_TABLE=ecommerce-cart
     depends_on:
       localstack:
         condition: service_started

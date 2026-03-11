@@ -20,7 +20,7 @@ awslocal dynamodb create-table \
     --region $AWS_REGION
 
 awslocal dynamodb create-table \
-    --table-name carts \
+    --table-name ecommerce-cart \
     --attribute-definitions AttributeName=user_id,AttributeType=S \
     --key-schema AttributeName=user_id,KeyType=HASH \
     --billing-mode PAY_PER_REQUEST \
