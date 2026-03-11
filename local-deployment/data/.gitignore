@@ -1,8 +1,2 @@
-# Downloaded product images
-product-images/
-*.jpg
-*.png
-*.jpeg
-
 # Backup files
 *.backup
