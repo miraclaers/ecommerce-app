@@ -49,6 +49,10 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
    - Advanced app client settings:
      - OAuth 2.0 grant types: **Authorization code grant**
      - OpenID Connect scopes: **OpenID, Email, Profile**
+     - Authentication flows: Enable the following:
+       - ✅ **ALLOW_USER_PASSWORD_AUTH**
+       - ✅ **ALLOW_USER_SRP_AUTH**
+       - ✅ **ALLOW_REFRESH_TOKEN_AUTH**
    - Click **Next**
 
 7. **Review and create:**
