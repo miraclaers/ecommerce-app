@@ -7,6 +7,7 @@ services:
     environment:
       - SERVICES=dynamodb,sns,sqs,ses
       - DEBUG=1
+      - AWS_REGION=${AWS_REGION}
     volumes:
       - "./localstack-init:/etc/localstack/init/ready.d"
     networks:
