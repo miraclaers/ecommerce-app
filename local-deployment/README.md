@@ -117,7 +117,13 @@ This starts:
 - 5 microservices (product, cart, user, order, notification)
 - Nginx (API gateway on port 8080)
 
-### 4. Load Product Data
+### 4. Copy Product Images
+
+```bash
+cp -r data/product-images local-deployment/data/
+```
+
+### 5. Load Product Data
 
 ```bash
 cd local-deployment/data
@@ -126,7 +132,7 @@ cd local-deployment/data
 
 This loads 20 sample products into DynamoDB.
 
-### 5. Start Frontend
+### 6. Start Frontend
 
 ```bash
 cd frontend/react-app
@@ -136,7 +142,7 @@ npm start
 
 Frontend runs on http://localhost:3000
 
-### 6. Test the Application
+### 7. Test the Application
 
 1. Open http://localhost:3000
 2. Sign up with email/password
