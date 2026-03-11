@@ -9,7 +9,7 @@ sleep 5
 echo "Creating DynamoDB tables..."
 
 awslocal dynamodb create-table \
-    --table-name products \
+    --table-name ecommerce-products \
     --attribute-definitions AttributeName=product_id,AttributeType=S \
     --key-schema AttributeName=product_id,KeyType=HASH \
     --billing-mode PAY_PER_REQUEST
@@ -24,7 +24,7 @@ awslocal dynamodb create-table \
 echo "Seeding products..."
 
 awslocal dynamodb put-item \
-    --table-name products \
+    --table-name ecommerce-products \
     --item '{
         "product_id": {"S": "prod-001"},
         "name": {"S": "Laptop"},
@@ -36,7 +36,7 @@ awslocal dynamodb put-item \
     }'
 
 awslocal dynamodb put-item \
-    --table-name products \
+    --table-name ecommerce-products \
     --item '{
         "product_id": {"S": "prod-002"},
         "name": {"S": "Wireless Mouse"},
@@ -48,7 +48,7 @@ awslocal dynamodb put-item \
     }'
 
 awslocal dynamodb put-item \
-    --table-name products \
+    --table-name ecommerce-products \
     --item '{
         "product_id": {"S": "prod-003"},
         "name": {"S": "Mechanical Keyboard"},

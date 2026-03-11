@@ -11,7 +11,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-TABLE_NAME="products"
+TABLE_NAME="ecommerce-products"
 ENDPOINT="http://localhost:4566"
 REGION="$1"
 

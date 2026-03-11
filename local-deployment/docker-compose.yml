@@ -40,7 +40,7 @@ services:
       - ENVIRONMENT=local
       - AWS_REGION=us-east-1
       - DYNAMODB_ENDPOINT=http://localstack:4566
-      - PRODUCTS_TABLE=products
+      - PRODUCTS_TABLE=ecommerce-products
     depends_on:
       localstack:
         condition: service_started
