@@ -117,6 +117,13 @@ This starts:
 - 5 microservices (product, cart, user, order, notification)
 - Nginx (API gateway on port 8080)
 
+**To use a different AWS region:**
+Edit `local-deployment/.env` and change `AWS_REGION=us-east-1` to your preferred region, then restart:
+```bash
+docker compose down
+docker compose up -d
+```
+
 ### 4. Load Product Data
 
 ```bash

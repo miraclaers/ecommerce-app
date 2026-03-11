@@ -38,7 +38,7 @@ services:
       - "8001:8001"
     environment:
       - ENVIRONMENT=local
-      - AWS_REGION=us-east-1
+      - AWS_REGION=${AWS_REGION}
       - DYNAMODB_ENDPOINT=http://localstack:4566
       - PRODUCTS_TABLE=ecommerce-products
     depends_on:
@@ -54,7 +54,7 @@ services:
       - "8002:8002"
     environment:
       - ENVIRONMENT=local
-      - AWS_REGION=us-east-1
+      - AWS_REGION=${AWS_REGION}
       - DYNAMODB_ENDPOINT=http://localstack:4566
       - CARTS_TABLE=carts
     depends_on:
@@ -96,9 +96,9 @@ services:
       - CART_SERVICE_URL=http://cart-service:8002
       - USER_SERVICE_URL=http://user-service:8003
       - PRODUCT_SERVICE_URL=http://product-service:8001
-      - AWS_REGION=us-east-1
+      - AWS_REGION=${AWS_REGION}
       - SNS_ENDPOINT=http://localstack:4566
-      - SNS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:order-events
+      - SNS_TOPIC_ARN=arn:aws:sns:${AWS_REGION}:000000000000:order-events
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,7 +118,7 @@ services:
     build: ../services/notification-service
     environment:
       - ENVIRONMENT=local
-      - AWS_REGION=us-east-1
+      - AWS_REGION=${AWS_REGION}
       - SQS_ENDPOINT=http://localstack:4566
       - SES_ENDPOINT=http://localstack:4566
       - SQS_QUEUE_URL=http://localstack:4566/000000000000/notification-queue
