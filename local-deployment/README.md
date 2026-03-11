@@ -118,11 +118,16 @@ This starts:
 - Nginx (API gateway on port 8080)
 
 **To use a different AWS region:**
-1. Copy the example environment file: `cp .env.example .env`
-2. Edit `.env` and change `AWS_REGION=us-east-1` to your preferred region
-3. Restart containers:
+
+**Option 1: Set environment variable (Recommended)**
 ```bash
-docker compose down
+AWS_REGION=ap-south-1 docker compose up -d
+```
+
+**Option 2: Use .env file**
+```bash
+cp .env.example .env
+# Edit .env and change AWS_REGION=us-east-1 to your preferred region
 docker compose up -d
 ```
 
