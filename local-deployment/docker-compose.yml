@@ -136,6 +136,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./data/product-images:/data/product-images:ro
     depends_on:
       product-service:
         condition: service_started
