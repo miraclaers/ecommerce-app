@@ -73,6 +73,14 @@ if [ "$MACHINE" = "Mac" ]; then
     else
         echo "AWS CLI already installed"
     fi
+    
+    # Install jq
+    if ! command -v jq &> /dev/null; then
+        echo "Installing jq..."
+        brew install jq
+    else
+        echo "jq already installed"
+    fi
 
 # ==========================================
 # Linux Installation
@@ -136,6 +144,14 @@ elif [ "$MACHINE" = "Linux" ]; then
             echo "Git already installed"
         fi
         
+        # Install jq
+        if ! command -v jq &> /dev/null; then
+            echo "Installing jq..."
+            sudo apt-get install -y jq
+        else
+            echo "jq already installed"
+        fi
+        
         # Install AWS CLI
         if ! command -v aws &> /dev/null; then
             echo "Installing AWS CLI..."
@@ -194,6 +210,14 @@ elif [ "$MACHINE" = "Linux" ]; then
             echo "Git already installed"
         fi
         
+        # Install jq
+        if ! command -v jq &> /dev/null; then
+            echo "Installing jq..."
+            sudo yum install -y jq
+        else
+            echo "jq already installed"
+        fi
+        
         # Install AWS CLI
         if ! command -v aws &> /dev/null; then
             echo "Installing AWS CLI..."
@@ -221,6 +245,7 @@ node --version
 npm --version
 git --version
 aws --version
+jq --version
 
 echo ""
 if [ "$MACHINE" = "Linux" ]; then
