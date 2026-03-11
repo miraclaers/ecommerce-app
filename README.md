@@ -42,28 +42,107 @@ This project demonstrates a complete cloud-native application using:
 
 ## Prerequisites
 
-Before you begin, ensure you have the following tools installed:
+Before you begin, ensure you have the following tools installed on your local workstation:
 
-- **Docker** - Container runtime
+### Required Tools
+
+- **Docker** - Container runtime for running services
 - **Docker Compose** - Multi-container orchestration
-- **Node.js 20+** - Frontend development
-- **Git** - Version control
-- **AWS CLI** - AWS service interaction
+- **Node.js 20+** - JavaScript runtime for frontend development
+- **npm** - Node package manager (comes with Node.js)
+- **Git** - Version control system
+- **AWS CLI** - Command-line tool for AWS services
 
-### Quick Installation
+### Installation Options
 
-For Amazon Linux 2023 or similar systems, run:
+**Option 1: Automated Installation (Recommended)**
+
+Run the installation script that automatically detects your OS and installs all prerequisites:
 
 ```bash
 ./install-prerequisites.sh
 ```
 
-This script installs:
-- Docker and Docker Compose
-- Node.js 20 LTS
-- Git
+Supports:
+- macOS (uses Homebrew)
+- Ubuntu/Debian (uses apt)
+- Amazon Linux/RHEL/CentOS (uses yum)
 
-After installation, log out and log back in for Docker group permissions to take effect.
+**Option 2: Manual Installation**
+
+**macOS:**
+```bash
+# Install Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install tools
+brew install node@20 git awscli
+
+# Install Docker Desktop
+# Download from: https://www.docker.com/products/docker-desktop
+```
+
+**Ubuntu/Debian:**
+```bash
+# Update packages
+sudo apt-get update
+
+# Install Docker
+sudo apt-get install -y docker.io docker-compose
+
+# Install Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install Git
+sudo apt-get install -y git
+
+# Install AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+```
+
+**Amazon Linux/RHEL/CentOS:**
+```bash
+# Update packages
+sudo yum update -y
+
+# Install Docker
+sudo yum install -y docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Install Node.js 20
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo yum install -y nodejs
+
+# Install Git
+sudo yum install -y git
+
+# Install AWS CLI
+sudo yum install -y aws-cli
+```
+
+### Verify Installation
+
+After installation, verify all tools are installed correctly:
+
+```bash
+docker --version
+docker-compose --version
+node --version
+npm --version
+git --version
+aws --version
+```
+
+### Post-Installation
+
+**Linux users:** Log out and log back in for Docker group permissions to take effect, or run:
+```bash
+newgrp docker
+```
 
 ## Getting Started
 
