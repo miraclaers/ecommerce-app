@@ -92,12 +92,12 @@ ecommerce-vpc (10.10.0.0/16)
 
 | Subnet Type | Name | CIDR | AZ | Purpose |
 |-------------|------|------|----|---------| 
-| Public | ecommerce-public-subnet-1 | 10.10.0.0/24 | ap-south-1a | NAT Gateway, Bastion |
-| Public | ecommerce-public-subnet-2 | 10.10.1.0/24 | ap-south-1b | Load Balancer (if public) |
-| Private ECS | ecommerce-private-ecs-1 | 10.10.10.0/24 | ap-south-1a | ECS Services |
-| Private ECS | ecommerce-private-ecs-2 | 10.10.11.0/24 | ap-south-1b | ECS Services |
+| Public | ecommerce-public-subnet-1 | 10.10.0.0/24 | ap-south-1a | NAT Gateway, Bastion host |
+| Public | ecommerce-public-subnet-2 | 10.10.1.0/24 | ap-south-1b | NAT Gateway, Bastion host (For HA setup if required)|
+| Private ECS | ecommerce-private-ecs-1 | 10.10.10.0/24 | ap-south-1a | ECS Services, Internal ALB, APIGW VPCLink |
+| Private ECS | ecommerce-private-ecs-2 | 10.10.11.0/24 | ap-south-1b | ECS Services, Internal ALB, APIGW VPCLink |
 | Private DB | ecommerce-private-database-1 | 10.10.20.0/24 | ap-south-1a | RDS Primary |
-| Private DB | ecommerce-private-database-2 | 10.10.21.0/24 | ap-south-1b | RDS Standby |
+| Private DB | ecommerce-private-database-2 | 10.10.21.0/24 | ap-south-1b | RDS Standby (For HA setup if required)|
 
 ## Next Steps
 Proceed to **[Module 2: Data Layer](./module2-data-layer.md)** to create the databases.
