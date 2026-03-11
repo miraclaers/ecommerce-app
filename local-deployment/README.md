@@ -121,7 +121,7 @@ This starts:
 
 ```bash
 cd local-deployment/data
-./load-products-local.sh
+./load-products-local.sh us-east-1
 ```
 
 This loads 20 sample products into DynamoDB.

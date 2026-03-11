@@ -1,12 +1,19 @@
 #!/bin/bash
 
 # Load products into LocalStack DynamoDB
-# Usage: ./load-products-local.sh [region]
+# Usage: ./load-products-local.sh <region>
 # Example: ./load-products-local.sh us-east-1
+
+if [ $# -eq 0 ]; then
+    echo "Error: Region parameter is required"
+    echo "Usage: ./load-products-local.sh <region>"
+    echo "Example: ./load-products-local.sh us-east-1"
+    exit 1
+fi
 
 TABLE_NAME="products"
 ENDPOINT="http://localhost:4566"
-REGION="${1:-us-east-1}"  # Default to us-east-1 if not provided
+REGION="$1"
 
 echo "Loading products into LocalStack DynamoDB"
 echo "Table: $TABLE_NAME"
