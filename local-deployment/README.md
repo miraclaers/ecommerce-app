@@ -32,16 +32,55 @@ A microservices-based eCommerce application running locally with LocalStack (AWS
 
 Create a Cognito User Pool in AWS Console:
 
-1. Go to AWS Cognito → Create User Pool
-2. Configure sign-in options: Email
-3. Configure security: Default settings
-4. Configure sign-up: Enable self-registration
-5. Configure message delivery: Email with Cognito
-6. Create App Client: Public client, enable Cognito Hosted UI
-7. Note down:
-   - User Pool ID
-   - App Client ID
-   - Cognito Domain
+1. Go to **AWS Cognito Console** → **User pools** → **Create user pool**
+
+2. **Configure sign-in experience:**
+   - Cognito user pool sign-in options: **Email**
+   - Click **Next**
+
+3. **Configure security requirements:**
+   - Password policy: **Cognito defaults**
+   - Multi-factor authentication: **No MFA**
+   - User account recovery: **Enable self-service account recovery - Recommended**
+   - Delivery method for user account recovery messages: **Email only**
+   - Click **Next**
+
+4. **Configure sign-up experience:**
+   - Self-registration: **Enable self-registration**
+   - Attribute verification and user account confirmation: **Allow Cognito to automatically send messages to verify and confirm - Recommended**
+   - Attributes to verify: **Send email message, verify email address**
+   - Required attributes: Select **name** and **email**
+   - Click **Next**
+
+5. **Configure message delivery:**
+   - Email provider: **Send email with Cognito**
+   - FROM email address: **no-reply@verificationemail.com** (default)
+   - Click **Next**
+
+6. **Integrate your app:**
+   - User pool name: `ecommerce-user-pool`
+   - Hosted authentication pages: **Use the Cognito Hosted UI**
+   - Cognito domain: Choose **Use a Cognito domain**
+   - Cognito domain: Enter a unique domain prefix (e.g., `ecommerce-app-yourname`)
+   - Initial app client:
+     - App type: **Public client**
+     - App client name: `ecommerce-web-client`
+     - Client secret: **Don't generate a client secret**
+   - Allowed callback URLs: `http://localhost:3000/`
+   - Allowed sign-out URLs: `http://localhost:3000/`
+   - Advanced app client settings:
+     - OAuth 2.0 grant types: **Authorization code grant**
+     - OpenID Connect scopes: **OpenID, Email, Profile**
+   - Click **Next**
+
+7. **Review and create:**
+   - Review all settings
+   - Click **Create user pool**
+
+8. **Note down the following values** (you'll need these for frontend configuration):
+   - **User Pool ID** (from User pool overview)
+   - **App Client ID** (from App integration → App client list)
+   - **Cognito Domain** (from App integration → Domain)
 
 ### 2. Configure Frontend
 
