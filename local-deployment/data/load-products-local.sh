@@ -1,15 +1,17 @@
 #!/bin/bash
 
 # Load products into LocalStack DynamoDB
-# Usage: ./load-products-local.sh
+# Usage: ./load-products-local.sh [region]
+# Example: ./load-products-local.sh us-east-1
 
 TABLE_NAME="products"
 ENDPOINT="http://localhost:4566"
-REGION="us-east-1"
+REGION="${1:-us-east-1}"  # Default to us-east-1 if not provided
 
 echo "Loading products into LocalStack DynamoDB"
 echo "Table: $TABLE_NAME"
 echo "Endpoint: $ENDPOINT"
+echo "Region: $REGION"
 echo ""
 
 # Check if jq is installed
