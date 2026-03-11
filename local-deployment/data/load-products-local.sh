@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on any error
+set -e
+
 # Load products into LocalStack DynamoDB
 # Usage: ./load-products-local.sh <region>
 # Example: ./load-products-local.sh us-east-1
@@ -21,6 +24,14 @@ echo "Endpoint: $ENDPOINT"
 echo "Region: $REGION"
 echo ""
 
+# Check if LocalStack is running
+echo "Checking if LocalStack is running..."
+if ! curl -s "$ENDPOINT" > /dev/null 2>&1; then
+    echo "Error: LocalStack is not running or not accessible at $ENDPOINT"
+    echo "Please start LocalStack with: docker compose up -d"
+    exit 1
+fi
+
 # Check if table exists, create if it doesn't
 echo "Checking if products table exists..."
 if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --endpoint-url "$ENDPOINT" --region "$REGION" > /dev/null 2>&1; then
@@ -39,6 +50,13 @@ else
     echo "Table $TABLE_NAME already exists"
 fi
 echo ""
+
+# Check if AWS CLI is installed
+if ! command -v aws &> /dev/null; then
+    echo "Error: AWS CLI is not installed or not in PATH"
+    echo "Please install AWS CLI first"
+    exit 1
+fi
 
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then
