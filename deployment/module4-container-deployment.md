@@ -20,7 +20,7 @@ Deploy microservices as Docker containers on Amazon ECS (Elastic Container Servi
 
 ## 4.1 Create Internal Application Load Balancer
 
-### Create ALB Security Group
+### 4.1.1 Create ALB Security Group
 
 1. **VPC Console → Security Groups → Create security group**
 2. **Name:** `ecommerce-alb-sg`
@@ -29,9 +29,10 @@ Deploy microservices as Docker containers on Amazon ECS (Elastic Container Servi
 5. **Inbound rules:**
    - Type: HTTP, Port: 80, Source: 10.10.0.0/16 (VPC CIDR)
    - Description: "Allow HTTP from VPC"
+6. **Outbound rules:** All traffic (default)
 6. **Create security group**
 
-### Create Internal Application Load Balancer
+### 4.1.2 Create Internal Application Load Balancer
 
 1. **EC2 Console → Load Balancers → Create load balancer**
 2. **Application Load Balancer → Create**
@@ -46,7 +47,7 @@ Deploy microservices as Docker containers on Amazon ECS (Elastic Container Servi
 6. **Listeners:** HTTP:80 (we'll configure target groups next)
 7. **Create load balancer**
 
-### Create Target Groups
+### 4.1.3 Create Target Groups
 
 Create 4 target groups for the microservices:
 
@@ -64,7 +65,7 @@ Create 4 target groups for the microservices:
 - **User Service:** `ecommerce-user-tg`, Port: 8003  
 - **Order Service:** `ecommerce-order-tg`, Port: 8004
 
-### Configure ALB Listener Rules
+### 4.1.4 Configure ALB Listener Rules
 
 1. **Go to Load Balancer → Listeners → HTTP:80 → View/edit rules**
 2. **Add rules for path-based routing:**
@@ -114,9 +115,8 @@ Create 4 target groups for the microservices:
 
 1. **ECR Console → Repositories → Create repository**
 2. **Repository name:** `ecommerce/product-service`
-3. **Image scan settings:** Scan on push (optional)
-4. **Encryption:** AES-256
-5. **Create repository**
+3. **Create repository**
+4. **Repeat the above steps for the remaining 3 services.**
 
 ### Validation Table
 
@@ -124,12 +124,10 @@ Create repositories for all services:
 
 | Service | Repository Name | Status |
 |---------|----------------|---------|
-| Product Service | `ecommerce/product-service` | ✅ Created |
-| Cart Service | `ecommerce/cart-service` | ⏳ Create |
-| User Service | `ecommerce/user-service` | ⏳ Create |
-| Order Service | `ecommerce/order-service` | ⏳ Create |
-
-**Repeat the above steps for the remaining 3 services.**
+| Product Service | `ecommerce/product-service` |
+| Cart Service | `ecommerce/cart-service` |
+| User Service | `ecommerce/user-service` |
+| Order Service | `ecommerce/order-service` |
 
 ---
 
@@ -230,6 +228,7 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-s
     - Stream prefix: ecs
 
 14. **Create task definition**
+15. **Repeat the above steps for the remaining 3 services, changing the port numbers and image URIs accordingly.**
 
 ### Task Definition Validation Table
 
@@ -237,12 +236,10 @@ Create task definitions for all services:
 
 | Service | Task Definition | CPU | Memory | Port | Status |
 |---------|----------------|-----|--------|------|---------|
-| Product Service | `ecommerce-product-service` | 0.25 vCPU | 0.5 GB | 8001 | ✅ Created |
-| Cart Service | `ecommerce-cart-service` | 0.25 vCPU | 0.5 GB | 8002 | ⏳ Create |
-| User Service | `ecommerce-user-service` | 0.25 vCPU | 0.5 GB | 8003 | ⏳ Create |
-| Order Service | `ecommerce-order-service` | 0.25 vCPU | 0.5 GB | 8004 | ⏳ Create |
-
-**Repeat the above steps for the remaining 3 services, changing the port numbers and image URIs accordingly.**
+| Product Service | `ecommerce-product-service` | 0.25 vCPU | 0.5 GB | 8001 |
+| Cart Service | `ecommerce-cart-service` | 0.25 vCPU | 0.5 GB | 8002 |
+| User Service | `ecommerce-user-service` | 0.25 vCPU | 0.5 GB | 8003 |
+| Order Service | `ecommerce-order-service` | 0.25 vCPU | 0.5 GB | 8004 |
 
 ---
 
@@ -262,8 +259,7 @@ Create task definitions for all services:
 3. **Task definition:** `ecommerce-product-service:1`
 4. **Service name:** `ecommerce-product-service`
 5. **Desired tasks:** 1
-6. **Deployment configuration:** Rolling update
-7. **VPC:** `ecommerce-vpc`
+6. **Networking - VPC:** `ecommerce-vpc`
 8. **Subnets:** Select both **private ECS subnets**
 9. **Security group:** `ecommerce-ecs-sg`
 10. **Public IP:** Disabled
@@ -271,6 +267,7 @@ Create task definitions for all services:
 12. **Load balancer:** `ecommerce-internal-alb`
 13. **Target group:** `ecommerce-product-tg`
 14. **Create service**
+15. **Repeat the above steps for the remaining 3 services.**
 
 ### Service Creation Validation Table
 
@@ -278,12 +275,11 @@ Create services for all microservices:
 
 | Service | ECS Service Name | Target Group | Desired Tasks | Status |
 |---------|-----------------|--------------|---------------|---------|
-| Product Service | `ecommerce-product-service` | `ecommerce-product-tg` | 1 | ✅ Created |
-| Cart Service | `ecommerce-cart-service` | `ecommerce-cart-tg` | 1 | ⏳ Create |
-| User Service | `ecommerce-user-service` | `ecommerce-user-tg` | 1 | ⏳ Create |
-| Order Service | `ecommerce-order-service` | `ecommerce-order-tg` | 1 | ⏳ Create |
+| Product Service | `ecommerce-product-service` | `ecommerce-product-tg` | 1 |
+| Cart Service | `ecommerce-cart-service` | `ecommerce-cart-tg` | 1 |
+| User Service | `ecommerce-user-service` | `ecommerce-user-tg` | 1 |
+| Order Service | `ecommerce-order-service` | `ecommerce-order-tg` | 1 |
 
-**Repeat the above steps for the remaining 3 services.**
 
 ---
 
@@ -313,9 +309,9 @@ Create services for all microservices:
 
 ---
 
-## 4.10 Test API Endpoints
+## 4.10 Test API Endpoints (Optional but recommended)
 
-### Option 1: Launch Bastion Host (Recommended)
+### Launch Bastion Host (Stop or Terminate instance after validation)
 
 **Create Bastion Host:**
 1. **EC2 Console → Launch Instance**
@@ -349,11 +345,7 @@ curl http://<internal-alb-dns-name>/cart
 curl http://<internal-alb-dns-name>/users
 curl http://<internal-alb-dns-name>/orders
 ```
-
-### Option 2: Use VPC Endpoints (Alternative)
-
-If you prefer not to create a bastion host, you can test from AWS CloudShell or configure VPC endpoints for testing.
-
+**Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
 ---
 
 ## 4.11 Troubleshooting Guide
@@ -385,18 +377,6 @@ If services are not starting properly, check the logs:
 - Ensure task execution role has `ssm:GetParameter` permissions
 - Verify parameter names match exactly (case-sensitive)
 - Check parameter exists in correct region
-
-### Useful Commands
-
-**Check service status:**
-```bash
-aws ecs describe-services --cluster ecommerce-cluster --services ecommerce-product-service
-```
-
-**View recent logs:**
-```bash
-aws logs tail /ecommerce/product-service --follow
-```
 
 ## Next Steps
 Proceed to **[Module 5: API Gateway](./module5-api-gateway.md)** to create the API Gateway with VPC Link integration.
