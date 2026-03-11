@@ -47,6 +47,15 @@ Create a Cognito User Pool for authentication:
 
 6. Click **Create user directory**
 
+7. **Configure App Client Authentication**:
+   - Go to your newly created User Pool → **App integration** tab → **App clients**
+   - Click on your app client name
+   - Under **Authentication flows**, enable:
+     - ✅ **ALLOW_USER_PASSWORD_AUTH**
+     - ✅ **ALLOW_USER_SRP_AUTH** 
+     - ✅ **ALLOW_REFRESH_TOKEN_AUTH**
+   - Click **Save changes**
+
 This automatically creates both the User Pool and App Client. Note down:
 - **User Pool ID** (e.g., `ap-south-1_xxxxxxxxx`)
 - **App Client ID** (e.g., `1a2b3c4d5e6f7g8h9i0j1k2l3m`)
