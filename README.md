@@ -2,7 +2,7 @@
 
 A production-grade microservices-based eCommerce application built for learning AWS cloud services and modern application architecture.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 This project demonstrates a complete cloud-native application using:
 
@@ -24,9 +24,9 @@ This project demonstrates a complete cloud-native application using:
 
 ### Architecture Diagram
 
-![AWS Architecture](generated-diagrams/ecommerce-architecture-detailed.png)
+Architecture diagram will be generated during local deployment setup.
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following tools installed:
 
@@ -51,7 +51,7 @@ This script installs:
 
 After installation, log out and log back in for Docker group permissions to take effect.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Step 1: Local Deployment (Recommended)
 
@@ -61,7 +61,7 @@ Before deploying to AWS, it's highly recommended to test the application locally
 - Application logic works as expected
 - You understand the application flow
 
-**👉 [Local Deployment Guide](local-deployment/README.md)**
+[Local Deployment Guide](local-deployment/README.md)
 
 Local deployment uses:
 - **LocalStack** - AWS service emulator (DynamoDB, SNS, SQS, SES)
@@ -75,7 +75,7 @@ Local deployment uses:
 
 Once you've verified the application works locally, deploy it to AWS to learn cloud services hands-on.
 
-**👉 [AWS Deployment Guide](deployment/README.md)**
+[AWS Deployment Guide](deployment/README.md)
 
 The deployment is organized into modules:
 - Module 0: Prerequisites
@@ -91,7 +91,7 @@ The deployment is organized into modules:
 
 **Time required**: 3-4 hours
 
-## 💰 Cost Estimates
+## Cost Estimates
 
 - **Local Development**: $0 (runs on your machine)
 - **AWS Deployment** (4-hour session): ~$10-15
@@ -99,7 +99,7 @@ The deployment is organized into modules:
 
 > **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
 
-## 📚 Learning Objectives
+## Learning Objectives
 
 By completing this project, you will learn:
 
@@ -130,7 +130,7 @@ By completing this project, you will learn:
    - Serverless components
    - High availability design
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 ecommerce-aws-tutorial/
@@ -150,11 +150,10 @@ ecommerce-aws-tutorial/
 ├── deployment/                  # AWS deployment guides
 │   ├── README.md                # Deployment overview
 │   └── module*.md               # Step-by-step modules
-├── generated-diagrams/          # Architecture diagrams
 └── install-prerequisites.sh     # Tool installation script
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 **Backend**
 - Python 3.11
@@ -172,23 +171,23 @@ ecommerce-aws-tutorial/
 - LocalStack (local AWS emulation)
 - Nginx (reverse proxy)
 
-## 🤝 Contributing
+## Contributing
 
 This is a learning project. Feel free to:
 - Report issues
 - Suggest improvements
 - Share your learning experience
 
-## 📄 License
+## License
 
 MIT License - Feel free to use this project for learning purposes.
 
-## 🎯 Next Steps
+## Next Steps
 
-1. ✅ Install prerequisites using `./install-prerequisites.sh`
-2. ✅ Follow the [Local Deployment Guide](local-deployment/README.md)
-3. ✅ Test the application locally
-4. ✅ Proceed to [AWS Deployment](deployment/README.md)
-5. ✅ Clean up resources after learning
+1. Install prerequisites using `./install-prerequisites.sh`
+2. Follow the [Local Deployment Guide](local-deployment/README.md)
+3. Test the application locally
+4. Proceed to [AWS Deployment](deployment/README.md)
+5. Clean up resources after learning
 
-Happy Learning! 🚀
+Happy Learning!
