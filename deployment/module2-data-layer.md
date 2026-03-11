@@ -62,8 +62,8 @@ This module creates the foundation for data storage across all microservices wit
 
 **Using Upload Script:**
 ```bash
-cd scripts
-./upload-images.sh ecommerce-product-images-<your-bucket-name>
+cd data
+./upload-images-to-s3.sh ecommerce-product-images-<your-bucket-name>
 ```
 
 This script uploads sample product images (prod-001.jpg through prod-020.jpg) to your S3 bucket.
@@ -108,7 +108,7 @@ https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/pr
 
 **Using Load Script:**
 ```bash
-cd scripts
+cd data
 ./load-products.sh ecommerce-products <your-region>
 ```
 
