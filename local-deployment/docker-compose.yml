@@ -123,6 +123,9 @@ services:
       - SES_ENDPOINT=http://localstack:4566
       - SQS_QUEUE_URL=http://localstack:4566/000000000000/notification-queue
       - SENDER_EMAIL=noreply@ecommerce.com
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./emails:/tmp/emails
     depends_on:
       localstack:
         condition: service_started

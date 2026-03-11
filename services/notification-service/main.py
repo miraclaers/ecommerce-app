@@ -49,9 +49,21 @@ def send_order_confirmation_email(order_data):
     
     try:
         if settings.environment == "local":
-            # LocalStack SES just logs emails
+            # LocalStack SES just logs emails - save to file instead
+            import os
+            from datetime import datetime
+            
+            os.makedirs('/tmp/emails', exist_ok=True)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"/tmp/emails/order_{order_data['order_id']}_{timestamp}.txt"
+            
+            with open(filename, 'w') as f:
+                f.write(f"To: {order_data['user_email']}\n")
+                f.write(f"Subject: Order Confirmation - #{order_data['order_id']}\n")
+                f.write(f"\n{email_body}")
+            
+            print(f"[LOCAL] Email saved to: {filename}")
             print(f"[LOCAL] Sending email to: {order_data['user_email']}")
-            print(f"[LOCAL] Email body:\n{email_body}")
         else:
             ses.send_email(
                 Source=settings.sender_email,
@@ -61,9 +73,9 @@ def send_order_confirmation_email(order_data):
                     'Body': {'Text': {'Data': email_body}}
                 }
             )
-        print(f"Email sent successfully to {order_data['user_email']}")
+        print(f"Email sent successfully to {order_data['user_email']}", flush=True)
     except Exception as e:
-        print(f"Failed to send email: {str(e)}")
+        print(f"Failed to send email: {str(e)}", flush=True)
 
 def process_message(message):
     """Process a single SQS message"""
@@ -77,19 +89,19 @@ def process_message(message):
         else:
             order_data = body
         
-        print(f"Processing order: {order_data['order_id']}")
+        print(f"Processing order: {order_data['order_id']}", flush=True)
         send_order_confirmation_email(order_data)
         
         return True
     except Exception as e:
-        print(f"Error processing message: {str(e)}")
+        print(f"Error processing message: {str(e)}", flush=True)
         return False
 
 def main():
     """Main loop to poll SQS queue"""
     sqs = get_sqs_client()
     
-    print(f"Notification Service started. Polling queue: {settings.sqs_queue_url}")
+    print(f"Notification Service started. Polling queue: {settings.sqs_queue_url}", flush=True)
     
     while True:
         try:
@@ -102,7 +114,7 @@ def main():
             messages = response.get('Messages', [])
             
             if messages:
-                print(f"Received {len(messages)} message(s)")
+                print(f"Received {len(messages)} message(s)", flush=True)
                 
                 for message in messages:
                     if process_message(message):
@@ -111,14 +123,12 @@ def main():
                             QueueUrl=settings.sqs_queue_url,
                             ReceiptHandle=message['ReceiptHandle']
                         )
-                        print("Message processed and deleted")
+                        print("Message processed and deleted", flush=True)
                     else:
-                        print("Message processing failed, will retry")
-            else:
-                print("No messages, waiting...")
+                        print("Message processing failed, will retry", flush=True)
         
         except Exception as e:
-            print(f"Error in main loop: {str(e)}")
+            print(f"Error in main loop: {str(e)}", flush=True)
             time.sleep(5)
 
 if __name__ == "__main__":
