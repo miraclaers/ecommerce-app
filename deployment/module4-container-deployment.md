@@ -215,6 +215,7 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-s
 8. **Task execution role:** `ecsTaskExecutionRole`
 
 **Container definition:**
+
 9. **Container name:** `product-service`
 10. **Image URI:** `<account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-service:latest`
 11. **Port mappings:** Container port 8001, Protocol TCP
@@ -228,6 +229,7 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-s
     - Stream prefix: ecs
 
 14. **Create task definition**
+
 15. **Repeat the above steps for the remaining 3 services, changing the port numbers and image URIs accordingly.**
 
 ### Task Definition Validation Table
