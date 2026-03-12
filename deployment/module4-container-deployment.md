@@ -122,8 +122,8 @@ Create 4 target groups for the microservices:
 
 Create repositories for all services:
 
-| Service | Repository Name | Status |
-|---------|----------------|---------|
+| Service | Repository Name |
+|---------|----------------|
 | Product Service | `ecommerce/product-service` |
 | Cart Service | `ecommerce/cart-service` |
 | User Service | `ecommerce/user-service` |
@@ -236,8 +236,8 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-s
 
 Create task definitions for all services:
 
-| Service | Task Definition | CPU | Memory | Port | Status |
-|---------|----------------|-----|--------|------|---------|
+| Service | Task Definition | CPU | Memory | Port |
+|---------|----------------|-----|--------|------|
 | Product Service | `ecommerce-product-service` | 0.25 vCPU | 0.5 GB | 8001 |
 | Cart Service | `ecommerce-cart-service` | 0.25 vCPU | 0.5 GB | 8002 |
 | User Service | `ecommerce-user-service` | 0.25 vCPU | 0.5 GB | 8003 |
@@ -275,8 +275,8 @@ Create task definitions for all services:
 
 Create services for all microservices:
 
-| Service | ECS Service Name | Target Group | Desired Tasks | Status |
-|---------|-----------------|--------------|---------------|---------|
+| Service | ECS Service Name | Target Group | Desired Tasks |
+|---------|-----------------|--------------|---------------|
 | Product Service | `ecommerce-product-service` | `ecommerce-product-tg` | 1 |
 | Cart Service | `ecommerce-cart-service` | `ecommerce-cart-tg` | 1 |
 | User Service | `ecommerce-user-service` | `ecommerce-user-tg` | 1 |
@@ -294,13 +294,6 @@ Create services for all microservices:
    - **Status:** Active
    - **Running tasks:** 1
    - **Desired tasks:** 1
-
-### Check Target Group Health
-
-1. **EC2 Console → Target Groups**
-2. **For each target group, verify:**
-   - **Registered targets:** 1
-   - **Health status:** Healthy
 
 ### Check Target Group Health
 
