@@ -36,7 +36,7 @@
 
 .nav-center {
   display: flex;
-  gap: 15px;
+  gap: 40px;
   flex: 1;
   justify-content: center;
 }
@@ -46,56 +46,34 @@
   text-decoration: none;
   font-size: 16px;
   font-weight: 500;
-  padding: 10px 15px;
-  border-radius: 25px;
-  transition: all 0.3s ease;
-  position: relative;
-  margin: 0 5px;
-  overflow: visible;
-}
-
-.nav-center a:not(.cart-link) {
-  overflow: hidden;
-}
-
-.nav-center a::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-
-.nav-center a:hover::before {
-  left: 100%;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 .nav-center a:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .cart-link {
   position: relative;
-  overflow: visible;
 }
 
 .cart-badge {
-  display: inline-block;
-  margin-left: 8px;
-  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4444;
   color: white;
-  border-radius: 12px;
-  padding: 2px 8px;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
   font-weight: bold;
-  border: 1px solid white;
-  animation: pulse 2s infinite;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 2px solid white;
 }
 
 @keyframes pulse {

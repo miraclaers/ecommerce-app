@@ -19,7 +19,8 @@ function Navbar({ signOut, user }) {
       <div className="nav-center">
         <Link to="/">Products</Link>
         <Link to="/cart" className="cart-link">
-          🛒 Cart {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+          🛒 Cart
+          {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
         </Link>
         <Link to="/orders">📦 Orders</Link>
       </div>
