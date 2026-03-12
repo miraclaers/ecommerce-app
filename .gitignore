@@ -54,3 +54,6 @@ frontend/react-app/.env.local
 
 # Generated diagrams
 generated-diagrams/
+
+# Local deployment email files
+local-deployment/emails/
