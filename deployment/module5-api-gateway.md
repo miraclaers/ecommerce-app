@@ -65,11 +65,21 @@ The API Gateway will have three specific routes:
 
 ---
 
-## 5.3 Create HTTP Proxy Integration
+## 5.3 Create HTTP Integrations
 
-### Integration Configuration
+### Integration 1: Products Integration
 
 1. **Go to your API → Integrations → Create integration**
+2. **Integration type:** HTTP proxy integration
+3. **Integration method:** GET
+4. **Integration URI:** `http://<internal-alb-dns-name>/products`
+   - Replace `<internal-alb-dns-name>` with your actual ALB DNS name
+5. **VPC Link:** Select `ecommerce-vpc-link`
+6. **Create integration**
+
+### Integration 2: Proxy Integration for Other Routes
+
+1. **Create integration**
 2. **Integration type:** HTTP proxy integration
 3. **Integration method:** ANY
 4. **Integration URI:** `http://<internal-alb-dns-name>/{proxy}`
@@ -77,7 +87,9 @@ The API Gateway will have three specific routes:
 5. **VPC Link:** Select `ecommerce-vpc-link`
 6. **Create integration**
 
-**Note:** The `{proxy}` parameter captures the entire request path and forwards it to the ALB.
+**Note:** 
+- Products integration uses direct `/products` path
+- Proxy integration uses `{proxy}` parameter to capture and forward the entire request path
 
 ---
 
@@ -104,7 +116,7 @@ The API Gateway will have three specific routes:
 1. **Go to your API → Routes → Create route**
 2. **Method:** GET
 3. **Resource path:** `/products`
-4. **Integration:** Select the HTTP proxy integration created above
+4. **Integration:** Select the **Products Integration** created above
 5. **Authorization:** None
 6. **Create route**
 
@@ -113,7 +125,7 @@ The API Gateway will have three specific routes:
 1. **Create route**
 2. **Method:** ANY
 3. **Resource path:** `/{proxy+}`
-4. **Integration:** Select the HTTP proxy integration created above
+4. **Integration:** Select the **Proxy Integration** created above
 5. **Authorization:** JWT
 6. **Authorizer:** Select `cognito-jwt-authorizer`
 7. **Create route**
@@ -123,7 +135,7 @@ The API Gateway will have three specific routes:
 1. **Create route**
 2. **Method:** OPTIONS
 3. **Resource path:** `/{proxy+}`
-4. **Integration:** Select the HTTP proxy integration created above
+4. **Integration:** Select the **Proxy Integration** created above
 5. **Authorization:** None
 6. **Create route**
 
