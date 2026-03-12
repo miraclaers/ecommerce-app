@@ -104,14 +104,30 @@ AWS_REGION=<region> docker-compose up -d
 
 Example: AWS_REGION=ap-south-1 docker-compose up -d
 
-Note: Depending on your environment you may have to use "docker compose" instead of "docker-compose" command.
+Depending on your environment you may have to use "docker compose" instead of "docker-compose" command.
 ```
+> This may take upto 5-10 mins, so have a break :)
+
 This starts:
 - LocalStack (DynamoDB, SNS, SQS, SES)
 - PostgreSQL
 - 5 microservices (product, cart, user, order, notification)
 - Nginx (API gateway on port 8080)
 
+**Verify if all the containers are running**
+```
+docker ps
+>
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED         STATUS                   PORTS                                                                  NAMES
+aff0fde1b304   nginx:alpine                            "/docker-entrypoint.…"   5 minutes ago   Up 5 minutes             0.0.0.0:8080->80/tcp, [::]:8080->80/tcp                                local-deployment_nginx_1
+8c5cba392f03   local-deployment_order-service          "uvicorn main:app --…"   5 minutes ago   Up 5 minutes             0.0.0.0:8004->8004/tcp, [::]:8004->8004/tcp                            local-deployment_order-service_1
+8a4a59cde696   local-deployment_user-service           "uvicorn main:app --…"   5 minutes ago   Up 5 minutes             0.0.0.0:8003->8003/tcp, [::]:8003->8003/tcp                            local-deployment_user-service_1
+dc84392556a1   local-deployment_cart-service           "uvicorn main:app --…"   5 minutes ago   Up 5 minutes             0.0.0.0:8002->8002/tcp, [::]:8002->8002/tcp                            local-deployment_cart-service_1
+7627063244b1   local-deployment_notification-service   "python main.py"         5 minutes ago   Up 5 minutes                                                                                    local-deployment_notification-service_1
+3ec638edcc9d   local-deployment_product-service        "uvicorn main:app --…"   5 minutes ago   Up 5 minutes             0.0.0.0:8001->8001/tcp, [::]:8001->8001/tcp                            local-deployment_product-service_1
+620027be435c   localstack/localstack:latest            "docker-entrypoint.sh"   5 minutes ago   Up 5 minutes (healthy)   4510-4559/tcp, 5678/tcp, 0.0.0.0:4566->4566/tcp, [::]:4566->4566/tcp   local-deployment_localstack_1
+e432c4499cd5   postgres:15-alpine                      "docker-entrypoint.s…"   5 minutes ago   Up 5 minutes (healthy)   0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp                            local-deployment_postgres_1
+```
 ### 4. Load Product Data
 
 ```bash
@@ -122,7 +138,7 @@ Example: bash load-products-local.sh ap-south-1
 
 ```
 
-This loads 20 sample products into DynamoDB.
+This loads 20 sample products into local DynamoDB.
 
 ### 5. Start Frontend
 
@@ -139,8 +155,29 @@ Frontend runs on http://localhost:3000
 1. Open http://localhost:3000
 2. Sign up with email/password
 3. Browse products
-4. Add items to cart
+4. Add items to cart -> Scroll up to the Cart
 5. Place an order
+6. Check the Orders tab
+7. Check notification -> For local deployment, there should be an order file created under local-deployment/emails directory.
+```
+chetan@LAPTOP-DATTECKB:~/ecommerce-web-app/local-deployment/emails$ cat order_1_20260312_051039.txt
+To: xxxxxx@xxxx.xxx
+Subject: Order Confirmation - #1
+
+
+    Order Confirmation
+
+    Thank you for your order!
+
+    Order ID: 1
+    Total Amount: $299.97
+
+    Items:
+
+- Product: prod-015, Quantity: 1, Price: $19.99
+- Product: prod-016, Quantity: 1, Price: $249.99
+- Product: prod-012, Quantity: 1, Price: $29.99
+```
 
 ## API Endpoints
 
@@ -154,36 +191,7 @@ All APIs available at `http://localhost:8080/api`:
 - `GET /api/orders` - List user's orders
 - `POST /api/orders` - Create new order
 
-## Verify Services
-
-```bash
-# Check all containers are running
-docker compose ps
-
-# Check product count
-aws dynamodb scan --table-name products --endpoint-url http://localhost:4566 --region us-east-1 --query 'Count'
-
-# Check PostgreSQL
-docker compose exec postgres psql -U postgres -d ecommercedb -c "\dt"
-
-# Test API
-curl http://localhost:8080/api/products
-```
-
 ## Troubleshooting
-
-### CORS Errors
-The nginx configuration allows all origins. If you see CORS errors, restart nginx:
-```bash
-docker compose restart nginx
-```
-
-### Database Issues
-Reset PostgreSQL tables:
-```bash
-docker compose exec postgres psql -U postgres -d ecommercedb -c "DROP TABLE IF EXISTS order_items CASCADE; DROP TABLE IF EXISTS orders CASCADE; DROP TABLE IF EXISTS users CASCADE;"
-docker compose restart user-service order-service
-```
 
 ### LocalStack Issues
 Restart LocalStack:
@@ -202,7 +210,7 @@ curl -I http://localhost:8080/images/prod-001.jpg
 
 ```bash
 cd local-deployment
-docker compose down -v
+docker-compose down -v
 ```
 
 This removes all containers and volumes.
