@@ -35,7 +35,7 @@ function Navbar({ signOut, user }) {
         </a>
         {user && (
           <div className="user-info">
-            <span className="user-name">👋 {displayName}</span>
+            <span className="user-name">{displayName}</span>
             <button onClick={signOut} className="signout-btn">Sign Out</button>
           </div>
         )}
