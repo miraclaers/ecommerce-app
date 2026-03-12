@@ -76,17 +76,18 @@
 
 .cart-link {
   position: relative;
+  overflow: visible;
 }
 
 .cart-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -10px;
+  right: -10px;
   background: linear-gradient(45deg, #ff6b6b, #ee5a24);
   color: white;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,6 +95,8 @@
   font-weight: bold;
   border: 2px solid white;
   animation: pulse 2s infinite;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 @keyframes pulse {
