@@ -175,6 +175,24 @@ The API Gateway will have three specific routes:
 
 Before testing authenticated endpoints, you need to get a JWT token from Cognito:
 
+**Create Test User (if needed):**
+```bash
+# Create a test user
+aws cognito-idp admin-create-user \
+  --user-pool-id $USER_POOL_ID \
+  --username testuser@example.com \
+  --user-attributes Name=email,Value=testuser@example.com Name=name,Value="Test User" \
+  --temporary-password "TempPass123!" \
+  --message-action SUPPRESS
+
+# Set permanent password
+aws cognito-idp admin-set-user-password \
+  --user-pool-id $USER_POOL_ID \
+  --username testuser@example.com \
+  --password "TestPass123!" \
+  --permanent
+```
+
 **Get JWT Token using AWS CLI:**
 ```bash
 # Replace with your values from Module 3
@@ -193,24 +211,6 @@ JWT_TOKEN=$(aws cognito-idp admin-initiate-auth \
   --output text)
 
 echo "JWT Token: $JWT_TOKEN"
-```
-
-**Create Test User (if needed):**
-```bash
-# Create a test user
-aws cognito-idp admin-create-user \
-  --user-pool-id $USER_POOL_ID \
-  --username testuser@example.com \
-  --user-attributes Name=email,Value=testuser@example.com Name=name,Value="Test User" \
-  --temporary-password "TempPass123!" \
-  --message-action SUPPRESS
-
-# Set permanent password
-aws cognito-idp admin-set-user-password \
-  --user-pool-id $USER_POOL_ID \
-  --username testuser@example.com \
-  --password "TestPass123!" \
-  --permanent
 ```
 
 ### Test All Service Endpoints
