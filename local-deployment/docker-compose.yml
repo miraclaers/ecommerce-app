@@ -7,7 +7,7 @@ services:
     environment:
       - SERVICES=dynamodb,sns,sqs,ses
       - DEBUG=1
-      - AWS_REGION=${AWS_REGION?Error: AWS_REGION environment variable is required}
+      - AWS_REGION=${AWS_REGION:?AWS_REGION environment variable is required}
     volumes:
       - "./localstack-init:/etc/localstack/init/ready.d"
     networks:
@@ -39,7 +39,7 @@ services:
       - "8001:8001"
     environment:
       - ENVIRONMENT=local
-      - AWS_REGION=${AWS_REGION?Error: AWS_REGION environment variable is required}
+      - AWS_REGION=${AWS_REGION:?AWS_REGION environment variable is required}
       - DYNAMODB_ENDPOINT=http://localstack:4566
       - PRODUCTS_TABLE=ecommerce-products
     depends_on:
@@ -55,7 +55,7 @@ services:
       - "8002:8002"
     environment:
       - ENVIRONMENT=local
-      - AWS_REGION=${AWS_REGION?Error: AWS_REGION environment variable is required}
+      - AWS_REGION=${AWS_REGION:?AWS_REGION environment variable is required}
       - DYNAMODB_ENDPOINT=http://localstack:4566
       - CARTS_TABLE=ecommerce-cart
     depends_on:
@@ -97,9 +97,9 @@ services:
       - CART_SERVICE_URL=http://cart-service:8002
       - USER_SERVICE_URL=http://user-service:8003
       - PRODUCT_SERVICE_URL=http://product-service:8001
-      - AWS_REGION=${AWS_REGION?Error: AWS_REGION environment variable is required}
+      - AWS_REGION=${AWS_REGION:?AWS_REGION environment variable is required}
       - SNS_ENDPOINT=http://localstack:4566
-      - SNS_TOPIC_ARN=arn:aws:sns:${AWS_REGION?Error: AWS_REGION environment variable is required}:000000000000:order-events
+      - SNS_TOPIC_ARN=arn:aws:sns:${AWS_REGION:?AWS_REGION environment variable is required}:000000000000:order-events
     depends_on:
       postgres:
         condition: service_healthy
@@ -119,7 +119,7 @@ services:
     build: ../services/notification-service
     environment:
       - ENVIRONMENT=local
-      - AWS_REGION=${AWS_REGION?Error: AWS_REGION environment variable is required}
+      - AWS_REGION=${AWS_REGION:?AWS_REGION environment variable is required}
       - SQS_ENDPOINT=http://localstack:4566
       - SES_ENDPOINT=http://localstack:4566
       - SQS_QUEUE_URL=http://localstack:4566/000000000000/notification-queue
