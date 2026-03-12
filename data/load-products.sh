@@ -17,6 +17,58 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# Check if table exists, create if not
+echo "Checking if table $TABLE_NAME exists..."
+if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" > /dev/null 2>&1; then
+    echo "Table $TABLE_NAME does not exist. Creating..."
+    
+    aws dynamodb create-table \
+        --table-name "$TABLE_NAME" \
+        --attribute-definitions AttributeName=product_id,AttributeType=S \
+        --key-schema AttributeName=product_id,KeyType=HASH \
+        --billing-mode PAY_PER_REQUEST \
+        --region "$REGION"
+    
+    if [ $? -eq 0 ]; then
+        echo "✓ Table created successfully"
+        echo "Waiting for table to become active..."
+        aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
+        echo "✓ Table is now active"
+    else
+        echo "✗ Failed to create table"
+        exit 1
+    fi
+else
+    echo "✓ Table $TABLE_NAME already exists"
+fi
+
+# Also check/create carts table if it doesn't exist
+CARTS_TABLE="ecommerce-cart"
+echo "Checking if table $CARTS_TABLE exists..."
+if ! aws dynamodb describe-table --table-name "$CARTS_TABLE" --region "$REGION" > /dev/null 2>&1; then
+    echo "Table $CARTS_TABLE does not exist. Creating..."
+    
+    aws dynamodb create-table \
+        --table-name "$CARTS_TABLE" \
+        --attribute-definitions AttributeName=user_id,AttributeType=S \
+        --key-schema AttributeName=user_id,KeyType=HASH \
+        --billing-mode PAY_PER_REQUEST \
+        --region "$REGION"
+    
+    if [ $? -eq 0 ]; then
+        echo "✓ Carts table created successfully"
+        echo "Waiting for carts table to become active..."
+        aws dynamodb wait table-exists --table-name "$CARTS_TABLE" --region "$REGION"
+        echo "✓ Carts table is now active"
+    else
+        echo "✗ Failed to create carts table"
+        exit 1
+    fi
+else
+    echo "✓ Table $CARTS_TABLE already exists"
+fi
+echo ""
+
 # Read products from JSON file
 PRODUCTS_FILE="$(dirname "$0")/products.json"
 
