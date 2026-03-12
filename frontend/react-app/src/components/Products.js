@@ -39,7 +39,6 @@ function Products() {
 
   return (
     <div className="products">
-      <h1>Products</h1>
       {message && <div className="message">{message}</div>}
       <div className="product-grid">
         {products.map(product => (
