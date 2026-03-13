@@ -106,13 +106,32 @@ https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/pr
 
 ### Load Sample Products Data
 
-**Using Load Script:**
+**Step 1: Update Product Image URLs**
+
+First, update the products.json file with your S3 bucket URLs:
+
 ```bash
 cd data
+./update-product-images.sh ecommerce-product-images-<your-bucket-name> <your-region>
+```
+
+Example:
+```bash
+./update-product-images.sh ecommerce-product-images-12345 ap-south-1
+```
+
+This script:
+- Updates all image URLs in `products.json` to point to your S3 bucket
+- Creates a backup of the original file
+- Shows a sample URL for verification
+
+**Step 2: Load Products into DynamoDB**
+
+```bash
 ./load-products.sh ecommerce-products <your-region>
 ```
 
-This script loads 20 sample products from `data/products.json` into your DynamoDB table.
+This script loads 20 sample products from the updated `data/products.json` into your DynamoDB table.
 
 **Manual Data Entry:**
 1. **Go to DynamoDB Console → Tables → ecommerce-products**
