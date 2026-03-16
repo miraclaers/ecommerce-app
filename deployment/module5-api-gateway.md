@@ -85,23 +85,29 @@ The API Gateway will have three specific routes:
 
 ### Integration 1: /products no-authentication integration
 
-1. **Go to your API → Integrations → Create integration**
-2. **Integration type:** HTTP proxy integration
-3. **Integration method:** GET
-4. **Integration URI:** `http://<internal-alb-dns-name>/products`
-   - Replace `<internal-alb-dns-name>` with your actual ALB DNS name
-5. **VPC Link:** Select `ecommerce-vpc-link`
-6. **Create integration**
+1. **Go to your API → Develop → Integrations → Manage integrations → Create**
+2. **Integration target:** Integration type
+3. **Integration type:** Private resource
+4. **Target service:** ALB/NLB
+5. **Load balancer:** Select `ecommerce-internal-alb`
+6. **Listener:** HTTP:80
+7. **VPC Link:** Select `ecommerce-vpc-link`
+8. **Resource path:** `/products`
+9. **HTTP method:** GET
+10. **Create integration**
 
 ### Integration 2: /{proxy+} authenticated routes integration
 
-1. **Create integration**
-2. **Integration type:** HTTP proxy integration
-3. **Integration method:** ANY
-4. **Integration URI:** `http://<internal-alb-dns-name>/{proxy}`
-   - Replace `<internal-alb-dns-name>` with your actual ALB DNS name
-5. **VPC Link:** Select `ecommerce-vpc-link`
-6. **Create integration**
+1. **Go to your API → Develop → Integrations → Manage integrations → Create**
+2. **Integration target:** Integration type
+3. **Integration type:** Private resource
+4. **Target service:** ALB/NLB
+5. **Load balancer:** Select `ecommerce-internal-alb`
+6. **Listener:** HTTP:80
+7. **VPC Link:** Select `ecommerce-vpc-link`
+8. **Resource path:** `/{proxy}`
+9. **HTTP method:** ANY
+10. **Create integration**
 
 **Note:** 
 - Products integration uses direct `/products` path
