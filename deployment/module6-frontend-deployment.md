@@ -85,12 +85,25 @@ npm run build
 
 This creates a `build/` directory with optimized production files.
 
+6. **Upload build to S3:**
+```bash
+aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
+```
+
+Replace `<your-frontend-bucket-name>` with your actual S3 bucket name.
+
 ---
 
 ## 6.3 Upload Files to S3
 
 ### Upload Build Files
 
+**Option 1: AWS CLI (Recommended)**
+```bash
+aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
+```
+
+**Option 2: Console Upload**
 1. **Go to S3 bucket → Upload**
 2. **Select all files from `build/` directory**
    - Include all files and folders (static/, index.html, etc.)
