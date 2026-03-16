@@ -12,6 +12,8 @@ Create VPC infrastructure with public and private subnets across 2 availability 
 6. **NAT Gateway** - Outbound internet access for private subnets
 7. **Route Tables** - Traffic routing configuration
 
+**Note:** This guide assumes the AWS region to be Mumbai (ap-south-1). You can choose your region and select the AZs accordingly.
+
 ## Architecture
 ```
 ecommerce-vpc (10.10.0.0/16)
@@ -54,16 +56,25 @@ ecommerce-vpc (10.10.0.0/16)
 5. **IPv4 CIDR block:** `10.10.0.0/24`
 6. **Create subnet**
 
-**Repeat for all 6 subnets** with the CIDR blocks shown in architecture.
+**Repeat for all 6 subnets** with the CIDR blocks as per the table below:
+| Subnet Type | Name | CIDR | AZ | Purpose |
+|-------------|------|------|----|---------| 
+| Public | ecommerce-public-subnet-1 | 10.10.0.0/24 | ap-south-1a | NAT Gateway, Bastion host |
+| Public | ecommerce-public-subnet-2 | 10.10.1.0/24 | ap-south-1b | NAT Gateway, Bastion host (For HA setup if required)|
+| Private ECS | ecommerce-private-ecs-1 | 10.10.10.0/24 | ap-south-1a | ECS Services, Internal ALB, APIGW VPCLink |
+| Private ECS | ecommerce-private-ecs-2 | 10.10.11.0/24 | ap-south-1b | ECS Services, Internal ALB, APIGW VPCLink |
+| Private DB | ecommerce-private-database-1 | 10.10.20.0/24 | ap-south-1a | RDS Primary |
+| Private DB | ecommerce-private-database-2 | 10.10.21.0/24 | ap-south-1b | RDS Standby (For HA setup if required)|
 
 ## 1.4: Create NAT Gateway
 
 1. **VPC Console → NAT Gateways → Create NAT gateway**
 2. **Name:** `ecommerce-nat-gateway`
-3. **Subnet:** ecommerce-public-subnet-1
-4. **Connectivity type:** Public
-5. **Elastic IP allocation:** Allocate Elastic IP
-6. **Create NAT gateway**
+3. **Availability Mode:** Zonal
+4. **Subnet:** ecommerce-public-subnet-1
+5. **Connectivity type:** Public
+6. **Elastic IP allocation:** Allocate Elastic IP
+7. **Create NAT gateway**
 
 ## 1.5: Create Route Tables
 
@@ -85,19 +96,8 @@ ecommerce-vpc (10.10.0.0/16)
 
 **Private Database Route Table:**
 1. **Create route table:** `ecommerce-private-db-rt`
-2. **Add route:** `0.0.0.0/0` → NAT Gateway
+2. **No new route required**
 3. **Associate:** Both private database subnets
-
-## Network Architecture Summary
-
-| Subnet Type | Name | CIDR | AZ | Purpose |
-|-------------|------|------|----|---------| 
-| Public | ecommerce-public-subnet-1 | 10.10.0.0/24 | ap-south-1a | NAT Gateway, Bastion host |
-| Public | ecommerce-public-subnet-2 | 10.10.1.0/24 | ap-south-1b | NAT Gateway, Bastion host (For HA setup if required)|
-| Private ECS | ecommerce-private-ecs-1 | 10.10.10.0/24 | ap-south-1a | ECS Services, Internal ALB, APIGW VPCLink |
-| Private ECS | ecommerce-private-ecs-2 | 10.10.11.0/24 | ap-south-1b | ECS Services, Internal ALB, APIGW VPCLink |
-| Private DB | ecommerce-private-database-1 | 10.10.20.0/24 | ap-south-1a | RDS Primary |
-| Private DB | ecommerce-private-database-2 | 10.10.21.0/24 | ap-south-1b | RDS Standby (For HA setup if required)|
 
 ## Next Steps
 Proceed to **[Module 2: Data Layer](./module2-data-layer.md)** to create the databases.
