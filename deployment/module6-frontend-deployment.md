@@ -118,18 +118,18 @@ This creates a `build/` directory with optimized production files.
 4. **Create control setting:** Create new OAC
    - Name: `ecommerce-frontend-oac`
    - Sign requests: Yes
-5. **Create**
+   - Create
 
 **Default Cache Behavior:**
-6. **Viewer protocol policy:** Redirect HTTP to HTTPS
-7. **Allowed HTTP methods:** GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
-8. **Cache policy:** Caching Optimized
-9. **Origin request policy:** None
+5. **Viewer protocol policy:** Redirect HTTP to HTTPS
+6. **Allowed HTTP methods:** GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
+7. **Cache policy:** Caching Optimized
+8. **Origin request policy:** None
 
 **Settings:**
-10. **Price class:** Use all edge locations (best performance)
-11. **Default root object:** `index.html`
-12. **Create distribution**
+9. **Price class:** Use all edge locations (best performance)
+10. **Default root object:** `index.html`
+11. **Create distribution**
 
 ### Update S3 Bucket Policy
 
