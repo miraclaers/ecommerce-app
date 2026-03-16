@@ -85,23 +85,4 @@ docker --version
 docker run hello-world
 ```
 
-## Step 3: Clone Repository
-
-```bash
-# Clone the ecommerce application repository
-git clone https://github.com/awswithchetan/ecommerce-web-app.git
-
-# Navigate to project directory
-cd ecommerce-web-app
-
-# Verify repository structure
-ls -la
-
-# Expected directories:
-# - services/          (microservices code)
-# - frontend/          (React application) 
-# - deployment/        (deployment guides)
-# - local-deployment/  (local testing setup)
-```
-
 If all commands work without errors, you're ready to proceed to **[Module 1: Networking Foundation](./module1-networking.md)**.
