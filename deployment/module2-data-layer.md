@@ -98,11 +98,13 @@ https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/pr
 1. **DynamoDB Console → Tables → Create table**
 2. **Table name:** `ecommerce-cart`
 3. **Partition key:** `user_id` (String)
-4. **Sort key:** `product_id` (String)
+4. **Sort key:** Leave empty (no sort key needed)
 5. **Table settings:** Customize settings
 6. **Capacity mode:** On-demand
 7. **Encryption:** Amazon DynamoDB owned key
 8. **Create table**
+
+**Important:** The cart table should only have `user_id` as the partition key. Do not add a sort key, as the cart service stores all cart items as a single document per user.
 
 ### Load Sample Products Data
 

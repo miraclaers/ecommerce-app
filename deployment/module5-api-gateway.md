@@ -170,15 +170,14 @@ The API Gateway will have three specific routes:
 
 1. **Go to your API → CORS → Configure**
 2. **Access-Control-Allow-Origin:** `*` (or specify your frontend domain)
-3. **Access-Control-Allow-Headers:** 
-   ```
-   Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token
-   ```
+3. **Access-Control-Allow-Headers:** `*` (allows all headers - recommended for development)
 4. **Access-Control-Allow-Methods:** 
    ```
    GET,POST,PUT,DELETE,OPTIONS
    ```
 5. **Save**
+
+**Note:** Using `*` for Access-Control-Allow-Headers prevents CORS preflight issues with custom headers like Authorization tokens.
 
 ---
 
@@ -276,6 +275,11 @@ Each endpoint should return a JSON response from the respective microservice whe
 
 ### Troubleshooting
 
+**CORS Errors:**
+- If you see "Access-Control-Allow-Origin" errors, ensure CORS is configured with `Access-Control-Allow-Headers: *`
+- Verify OPTIONS routes are created for preflight requests
+- Check that API Gateway CORS settings match your frontend domain
+
 **401 Unauthorized:**
 - Check JWT token is valid and not expired
 - Verify Cognito User Pool ID in authorizer configuration
@@ -294,6 +298,9 @@ Each endpoint should return a JSON response from the respective microservice whe
 - Check ECS service health
 - Verify ALB listener rules are configured correctly
 - Check security group rules
+
+**DynamoDB ValidationException:**
+- If cart service fails with "key element does not match schema", ensure cart table has only `user_id` as partition key (no sort key)
 
 ---
 
