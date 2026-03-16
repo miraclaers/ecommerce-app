@@ -170,7 +170,33 @@ docker tag ecommerce/product-service:latest <account-id>.dkr.ecr.<your-region>.a
 docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-service:latest
 ```
 
-**Repeat the above steps for cart-service, user-service, and order-service.**
+### Build and Push Remaining Services
+
+**Important:** Make sure to change to each service directory before building.
+
+**Cart Service:**
+```bash
+cd ../cart-service  # Navigate to cart-service directory
+docker build -t ecommerce/cart-service .
+docker tag ecommerce/cart-service:latest <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/cart-service:latest
+docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/cart-service:latest
+```
+
+**User Service:**
+```bash
+cd ../user-service  # Navigate to user-service directory
+docker build -t ecommerce/user-service .
+docker tag ecommerce/user-service:latest <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/user-service:latest
+docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/user-service:latest
+```
+
+**Order Service:**
+```bash
+cd ../order-service  # Navigate to order-service directory
+docker build -t ecommerce/order-service .
+docker tag ecommerce/order-service:latest <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-service:latest
+docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-service:latest
+```
 
 ---
 
