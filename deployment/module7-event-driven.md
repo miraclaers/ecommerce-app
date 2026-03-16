@@ -1,52 +1,35 @@
-# Module 7: Event-Driven Architecture with Lambda
+# Module 7: Event-Driven Architecture with SNS
 
 ## Overview
-Set up event-driven architecture using Amazon SNS, SQS, Lambda, and SES for asynchronous order processing and email notifications.
+Set up simple event-driven architecture using Amazon SNS for asynchronous order notifications with direct email subscriptions.
 
 ## What We'll Build
-- **7.1** Configure Amazon SES for sending emails
-- **7.2** Create SNS topic for order events
-- **7.3** Create SQS queue for order processing
-- **7.4** Create Lambda function for email notifications
-- **7.5** Configure SNS-SQS-Lambda integration
-- **7.6** Update Parameter Store with SNS topic ARN
-- **7.7** Test event-driven workflow
+- **7.1** Create SNS topic for order events
+- **7.2** Create SQS queue for order logging
+- **7.3** Configure SNS subscriptions (Email + SQS)
+- **7.4** Update Parameter Store with SNS topic ARN
+- **7.5** Test event-driven workflow
 
 ## Architecture
 ```
-Order Service → SNS Topic → SQS Queue → Lambda Function → SES (Email)
+Order Service → SNS Topic → Email Subscription (Direct)
+                        → SQS Queue (Logging)
 ```
 
 When an order is placed:
 1. **Order Service** publishes message to SNS topic
-2. **SNS** delivers message to SQS queue
-3. **SQS** triggers Lambda function
-4. **Lambda** sends order confirmation email via SES
+2. **SNS** sends email notification directly to subscriber
+3. **SNS** also sends message to SQS queue for logging/monitoring
+
+**Benefits:**
+- Simple and reliable email delivery
+- No Lambda complexity
+- Direct SNS email notifications (less likely to be spam)
+- SQS queue for audit trail
 
 ---
 
-## 7.1 Configure Amazon SES
-
-### Verify Email Address (Sandbox Mode)
-
-1. **SES Console → Verified identities → Create identity**
-2. **Identity type:** Email address
-3. **Email address:** Enter your email (e.g., `noreply@yourdomain.com`)
-4. **Create identity**
-
-### Confirm Email Verification
-
-5. **Check your email** for verification message from AWS
-6. **Click verification link** in the email
-7. **Verify status** shows "Verified" in SES console
-
-### Verify Recipient Email (For Testing)
-
-8. **Repeat steps 1-7** for the email address that will receive order confirmations
-   - This is needed because SES starts in sandbox mode
-   - In sandbox mode, you can only send to verified addresses
-
-### Note: Production Setup
+## 7.1 Create SNS Topic
 
 For production, you'll need to:
 - Request production access (move out of sandbox)
@@ -64,6 +47,11 @@ For production, you'll need to:
 1. **SNS Console → Topics → Create topic**
 2. **Type:** Standard
 3. **Name:** `ecommerce-order-events`
+### Topic Configuration
+
+1. **SNS Console → Topics → Create topic**
+2. **Type:** Standard
+3. **Name:** `ecommerce-order-events`
 4. **Display name:** `eCommerce Order Events`
 5. **Create topic**
 
@@ -74,28 +62,23 @@ For production, you'll need to:
 
 ---
 
-## 7.3 Create SQS Queue
+## 7.2 Create SQS Queue for Logging
 
 ### SQS Queue Configuration
 
 1. **SQS Console → Queues → Create queue**
 2. **Type:** Standard queue
-3. **Name:** `ecommerce-notification-queue`
+3. **Name:** `ecommerce-order-logs`
 4. **Configuration:**
-   - Visibility timeout: 60 seconds (Lambda execution time)
-   - Message retention period: 4 days
+   - Visibility timeout: 30 seconds
+   - Message retention period: 14 days
    - Delivery delay: 0 seconds
 5. **Create queue**
 
-### Note Queue Details
-
-6. **Copy the Queue URL**
-7. **Copy the Queue ARN** (from queue details)
-
 ### Configure SQS Queue Policy
 
-8. **Access policy → Edit**
-9. **Add policy to allow SNS to send messages:**
+6. **Access policy → Edit**
+7. **Add policy to allow SNS to send messages:**
 
 ```json
 {
@@ -107,7 +90,7 @@ For production, you'll need to:
         "Service": "sns.amazonaws.com"
       },
       "Action": "sqs:SendMessage",
-      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-notification-queue",
+      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-order-logs",
       "Condition": {
         "ArnEquals": {
           "aws:SourceArn": "arn:aws:sns:<region>:<account-id>:ecommerce-order-events"
@@ -118,91 +101,42 @@ For production, you'll need to:
 }
 ```
 
-10. **Replace `<region>` and `<account-id>`** with your values
-11. **Save policy**
+8. **Replace `<region>` and `<account-id>`** with your values
+9. **Save policy**
 
 ---
 
-## 7.4 Create Lambda Function
+## 7.3 Configure SNS Subscriptions
 
-### Create IAM Role for Lambda
-
-1. **IAM Console → Roles → Create role**
-2. **Trusted entity:** AWS service → Lambda
-3. **Permissions:** Attach policies:
-   - `AWSLambdaSQSQueueExecutionRole` (for SQS trigger)
-   - `AmazonSESFullAccess` (for sending emails)
-4. **Role name:** `ecommerce-notification-lambda-role`
-5. **Create role**
-
-### Create Lambda Function
-
-1. **Lambda Console → Functions → Create function**
-2. **Function name:** `ecommerce-notification-handler`
-3. **Runtime:** Python 3.11
-4. **Architecture:** x86_64
-5. **Execution role:** Use existing role → `ecommerce-notification-lambda-role`
-6. **Create function**
-
-### Upload Lambda Code
-
-7. **Download the Lambda code:**
-   - Get `notification_handler.py` from `deployment/lambda/` directory
-
-8. **In Lambda console → Code tab:**
-   - Delete the default `lambda_function.py`
-   - Create new file: `lambda_function.py`
-   - Copy content from `notification_handler.py`
-   - **Deploy** the code
-
-### Configure Environment Variables
-
-9. **Configuration → Environment variables → Edit**
-10. **Add variable:**
-    - Key: `SENDER_EMAIL`
-    - Value: Your verified SES email (e.g., `noreply@yourdomain.com`)
-11. **Save**
-
-### Configure Lambda Settings
-
-12. **Configuration → General configuration → Edit**
-13. **Timeout:** 30 seconds
-14. **Memory:** 128 MB
-15. **Save**
-
----
-
-## 7.5 Configure SNS-SQS-Lambda Integration
-
-### Subscribe SQS to SNS Topic
+### Email Subscription
 
 1. **Go to SNS topic → Subscriptions → Create subscription**
 2. **Topic ARN:** Select `ecommerce-order-events`
+3. **Protocol:** Email
+4. **Endpoint:** Enter your email address (e.g., `admin@yourdomain.com`)
+5. **Create subscription**
+6. **Check your email** for confirmation message
+7. **Click "Confirm subscription"** link in the email
+8. **Verify status** shows "Confirmed" in SNS console
+
+### SQS Subscription for Logging
+
+1. **Create subscription**
+2. **Topic ARN:** Select `ecommerce-order-events`
 3. **Protocol:** Amazon SQS
-4. **Endpoint:** Enter the SQS queue ARN
+4. **Endpoint:** Enter the SQS queue ARN from step 7.2
 5. **Create subscription**
 6. **Verify status** shows "Confirmed"
 
-### Add SQS Trigger to Lambda
+### Subscription Summary
 
-1. **Go to Lambda function → Add trigger**
-2. **Select trigger:** SQS
-3. **SQS queue:** Select `ecommerce-notification-queue`
-4. **Batch size:** 10
-5. **Batch window:** 0 seconds
-6. **Enable trigger:** Yes
-7. **Add**
-
-### Verify Integration
-
-The flow is now complete:
-```
-SNS → SQS → Lambda → SES
-```
+You now have two subscriptions:
+- **Email:** Direct notifications to your email
+- **SQS:** Message logging for audit/monitoring
 
 ---
 
-## 7.6 Update Parameter Store
+## 7.4 Update Parameter Store
 
 ### SNS Topic ARN Parameter
 
@@ -212,7 +146,7 @@ SNS → SQS → Lambda → SES
 4. **Value:** `arn:aws:sns:<region>:<account-id>:ecommerce-order-events`
 5. **Create parameter**
 
-This parameter will be used by the order service to publish messages to SNS.
+This parameter is already created and used by the order service to publish messages to SNS.
 
 ---
 
@@ -263,70 +197,85 @@ This parameter will be used by the order service to publish messages to SNS.
     }
   ]
 }
-```
+## 7.5 Test Event-Driven Workflow
 
+### Test SNS Topic Directly
+
+1. **SNS Console → Topics → ecommerce-order-events**
+2. **Publish message → Create message:**
+   ```json
+   {
+     "order_id": "test-123",
+     "user_email": "customer@example.com",
+     "total_amount": 99.99,
+     "items": [
+       {
+         "product_id": "prod-001",
+         "name": "Test Product",
+         "quantity": 1,
+         "price": 99.99
+       }
+     ]
+   }
+   ```
 3. **Publish message**
-4. **Check email** - order confirmation should arrive
-
-### Monitor Lambda Execution
-
-1. **Lambda Console → Monitor → Logs**
-2. **View logs in CloudWatch**
-3. **Verify:**
-   - Lambda was triggered
-   - Email sent successfully
-   - No errors
+4. **Check your email** - notification should arrive directly from SNS
+5. **Check SQS queue** - message should appear in `ecommerce-order-logs`
 
 ### Test with Order Service
 
-Once the order service is deployed and updated:
+Once the order service is deployed:
 1. **Place an order** through the frontend
-2. **Order service publishes** to SNS
-3. **SNS delivers** to SQS
-4. **Lambda processes** message
-5. **SES sends** confirmation email
+2. **Order service publishes** to SNS topic
+3. **SNS sends email** directly to subscriber
+4. **SNS also sends** message to SQS queue for logging
+
+### Verify Message Flow
+
+**Check Email:**
+- Order notification email from SNS
+- Subject: "Notification from Amazon SNS Topic"
+- Body contains the order JSON
+
+**Check SQS Queue:**
+1. **SQS Console → ecommerce-order-logs**
+2. **Send and receive messages → Poll for messages**
+3. **Verify message** contains order details
 
 ### Troubleshooting
 
 **Email not received:**
-- Verify sender email is verified in SES
-- Verify recipient email is verified (sandbox mode)
-- Check Lambda CloudWatch logs for errors
 - Check spam folder
-
-**Lambda not triggered:**
-- Verify SQS trigger is enabled
-- Check SQS queue has messages
-- Review Lambda execution role permissions
+- Verify email subscription is confirmed
+- Ensure SNS topic has correct permissions
 
 **SQS not receiving messages:**
 - Verify SQS queue policy allows SNS
 - Check SNS subscription is confirmed
-- Ensure queue ARN is correct
+- Ensure queue ARN is correct in policy
 
-**SES errors:**
-- Verify email addresses in SES console
-- Check you're in correct AWS region
-- Review SES sending limits (sandbox: 200 emails/day)
+**Order service errors:**
+- Verify Parameter Store has correct SNS topic ARN
+- Check ECS task role has SNS permissions
+- Review CloudWatch logs for order service
 
 ## Architecture Benefits
 
-1. **Serverless:** No infrastructure to manage for notifications
-2. **Cost-effective:** Pay only when emails are sent
-3. **Auto-scaling:** Lambda scales automatically with message volume
+1. **Simple:** Direct SNS email delivery, no Lambda complexity
+2. **Reliable:** SNS handles email delivery and retries
+3. **Cost-effective:** No Lambda execution costs
 4. **Decoupled:** Order service doesn't wait for email sending
-5. **Reliable:** SQS ensures message delivery and retry logic
-6. **Event-driven:** Reactive architecture based on business events
+5. **Auditable:** SQS queue maintains order event history
+6. **Scalable:** SNS handles high message volumes automatically
 
 ## Cost Estimate
 
 For 1000 orders/month:
-- SNS: ~$0.50 (1000 publishes)
-- SQS: ~$0.40 (1000 requests)
-- Lambda: Free tier (1M requests/month)
-- SES: ~$0.10 (1000 emails)
+- SNS: ~$0.50 (1000 publishes + 2000 deliveries)
+- SQS: ~$0.40 (1000 messages)
+- Email delivery: Free (SNS email notifications)
 
-**Total: ~$1/month**
+**Total: ~$0.90/month**
 
 ## Next Steps
 Proceed to **[Module 8: DNS & SSL](./module8-dns-ssl.md)** to configure custom domain and SSL certificates.
