@@ -134,6 +134,8 @@ Create repositories for all services:
 
 ## 4.4 Build and Push Docker Images
 
+**Note:** Execute all commands in this section from your **local machine** (not from AWS console or EC2 instance).
+
 ### Build and Push Product Service Image
 
 1. **Get ECR login command:**
