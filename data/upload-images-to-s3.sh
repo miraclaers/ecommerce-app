@@ -85,8 +85,7 @@ for image in "$IMAGES_DIR"/*.jpg; do
     ERROR_OUTPUT=$(aws s3 cp "$image" \
         "s3://$BUCKET_NAME/$S3_PREFIX/$FILENAME" \
         --region "$REGION" \
-        --content-type "image/jpeg" \
-        --acl public-read 2>&1)
+        --content-type "image/jpeg" 2>&1)
     
     if [ $? -eq 0 ]; then
         echo "  ✓ Success"
