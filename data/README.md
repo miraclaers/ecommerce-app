@@ -40,7 +40,7 @@ This updates `products.json` to use S3 image URLs instead of Unsplash URLs.
 ### 4. Load Products into DynamoDB
 
 ```bash
-./load-products.sh ecommerce-products ap-south-1
+./load-products.sh ecommerce-products <your-region>
 ```
 
 This loads all 20 products with S3 image URLs into DynamoDB.

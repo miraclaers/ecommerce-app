@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load products into DynamoDB
-# Usage: ./load-products.sh [table-name] [region]
+# Usage: ./load-products.sh <table-name> <region>
 
 TABLE_NAME=${1:-ecommerce-products}
 REGION=${2:-ap-south-1}
