@@ -4,8 +4,8 @@ import sys
 import json
 from decimal import Decimal
 
-def update_image_urls(region, cloudfront_domain):
-    """Update DynamoDB product image URLs to use CloudFront"""
+def update_image_urls(region, domain_name):
+    """Update DynamoDB product image URLs to use custom domain"""
     
     dynamodb = boto3.resource('dynamodb', region_name=region)
     table = dynamodb.Table('ecommerce-products')
@@ -21,15 +21,15 @@ def update_image_urls(region, cloudfront_domain):
             product_id = product['product_id']
             current_image_url = product.get('image_url', '')
             
-            # Skip if already using CloudFront
-            if cloudfront_domain in current_image_url:
-                print(f"Skipping {product_id} - already using CloudFront")
+            # Skip if already using the domain
+            if domain_name in current_image_url:
+                print(f"Skipping {product_id} - already using {domain_name}")
                 continue
             
             # Extract filename from current URL
-            if 's3.amazonaws.com' in current_image_url or 's3.' in current_image_url:
+            if 's3.amazonaws.com' in current_image_url or 's3.' in current_image_url or 'cloudfront.net' in current_image_url:
                 filename = current_image_url.split('/')[-1]
-                new_image_url = f"https://{cloudfront_domain}/{filename}"
+                new_image_url = f"https://{domain_name}/images/{filename}"
                 
                 # Update the product
                 table.update_item(
@@ -51,12 +51,12 @@ def update_image_urls(region, cloudfront_domain):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python3 update-image-urls-cloudfront.py <region> <cloudfront-domain>")
-        print("Example: python3 update-image-urls-cloudfront.py us-east-1 d1234567890123.cloudfront.net")
+        print("Usage: python3 update-image-urls-domain.py <region> <domain-name>")
+        print("Example: python3 update-image-urls-domain.py us-east-1 cloud11.io")
         sys.exit(1)
     
     region = sys.argv[1]
-    cloudfront_domain = sys.argv[2]
+    domain_name = sys.argv[2]
     
-    print(f"Updating image URLs to use CloudFront domain: {cloudfront_domain}")
-    update_image_urls(region, cloudfront_domain)
+    print(f"Updating image URLs to use domain: {domain_name}")
+    update_image_urls(region, domain_name)

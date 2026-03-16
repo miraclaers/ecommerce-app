@@ -1,116 +1,86 @@
-# Module 9: Image CDN with CloudFront
+# Module 9: Image CDN with Existing CloudFront
 
 ## Overview
 
-This module sets up a CloudFront distribution to serve product images from S3 with improved performance, security, and global delivery.
+This module adds product images to your existing CloudFront distribution by creating a second origin for the images bucket and configuring path-based routing.
 
 ### Architecture
 
 ```
-Frontend → CloudFront Distribution → S3 Images Bucket (Private)
-                                  → Origin Access Control (OAC)
+Frontend → CloudFront Distribution → Origin 1: S3 Frontend Bucket (/)
+                                  → Origin 2: S3 Images Bucket (/images/*)
 ```
 
 ### What You'll Build
 
-- **S3 Images Bucket** - Private bucket for product images
-- **CloudFront Distribution** - Global CDN for image delivery
-- **Origin Access Control** - Secure S3 access from CloudFront only
-- **DynamoDB Update** - Replace direct S3 URLs with CloudFront URLs
+- **Reuse existing CloudFront** distribution from Module 6
+- **Add images bucket** as second origin
+- **Configure path routing** - `/images/*` routes to images bucket
+- **Make images bucket private** with OAC
+- **Update DynamoDB URLs** to use your custom domain
 
 ### Benefits
 
-- **Performance** - Global edge locations for faster image loading
-- **Security** - Private S3 bucket, access only through CloudFront
-- **Cost** - Reduced S3 data transfer costs
-- **Scalability** - Handle high traffic with CDN caching
+- **Simple setup** - Reuse existing infrastructure
+- **Single domain** - All content served from your domain (e.g., `https://cloud11.io`)
+- **Cost effective** - No additional CloudFront distribution
+- **Consistent** - Frontend and images from same domain
 
 ---
 
-## 9.1 Create S3 Images Bucket
+## 9.1 Make Images Bucket Private
 
-### Create Bucket
+### Update Bucket Permissions
 
-1. **S3 Console → Create bucket**
-2. **Bucket name:** `ecommerce-images-<random-suffix>` (e.g., `ecommerce-images-abc123`)
-3. **Region:** Same as your other resources
-4. **Block all public access:** ✅ **Enabled** (keep private)
-5. **Bucket versioning:** Disabled
-6. **Default encryption:** Server-side encryption with Amazon S3 managed keys (SSE-S3)
-7. **Create bucket**
+1. **Go to your existing images S3 bucket** (created in Module 2)
+2. **Permissions → Block public access → Edit**
+3. **Enable all blocks:**
+   - ✅ Block all public access
+   - ✅ Block public access to buckets and objects granted through new access control lists (ACLs)
+   - ✅ Block public access to buckets and objects granted through any access control lists (ACLs)
+   - ✅ Block public access to buckets and objects granted through new public bucket or access point policies
+   - ✅ Block public access to buckets and objects granted through any public bucket or access point policies
+4. **Save changes**
 
-### Upload Product Images
+### Remove Public Bucket Policy
 
-8. **Download sample images** (if not already done):
-   ```bash
-   cd data
-   ./download-product-images-v2.sh
-   ```
-
-9. **Upload images to new bucket:**
-   ```bash
-   aws s3 sync product-images/ s3://ecommerce-images-<your-suffix>/products/ --region <your-region>
-   ```
-
-10. **Verify upload:**
-    ```bash
-    aws s3 ls s3://ecommerce-images-<your-suffix>/products/ --region <your-region>
-    ```
+5. **Permissions → Bucket policy**
+6. **Delete existing policy** (if any)
+7. **Save changes**
 
 ---
 
-## 9.2 Create CloudFront Distribution
+## 9.2 Add Images Origin to CloudFront
 
-### Create Distribution
+### Add New Origin
 
-1. **CloudFront Console → Distributions → Create distribution**
-
-### Origin Settings
-
-2. **Origin domain:** Select your S3 images bucket
-3. **Origin path:** `/products` (optional - serves images from /products folder)
-4. **Name:** `ecommerce-images-origin`
-5. **Origin access:** Origin access control settings (recommended)
+1. **CloudFront Console → Your distribution → Origins → Create origin**
+2. **Origin domain:** Select your images S3 bucket
+3. **Origin path:** `/products` (if images are in products folder)
+4. **Name:** `images-origin`
+5. **Origin access:** Origin access control settings
 6. **Origin access control:** Create new OAC
-   - **Name:** `ecommerce-images-oac`
-   - **Description:** `OAC for ecommerce product images`
+   - **Name:** `images-oac`
+   - **Description:** `OAC for product images`
    - **Origin type:** S3
    - **Create**
+7. **Create origin**
 
-### Default Cache Behavior
+### Create Cache Behavior for Images
 
-7. **Viewer protocol policy:** Redirect HTTP to HTTPS
-8. **Allowed HTTP methods:** GET, HEAD
-9. **Cache policy:** Managed-CachingOptimized
-10. **Origin request policy:** None
-11. **Response headers policy:** None
+8. **Behaviors → Create behavior**
+9. **Path pattern:** `/images/*`
+10. **Origin:** Select `images-origin`
+11. **Viewer protocol policy:** Redirect HTTP to HTTPS
+12. **Allowed HTTP methods:** GET, HEAD
+13. **Cache policy:** Managed-CachingOptimized
+14. **Create behavior**
 
-### Distribution Settings
+### Update S3 Bucket Policy
 
-12. **Price class:** Use all edge locations (best performance)
-13. **Alternate domain name (CNAME):** Leave empty for now
-14. **Custom SSL certificate:** Default CloudFront SSL certificate
-15. **Default root object:** Leave empty
-16. **Description:** `CDN for ecommerce product images`
-17. **Create distribution**
-
-### Note Distribution Domain
-
-18. **Copy the distribution domain name** (e.g., `d1234567890123.cloudfront.net`)
-19. **Wait for deployment** (Status: Deployed) - takes 5-10 minutes
-
----
-
-## 9.3 Configure S3 Bucket Policy
-
-### Update Bucket Policy
-
-1. **Go to S3 bucket → Permissions → Bucket policy**
-2. **CloudFront will show a banner** "Update S3 bucket policy"
-3. **Click "Copy policy"** from the CloudFront console banner
-4. **Paste the policy** in S3 bucket policy editor
-
-**Or manually create policy:**
+15. **CloudFront will show banner** "Update S3 bucket policy"
+16. **Copy the policy** and apply to images bucket
+17. **Or create manually:**
 
 ```json
 {
@@ -123,7 +93,7 @@ Frontend → CloudFront Distribution → S3 Images Bucket (Private)
         "Service": "cloudfront.amazonaws.com"
       },
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::ecommerce-images-<your-suffix>/*",
+      "Resource": "arn:aws:s3:::your-images-bucket/*",
       "Condition": {
         "StringEquals": {
           "AWS:SourceArn": "arn:aws:cloudfront::<account-id>:distribution/<distribution-id>"
@@ -134,29 +104,23 @@ Frontend → CloudFront Distribution → S3 Images Bucket (Private)
 }
 ```
 
-5. **Replace placeholders:**
-   - `<your-suffix>` - Your bucket suffix
-   - `<account-id>` - Your AWS account ID
-   - `<distribution-id>` - Your CloudFront distribution ID
-
-6. **Save changes**
+18. **Wait for deployment** (5-10 minutes)
 
 ---
 
-## 9.4 Test CloudFront Distribution
+## 9.3 Test Image Access
 
-### Test Image Access
+### Test CloudFront Image URLs
 
-1. **Get an image filename** from your S3 bucket:
+1. **Get image filename** from S3 bucket:
    ```bash
-   aws s3 ls s3://ecommerce-images-<your-suffix>/products/ --region <your-region>
+   aws s3 ls s3://your-images-bucket/products/
    ```
 
-2. **Test CloudFront URL:**
+2. **Test new CloudFront path:**
    ```
-   https://<distribution-domain>/image-filename.jpg
+   https://your-domain.com/images/laptop-1.jpg
    ```
-   Example: `https://d1234567890123.cloudfront.net/laptop-1.jpg`
 
 3. **Verify image loads** in browser
 
@@ -164,18 +128,16 @@ Frontend → CloudFront Distribution → S3 Images Bucket (Private)
 
 4. **Try direct S3 URL** (should return Access Denied):
    ```
-   https://ecommerce-images-<your-suffix>.s3.<region>.amazonaws.com/products/laptop-1.jpg
+   https://your-images-bucket.s3.region.amazonaws.com/products/laptop-1.jpg
    ```
-
-This confirms images are only accessible through CloudFront.
 
 ---
 
-## 9.5 Update DynamoDB Image URLs
+## 9.4 Update DynamoDB Image URLs
 
 ### Create Update Script
 
-1. **Create script:** `data/update-image-urls-cloudfront.py`
+1. **Create script:** `data/update-image-urls-domain.py`
 
 ```python
 #!/usr/bin/env python3
@@ -184,8 +146,8 @@ import sys
 import json
 from decimal import Decimal
 
-def update_image_urls(region, cloudfront_domain):
-    """Update DynamoDB product image URLs to use CloudFront"""
+def update_image_urls(region, domain_name):
+    """Update DynamoDB product image URLs to use custom domain"""
     
     dynamodb = boto3.resource('dynamodb', region_name=region)
     table = dynamodb.Table('ecommerce-products')
@@ -201,15 +163,15 @@ def update_image_urls(region, cloudfront_domain):
             product_id = product['product_id']
             current_image_url = product.get('image_url', '')
             
-            # Skip if already using CloudFront
-            if cloudfront_domain in current_image_url:
-                print(f"Skipping {product_id} - already using CloudFront")
+            # Skip if already using the domain
+            if domain_name in current_image_url:
+                print(f"Skipping {product_id} - already using {domain_name}")
                 continue
             
             # Extract filename from current URL
-            if 's3.amazonaws.com' in current_image_url or 's3.' in current_image_url:
+            if 's3.amazonaws.com' in current_image_url or 's3.' in current_image_url or 'cloudfront.net' in current_image_url:
                 filename = current_image_url.split('/')[-1]
-                new_image_url = f"https://{cloudfront_domain}/{filename}"
+                new_image_url = f"https://{domain_name}/images/{filename}"
                 
                 # Update the product
                 table.update_item(
@@ -231,33 +193,33 @@ def update_image_urls(region, cloudfront_domain):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python3 update-image-urls-cloudfront.py <region> <cloudfront-domain>")
-        print("Example: python3 update-image-urls-cloudfront.py us-east-1 d1234567890123.cloudfront.net")
+        print("Usage: python3 update-image-urls-domain.py <region> <domain-name>")
+        print("Example: python3 update-image-urls-domain.py us-east-1 cloud11.io")
         sys.exit(1)
     
     region = sys.argv[1]
-    cloudfront_domain = sys.argv[2]
+    domain_name = sys.argv[2]
     
-    print(f"Updating image URLs to use CloudFront domain: {cloudfront_domain}")
-    update_image_urls(region, cloudfront_domain)
+    print(f"Updating image URLs to use domain: {domain_name}")
+    update_image_urls(region, domain_name)
 ```
 
 2. **Make script executable:**
    ```bash
-   chmod +x data/update-image-urls-cloudfront.py
+   chmod +x data/update-image-urls-domain.py
    ```
 
 ### Run Update Script
 
-3. **Update DynamoDB with CloudFront URLs:**
+3. **Update DynamoDB with your domain:**
    ```bash
    cd data
-   python3 update-image-urls-cloudfront.py <your-region> <your-cloudfront-domain>
+   python3 update-image-urls-domain.py <your-region> <your-domain>
    ```
    
    Example:
    ```bash
-   python3 update-image-urls-cloudfront.py us-east-1 d1234567890123.cloudfront.net
+   python3 update-image-urls-domain.py us-east-1 cloud11.io
    ```
 
 ### Verify Updates
@@ -270,96 +232,71 @@ if __name__ == "__main__":
      --region <your-region>
    ```
 
-5. **Test frontend** - Product images should now load from CloudFront
+5. **Test frontend** - Product images should now load from `https://your-domain.com/images/`
 
 ---
 
-## 9.6 Performance Optimization
+## 9.5 Troubleshooting
 
-### Configure Cache Behaviors
+### Images not loading
 
-1. **CloudFront Console → Your distribution → Behaviors**
-2. **Edit default behavior:**
-   - **TTL Settings:** Use cache policy
-   - **Cache policy:** Managed-CachingOptimized
-   - **Compress objects automatically:** Yes
-
-### Add Custom Cache Policy (Optional)
-
-3. **Create cache policy for images:**
-   - **Name:** `ecommerce-images-cache`
-   - **TTL:** Min 1 day, Default 7 days, Max 365 days
-   - **Cache key:** Include only origin domain name
-   - **Compression:** Enabled
-
----
-
-## 9.7 Monitoring and Troubleshooting
-
-### CloudWatch Metrics
-
-1. **CloudFront Console → Monitoring**
-2. **Key metrics to monitor:**
-   - **Requests** - Total requests to distribution
-   - **Cache hit rate** - Percentage of cached responses
-   - **Error rate** - 4xx and 5xx errors
-   - **Data transfer** - Bytes downloaded
-
-### Common Issues
-
-**Images not loading:**
-- Verify S3 bucket policy allows CloudFront access
+**Check CloudFront behavior:**
+- Verify `/images/*` path pattern exists
+- Ensure behavior points to images origin
 - Check distribution status is "Deployed"
-- Ensure image files exist in S3 bucket
-- Test CloudFront URL directly in browser
 
-**Access Denied errors:**
-- Verify OAC is properly configured
-- Check S3 bucket policy has correct distribution ARN
-- Ensure bucket is not blocking public access (should be blocked)
+**Check S3 bucket policy:**
+- Verify OAC policy is applied to images bucket
+- Ensure bucket blocks all public access
+- Check policy has correct distribution ARN
 
-**Slow loading:**
-- Check cache hit rate in CloudWatch
-- Verify cache policy settings
-- Consider using different price class for more edge locations
-
-### Testing Commands
-
+**Test direct paths:**
 ```bash
-# Test image accessibility
-curl -I https://<cloudfront-domain>/laptop-1.jpg
+# Should work
+curl -I https://your-domain.com/images/laptop-1.jpg
 
-# Check cache headers
-curl -H "Cache-Control: no-cache" https://<cloudfront-domain>/laptop-1.jpg -I
+# Should fail (Access Denied)
+curl -I https://your-images-bucket.s3.region.amazonaws.com/products/laptop-1.jpg
+```
 
-# Verify S3 direct access is blocked
-curl -I https://<bucket-name>.s3.<region>.amazonaws.com/products/laptop-1.jpg
+### DynamoDB update issues
+
+**Check script parameters:**
+- Verify region is correct
+- Ensure domain name doesn't include https://
+- Check DynamoDB table exists and is accessible
+
+**Manual verification:**
+```bash
+# Check current URLs
+aws dynamodb get-item \
+  --table-name ecommerce-products \
+  --key '{"product_id":{"S":"1"}}' \
+  --region <your-region>
 ```
 
 ---
 
 ## Architecture Benefits
 
-1. **Performance** - Images served from global edge locations
-2. **Security** - S3 bucket is private, only accessible via CloudFront
-3. **Cost optimization** - Reduced S3 data transfer costs
-4. **Scalability** - CDN handles traffic spikes automatically
-5. **Reliability** - Multiple edge locations provide redundancy
+1. **Simplified** - Reuse existing CloudFront distribution
+2. **Cost effective** - No additional CloudFront costs
+3. **Consistent** - Single domain for all content
+4. **Secure** - Private S3 bucket with OAC
+5. **Performance** - Global CDN for images
+6. **Maintainable** - Fewer resources to manage
 
-## Cost Estimate
+## Cost Impact
 
-For 10,000 image requests/month:
-- **CloudFront:** ~$1.00 (data transfer + requests)
-- **S3 storage:** ~$0.50 (for 10GB of images)
-- **S3 requests:** ~$0.10 (GET requests from CloudFront)
-
-**Total: ~$1.60/month**
+**Additional costs:** ~$0.01-0.05/month
+- Only S3 storage and minimal CloudFront requests
+- Reuses existing CloudFront distribution
 
 ## Next Steps
 
-Your images are now served through CloudFront! Consider:
-- Setting up custom domain for CloudFront (requires Route53/ACM)
-- Implementing image optimization (WebP format, responsive images)
-- Adding image upload functionality to admin interface
+Your images are now served through your custom domain! The complete flow:
+- Frontend: `https://your-domain.com/` → S3 frontend bucket
+- Images: `https://your-domain.com/images/` → S3 images bucket
+- Both secured with OAC and served globally via CloudFront
 
 Proceed to **[Module 10: Cleanup](./module10-cleanup.md)** when ready to clean up resources.
