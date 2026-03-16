@@ -212,7 +212,7 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 
 **Attach permissions policies:**
 6. **Add the following AWS managed policies:**
-   - `AmazonDynamoDBFullAccess`
+   - `AmazonDynamoDBFullAccess_v2` (use v2 for better security)
    - `AmazonSSMReadOnlyAccess`
    - `CloudWatchLogsFullAccess`
    - `AmazonS3ReadOnlyAccess`
