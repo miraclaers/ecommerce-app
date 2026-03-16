@@ -1,15 +1,15 @@
 const awsConfig = {
   Auth: {
     Cognito: {
-      userPoolId: 'your-region_xxxxxxxxx',      // e.g., ap-south-1_xxxxxxxxx
-      userPoolClientId: 'your-client-id',    // e.g., 1a2b3c4d5e6f7g8h9i0j1k2l3m
+      userPoolId: '<COGNITO_USER_POOL_ID>',
+      userPoolClientId: '<COGNITO_CLIENT_ID>',
       loginWith: {
         email: true,
       },
     }
   },
   API: {
-    baseUrl: 'https://your-api-id.execute-api.your-region.amazonaws.com'
+    baseUrl: '<API_GATEWAY_URL>'
   }
 };
 
