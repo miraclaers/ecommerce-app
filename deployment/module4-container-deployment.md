@@ -375,12 +375,6 @@ ssh -i your-key.pem ec2-user@<bastion-public-ip>
 curl http://<internal-alb-dns-name>/products
 ```
 
-3. **Test other services:**
-```bash
-curl http://<internal-alb-dns-name>/cart
-curl http://<internal-alb-dns-name>/users
-curl http://<internal-alb-dns-name>/orders
-```
 **Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
 ---
 
