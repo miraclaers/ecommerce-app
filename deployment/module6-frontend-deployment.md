@@ -111,22 +111,16 @@ This creates a `build/` directory with optimized production files.
 ### Distribution Configuration
 
 1. **CloudFront Console → Distributions → Create distribution**
-
-**Origin Settings:**
 2. **Origin domain:** Select your S3 bucket
 3. **Origin access:** Origin access control settings (recommended)
 4. **Create control setting:** Create new OAC
    - Name: `ecommerce-frontend-oac`
    - Sign requests: Yes
-   - Create
-
-**Default Cache Behavior:**
+   - Click Create
 5. **Viewer protocol policy:** Redirect HTTP to HTTPS
 6. **Allowed HTTP methods:** GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
 7. **Cache policy:** Caching Optimized
 8. **Origin request policy:** None
-
-**Settings:**
 9. **Price class:** Use all edge locations (best performance)
 10. **Default root object:** `index.html`
 11. **Create distribution**
