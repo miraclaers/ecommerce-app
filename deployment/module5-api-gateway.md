@@ -86,28 +86,24 @@ The API Gateway will have three specific routes:
 ### Integration 1: /products no-authentication integration
 
 1. **Go to your API → Develop → Integrations → Manage integrations → Create**
-2. **Integration target:** Integration type
-3. **Integration type:** Private resource
-4. **Target service:** ALB/NLB
-5. **Load balancer:** Select `ecommerce-internal-alb`
-6. **Listener:** HTTP:80
-7. **VPC Link:** Select `ecommerce-vpc-link`
-8. **Resource path:** `/products`
-9. **HTTP method:** GET
-10. **Create integration**
+2. **Integration type:** Private resource
+3. **Target service:** ALB/NLB
+4. **Load balancer:** Select `ecommerce-internal-alb`
+5. **Listener:** HTTP:80
+6. **VPC Link:** Select `ecommerce-vpc-link`
+7. **Create integration**
 
 ### Integration 2: /{proxy+} authenticated routes integration
 
 1. **Go to your API → Develop → Integrations → Manage integrations → Create**
-2. **Integration target:** Integration type
-3. **Integration type:** Private resource
-4. **Target service:** ALB/NLB
-5. **Load balancer:** Select `ecommerce-internal-alb`
-6. **Listener:** HTTP:80
-7. **VPC Link:** Select `ecommerce-vpc-link`
-8. **Resource path:** `/{proxy}`
-9. **HTTP method:** ANY
-10. **Create integration**
+2. **Integration type:** Private resource
+3. **Target service:** ALB/NLB
+4. **Load balancer:** Select `ecommerce-internal-alb`
+5. **Listener:** HTTP:80
+6. **VPC Link:** Select `ecommerce-vpc-link`
+7. **Create integration**
+
+**Note:** These integrations create generic connections to the ALB. The actual routing to specific paths (/products, /cart, etc.) will be configured in the Routes section.
 
 **Note:** 
 - Products integration uses direct `/products` path
