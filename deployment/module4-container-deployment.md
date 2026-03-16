@@ -305,10 +305,11 @@ Create task definitions for all services:
 8. **Subnets:** Select both **private ECS subnets**
 9. **Security group:** `ecommerce-ecs-sg`
 10. **Public IP:** Disabled
-11. **Load balancer type:** Application Load Balancer
-12. **Load balancer:** `ecommerce-internal-alb`
-13. **Target group:** `ecommerce-product-tg`
-14. **Create service**
+11. **Load Balancing (Optional):** Enable "Use load balancing"
+12. **Load balancer type:** Application Load Balancer
+13. **Load balancer:** `ecommerce-internal-alb`
+14. **Target group:** `ecommerce-product-tg`
+15. **Create service**
 15. **Repeat the above steps for the remaining 3 services.**
 
 ### Service Creation Validation Table
