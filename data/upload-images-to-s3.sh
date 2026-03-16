@@ -81,14 +81,18 @@ for image in "$IMAGES_DIR"/*.jpg; do
     
     echo "[$COUNTER/$IMAGE_COUNT] Uploading: $FILENAME"
     
-    if aws s3 cp "$image" \
+    # Capture error output
+    ERROR_OUTPUT=$(aws s3 cp "$image" \
         "s3://$BUCKET_NAME/$S3_PREFIX/$FILENAME" \
         --region "$REGION" \
         --content-type "image/jpeg" \
-        --acl public-read >/dev/null 2>&1; then
+        --acl public-read 2>&1)
+    
+    if [ $? -eq 0 ]; then
         echo "  ✓ Success"
     else
         echo "  ❌ Failed to upload $FILENAME"
+        echo "  Error details: $ERROR_OUTPUT"
         FAILED_COUNT=$((FAILED_COUNT + 1))
         
         # Stop on first failure to avoid spamming errors
@@ -99,6 +103,7 @@ for image in "$IMAGES_DIR"/*.jpg; do
         echo "  • Check AWS credentials: aws sts get-caller-identity"
         echo "  • Verify bucket permissions"
         echo "  • Check internet connectivity"
+        echo "  • Ensure bucket exists: aws s3 ls s3://$BUCKET_NAME"
         echo ""
         exit 1
     fi
