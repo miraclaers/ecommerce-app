@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update products.json with S3 image URLs
-# Usage: ./update-product-images.sh <bucket-name> [region]
+# Usage: ./update-product-image-urls.sh <bucket-name> [region]
 
 BUCKET_NAME=$1
 REGION=${2:-ap-south-1}
@@ -10,8 +10,8 @@ PRODUCTS_FILE="products.json"
 
 if [ -z "$BUCKET_NAME" ]; then
     echo "Error: Bucket name is required"
-    echo "Usage: ./update-product-images.sh <bucket-name> [region]"
-    echo "Example: ./update-product-images.sh ecommerce-product-images-12345 ap-south-1"
+    echo "Usage: ./update-product-image-urls.sh <bucket-name> [region]"
+    echo "Example: ./update-product-image-urls.sh ecommerce-product-images-12345 ap-south-1"
     exit 1
 fi
 

@@ -8,7 +8,7 @@ This directory contains sample product data and images for the ecommerce applica
 - **load-products.sh** - Script to load products into DynamoDB
 - **download-product-images.sh** - Download sample product images
 - **upload-images-to-s3.sh** - Upload images to S3 bucket
-- **update-product-images.sh** - Update products.json with S3 URLs
+- **update-product-image-urls.sh** - Update products.json with S3 URLs
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ This uploads all images to `s3://bucket-name/images/products/` with public-read 
 ### 3. Update Product Data with S3 URLs
 
 ```bash
-./update-product-images.sh ecommerce-product-images-<your-id> ap-south-1
+./update-product-image-urls.sh ecommerce-product-images-<your-id> ap-south-1
 ```
 
 This updates `products.json` to use S3 image URLs instead of Unsplash URLs.

@@ -112,12 +112,12 @@ First, update the products.json file with your S3 bucket URLs:
 
 ```bash
 cd data
-./update-product-images.sh ecommerce-product-images-<your-bucket-name> <your-region>
+./update-product-image-urls.sh ecommerce-product-images-<your-bucket-name> <your-region>
 ```
 
 Example:
 ```bash
-./update-product-images.sh ecommerce-product-images-12345 ap-south-1
+./update-product-image-urls.sh ecommerce-product-images-12345 ap-south-1
 ```
 
 This script:
