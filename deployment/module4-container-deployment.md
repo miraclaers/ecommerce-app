@@ -136,6 +136,17 @@ Create repositories for all services:
 
 **Note:** Execute all commands in this section from your **local machine** (not from AWS console or EC2 instance).
 
+### ECR Registry URL Format
+
+The ECR registry URL format is: `<account-id>.dkr.ecr.<your-region>.amazonaws.com`
+
+- **`<account-id>`** = Your 12-digit AWS Account ID
+- **`<your-region>`** = Your AWS region (e.g., us-east-1, ap-south-1)
+
+**To find your ECR registry URL:**
+- **CLI:** `aws sts get-caller-identity --query Account --output text`
+- **Console:** ECR Console → Repositories → Click any repository → Copy the URI (everything before the repository name)
+
 ### Build and Push Product Service Image
 
 1. **Get ECR login command:**
