@@ -200,11 +200,11 @@ This script loads 20 sample products from the updated `data/products.json` into 
    - Availability Zone: No preference (Single-AZ for Dev/Test)
 8. **Database authentication:** Password authentication
 9. **Monitoring:**
-   - **❌ Uncheck "Enable Enhanced Monitoring"** (to reduce costs)
+   - Uncheck "Enable Enhanced Monitoring" (to reduce costs)
 10. **Additional configuration:**
-    - **⚠️ IMPORTANT:** Initial database name: `ecommercedb` (This is critical - don't skip!)
-    - **❌ Uncheck "Enable automated backups"** (Backup retention period: 0 days)
-    - **❌ Uncheck "Enable encryption"** (to simplify tutorial setup)
+    - **IMPORTANT:** Initial database name: `ecommercedb` (This is critical - don't skip!)
+    - Uncheck "Enable automated backups" (Backup retention period: 0 days)
+    - Uncheck "Enable encryption" (to simplify tutorial setup)
 11. **Create database** (takes 5-10 minutes)
 
 <details>
