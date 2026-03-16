@@ -83,7 +83,7 @@ The API Gateway will have three specific routes:
 
 ## 5.3 Create HTTP Integrations
 
-### Integration 1: Products Integration
+### Integration 1: /products no-authentication integration
 
 1. **Go to your API → Integrations → Create integration**
 2. **Integration type:** HTTP proxy integration
@@ -93,7 +93,7 @@ The API Gateway will have three specific routes:
 5. **VPC Link:** Select `ecommerce-vpc-link`
 6. **Create integration**
 
-### Integration 2: Proxy Integration for Other Routes
+### Integration 2: /{proxy+} authenticated routes integration
 
 1. **Create integration**
 2. **Integration type:** HTTP proxy integration
