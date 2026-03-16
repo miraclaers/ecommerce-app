@@ -111,17 +111,26 @@ jq -c '.[]' "$PRODUCTS_FILE" | while read -r product; do
         image_url: {S: .image_url}
     }')
     
-    # Put item into DynamoDB
-    aws dynamodb put-item \
+    # Put item into DynamoDB and capture output
+    ERROR_OUTPUT=$(aws dynamodb put-item \
         --table-name "$TABLE_NAME" \
         --item "$ITEM" \
-        --region "$REGION" \
-        2>&1 | grep -v "^$"
+        --region "$REGION" 2>&1)
     
     if [ $? -eq 0 ]; then
         echo "  ✓ Success"
     else
         echo "  ✗ Failed"
+        echo "  Error details: $ERROR_OUTPUT"
+        echo ""
+        echo "❌ Loading failed. Stopping to avoid further errors."
+        echo ""
+        echo "Common solutions:"
+        echo "  • Check AWS credentials: aws sts get-caller-identity"
+        echo "  • Verify table exists: aws dynamodb describe-table --table-name $TABLE_NAME --region $REGION"
+        echo "  • Check permissions for DynamoDB"
+        echo ""
+        exit 1
     fi
     echo ""
 done
