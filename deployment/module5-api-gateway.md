@@ -27,14 +27,27 @@ The API Gateway will have three specific routes:
 
 ## 5.1 Create VPC Link
 
-### VPC Link Configuration
+### 5.1.1 Create Security Group for VPC Link
+
+1. **VPC Console → Security Groups → Create security group**
+2. **Name:** `ecommerce-vpclink-sg`
+3. **Description:** "Security group for VPC Link to ALB"
+4. **VPC:** Select `ecommerce-vpc`
+5. **Inbound rules:**
+   - Type: HTTP, Port: 80, Source: 0.0.0.0/0 (API Gateway traffic)
+   - Type: HTTPS, Port: 443, Source: 0.0.0.0/0 (API Gateway traffic)
+6. **Outbound rules:** All traffic (default)
+7. **Create security group**
+
+### 5.1.2 VPC Link Configuration
 
 1. **API Gateway Console → VPC Links → Create VPC Link**
 2. **Name:** `ecommerce-vpc-link`
 3. **Description:** "VPC Link for ecommerce internal ALB"
 4. **Target:** Application Load Balancer
 5. **Load balancer:** Select `ecommerce-internal-alb`
-6. **Create VPC Link**
+6. **Security groups:** Select `ecommerce-vpclink-sg`
+7. **Create VPC Link**
 
 **Note:** VPC Link creation takes 5-10 minutes. Wait for status to become "Available" before proceeding.
 
