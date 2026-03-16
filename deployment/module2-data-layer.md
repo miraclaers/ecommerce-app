@@ -192,21 +192,19 @@ This script loads 20 sample products from the updated `data/products.json` into 
    - Master password: (create strong password - save it!)
 6. **Instance configuration:**
    - DB instance class: Burstable classes - db.t3.micro
-7. **Storage:**
-   - Storage type: gp3
-   - Allocated storage: 20 GiB
-   - Storage autoscaling: Disable
-8. **Connectivity:**
+7. **Connectivity:**
    - VPC: `ecommerce-vpc`
    - DB subnet group: `ecommerce-db-subnet-group`
    - Public access: No
    - VPC security group: Choose existing - `ecommerce-rds-sg`
    - Availability Zone: No preference (Single-AZ for Dev/Test)
-9. **Database authentication:** Password authentication
+8. **Database authentication:** Password authentication
+9. **Monitoring:**
+   - **❌ Uncheck "Enable Enhanced Monitoring"** (to reduce costs)
 10. **Additional configuration:**
-    - Initial database name: `ecommercedb`
-    - Backup retention period: 0 days (disable backups for tutorial)
-    - Enable encryption: Yes
+    - **⚠️ IMPORTANT:** Initial database name: `ecommercedb` (This is critical - don't skip!)
+    - **❌ Uncheck "Enable automated backups"** (Backup retention period: 0 days)
+    - **❌ Uncheck "Enable encryption"** (to simplify tutorial setup)
 11. **Create database** (takes 5-10 minutes)
 
 <details>
