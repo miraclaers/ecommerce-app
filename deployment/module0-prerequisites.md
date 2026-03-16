@@ -13,8 +13,39 @@ Ensure you have the required tools and access before starting the AWS deployment
 ### 2. Development Tools
 - **Docker** installed and running ([Installation Guide](https://docs.docker.com/get-docker/))
 - **Git** installed ([Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git))
+- **Node.js 20+** and npm for frontend builds
 
-## Step 1: Verify AWS CLI Access
+## Step 1: Install Required Tools
+
+**Option 1: Automated Installation (Recommended)**
+
+Run the installation script that automatically detects your OS:
+
+```bash
+./install-prerequisites.sh
+```
+
+This script supports:
+- macOS (uses Homebrew)
+- Ubuntu/Debian (uses apt)
+- Amazon Linux/RHEL/CentOS (uses yum)
+
+**Option 2: Manual Installation**
+
+Follow the individual installation guides linked above for each tool.
+
+## Step 2: Verify Tool Installation
+
+```bash
+# Verify all tools are installed
+aws --version
+docker --version
+node --version
+npm --version
+git --version
+```
+
+## Step 3: Verify AWS CLI Access
 
 ```bash
 # Test AWS CLI configuration
@@ -28,6 +59,10 @@ aws sts get-caller-identity
 }
 
 # Test region access (should list available regions)
+aws ec2 describe-regions --query 'Regions[0:3].RegionName'
+```
+
+## Step 4: Configure AWS CLI (if needed)
 aws ec2 describe-regions --query 'Regions[0:3].RegionName' --output table
 ```
 
