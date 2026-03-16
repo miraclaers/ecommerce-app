@@ -15,7 +15,16 @@ Ensure you have the required tools and access before starting the AWS deployment
 - **Git** installed ([Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git))
 - **Node.js 20+** and npm for frontend builds
 
-## Step 1: Install Required Tools
+## Step 1: Clone Repository
+
+First, clone the repository to your local machine:
+
+```bash
+git clone https://github.com/awswithchetan/ecommerce-web-app.git
+cd ecommerce-web-app
+```
+
+## Step 2: Install Required Tools
 
 **Option 1: Automated Installation (Recommended)**
 
@@ -34,7 +43,7 @@ This script supports:
 
 Follow the individual installation guides linked above for each tool.
 
-## Step 2: Verify Tool Installation
+## Step 3: Verify Tool Installation
 
 ```bash
 # Verify all tools are installed
@@ -45,7 +54,7 @@ npm --version
 git --version
 ```
 
-## Step 3: Verify AWS CLI Access
+## Step 4: Verify AWS CLI Access
 
 ```bash
 # Test AWS CLI configuration
@@ -62,7 +71,7 @@ aws sts get-caller-identity
 aws ec2 describe-regions --query 'Regions[0:3].RegionName'
 ```
 
-## Step 4: Configure AWS CLI (if needed)
+## Step 5: Configure AWS CLI (if needed)
 aws ec2 describe-regions --query 'Regions[0:3].RegionName' --output table
 ```
 
