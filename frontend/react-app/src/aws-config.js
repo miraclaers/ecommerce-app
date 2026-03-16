@@ -7,6 +7,9 @@ const awsConfig = {
         email: true,
       },
     }
+  },
+  API: {
+    baseUrl: 'https://ycoczwbs7i.execute-api.us-east-1.amazonaws.com'
   }
 };
 
