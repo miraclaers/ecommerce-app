@@ -32,24 +32,9 @@ Deploy microservices as Docker containers on Amazon ECS (Elastic Container Servi
 6. **Outbound rules:** All traffic (default)
 6. **Create security group**
 
-### 4.1.2 Create Internal Application Load Balancer
+### 4.1.2 Create Target Groups
 
-1. **EC2 Console → Load Balancers → Create load balancer**
-2. **Application Load Balancer → Create**
-3. **Basic configuration:**
-   - Name: `ecommerce-internal-alb`
-   - Scheme: **Internal**
-   - IP address type: IPv4
-4. **Network mapping:**
-   - VPC: `ecommerce-vpc`
-   - Subnets: Select both **private ECS subnets**
-5. **Security groups:** Select `ecommerce-alb-sg`
-6. **Listeners:** HTTP:80 (we'll configure target groups next)
-7. **Create load balancer**
-
-### 4.1.3 Create Target Groups
-
-Create 4 target groups for the microservices:
+Create 4 target groups for the microservices first (required for ALB creation):
 
 **Product Service Target Group:**
 1. **EC2 Console → Target Groups → Create target group**
@@ -64,6 +49,22 @@ Create 4 target groups for the microservices:
 - **Cart Service:** `ecommerce-cart-tg`, Port: 8002
 - **User Service:** `ecommerce-user-tg`, Port: 8003  
 - **Order Service:** `ecommerce-order-tg`, Port: 8004
+
+### 4.1.3 Create Internal Application Load Balancer
+
+1. **EC2 Console → Load Balancers → Create load balancer**
+2. **Application Load Balancer → Create**
+3. **Basic configuration:**
+   - Name: `ecommerce-internal-alb`
+   - Scheme: **Internal**
+   - IP address type: IPv4
+4. **Network mapping:**
+   - VPC: `ecommerce-vpc`
+   - Subnets: Select both **private ECS subnets**
+5. **Security groups:** Select `ecommerce-alb-sg`
+6. **Listeners:** HTTP:80
+   - **Default action:** Forward to `ecommerce-product-tg` (we'll add more rules next)
+7. **Create load balancer**
 
 ### 4.1.4 Configure ALB Listener Rules
 
