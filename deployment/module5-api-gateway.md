@@ -81,19 +81,11 @@ The API Gateway will have three specific routes:
 
 ---
 
-## 5.3 Create HTTP Integrations
+## 5.3 Create HTTP Integration
 
-### Integration 1: /products no-authentication integration
+### Single ALB Integration
 
-1. **Go to your API → Develop → Integrations → Manage integrations → Create**
-2. **Integration type:** Private resource
-3. **Target service:** ALB/NLB
-4. **Load balancer:** Select `ecommerce-internal-alb`
-5. **Listener:** HTTP:80
-6. **VPC Link:** Select `ecommerce-vpc-link`
-7. **Create integration**
-
-### Integration 2: /{proxy+} authenticated routes integration
+Create one integration that will be used by all routes:
 
 1. **Go to your API → Develop → Integrations → Manage integrations → Create**
 2. **Integration type:** Private resource
@@ -103,11 +95,7 @@ The API Gateway will have three specific routes:
 6. **VPC Link:** Select `ecommerce-vpc-link`
 7. **Create integration**
 
-**Note:** These integrations create generic connections to the ALB. The actual routing to specific paths (/products, /cart, etc.) will be configured in the Routes section.
-
-**Note:** 
-- Products integration uses direct `/products` path
-- Proxy integration uses `{proxy}` parameter to capture and forward the entire request path
+**Note:** This single integration connects to your ALB and will be reused by all three routes. The ALB handles path-based routing to the appropriate microservices.
 
 ---
 
@@ -134,7 +122,7 @@ The API Gateway will have three specific routes:
 1. **Go to your API → Routes → Create route**
 2. **Method:** GET
 3. **Resource path:** `/products`
-4. **Integration:** Select the **Products Integration** created above
+4. **Integration:** Select the **ALB Integration** created above
 5. **Authorization:** None
 6. **Create route**
 
@@ -143,7 +131,7 @@ The API Gateway will have three specific routes:
 1. **Create route**
 2. **Method:** ANY
 3. **Resource path:** `/{proxy+}`
-4. **Integration:** Select the **Proxy Integration** created above
+4. **Integration:** Select the **ALB Integration** created above
 5. **Authorization:** JWT
 6. **Authorizer:** Select `cognito-jwt-authorizer`
 7. **Create route**
@@ -153,11 +141,12 @@ The API Gateway will have three specific routes:
 1. **Create route**
 2. **Method:** OPTIONS
 3. **Resource path:** `/{proxy+}`
-4. **Integration:** Select the **Proxy Integration** created above
+4. **Integration:** Select the **ALB Integration** created above
 5. **Authorization:** None
 6. **Create route**
 
 **Note:** 
+- All three routes use the same ALB integration
 - `/products` is public (no authentication required)
 - `/{proxy+}` requires JWT authentication for all other endpoints
 - `OPTIONS /{proxy+}` handles CORS preflight requests without authentication
