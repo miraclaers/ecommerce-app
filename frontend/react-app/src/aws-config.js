@@ -1,15 +1,15 @@
 const awsConfig = {
   Auth: {
     Cognito: {
-      userPoolId: 'ap-south-1_vts9Y5oDV',      // e.g., ap-south-1_xxxxxxxxx
-      userPoolClientId: '4d3ap513qgst7s72bcl9sc07cp',    // e.g., 1a2b3c4d5e6f7g8h9i0j1k2l3m
+      userPoolId: 'your-region_xxxxxxxxx',      // e.g., ap-south-1_xxxxxxxxx
+      userPoolClientId: 'your-client-id',    // e.g., 1a2b3c4d5e6f7g8h9i0j1k2l3m
       loginWith: {
         email: true,
       },
     }
   },
   API: {
-    baseUrl: 'https://ycoczwbs7i.execute-api.us-east-1.amazonaws.com'
+    baseUrl: 'https://your-api-id.execute-api.your-region.amazonaws.com'
   }
 };
 
