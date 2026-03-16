@@ -42,12 +42,15 @@ The API Gateway will have three specific routes:
 ### 5.1.2 VPC Link Configuration
 
 1. **API Gateway Console → VPC Links → Create VPC Link**
-2. **Name:** `ecommerce-vpc-link`
-3. **Description:** "VPC Link for ecommerce internal ALB"
-4. **Target:** Application Load Balancer
-5. **Load balancer:** Select `ecommerce-internal-alb`
-6. **Security groups:** Select `ecommerce-vpclink-sg`
-7. **Create VPC Link**
+2. **VPC Link version:** VPC Link for HTTP APIs (v2)
+3. **Name:** `ecommerce-vpc-link`
+4. **Description:** "VPC Link for ecommerce internal ALB"
+5. **VPC:** Select `ecommerce-vpc`
+6. **Subnets:** Select both private ECS subnets:
+   - `ecommerce-private-ecs-1`
+   - `ecommerce-private-ecs-2`
+7. **Security groups:** Select `ecommerce-vpclink-sg`
+8. **Create VPC Link**
 
 **Note:** VPC Link creation takes 5-10 minutes. Wait for status to become "Available" before proceeding.
 
