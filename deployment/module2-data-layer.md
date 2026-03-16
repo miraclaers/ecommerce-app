@@ -128,7 +128,7 @@ This script:
 **Step 2: Load Products into DynamoDB**
 
 ```bash
-./load-products.sh ecommerce-products <your-region>
+./load-products.sh <your-region>
 ```
 
 This script loads 20 sample products from the updated `data/products.json` into your DynamoDB table.

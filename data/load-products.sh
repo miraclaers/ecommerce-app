@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Load products into DynamoDB
-# Usage: ./load-products.sh <table-name> <region>
+# Usage: ./load-products.sh <region>
 
-TABLE_NAME=$1
-REGION=$2
+TABLE_NAME="ecommerce-products"
+REGION=$1
 
-if [ -z "$TABLE_NAME" ] || [ -z "$REGION" ]; then
-    echo "Error: Both table name and region are required"
-    echo "Usage: ./load-products.sh <table-name> <region>"
-    echo "Example: ./load-products.sh ecommerce-products us-east-1"
+if [ -z "$REGION" ]; then
+    echo "Error: Region is required"
+    echo "Usage: ./load-products.sh <region>"
+    echo "Example: ./load-products.sh us-east-1"
     exit 1
 fi
 
