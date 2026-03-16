@@ -79,23 +79,35 @@ Complete these modules in order:
 - Integrate Cognito authentication
 - Route requests to internal ALB
 
-### [Module 6: Event-Driven Architecture](./module6-event-driven.md)
-**Time:** 45-60 minutes  
-**Services:** SNS, SQS, SES
-- Asynchronous order notifications
-- Email delivery system
-
-### [Module 7: Frontend Deployment](./module7-frontend-deployment.md)
+### [Module 6: Frontend Deployment](./module6-frontend-deployment.md)
 **Time:** 30-45 minutes  
 **Services:** S3, CloudFront
 - Deploy React frontend to S3
 - Configure CDN with CloudFront
+
+### [Module 7: Event-Driven Architecture](./module7-event-driven.md)
+**Time:** 30-45 minutes  
+**Services:** SNS, SQS
+- Direct SNS email notifications
+- SQS logging for order events
 
 ### [Module 8: DNS & SSL](./module8-dns-ssl.md)
 **Time:** 30-45 minutes (Optional)  
 **Services:** Route53, Certificate Manager
 - Custom domain setup
 - SSL certificate configuration
+
+### [Module 9: Image CDN](./module9-image-cdn.md)
+**Time:** 30-45 minutes  
+**Services:** S3, CloudFront, Origin Access Control
+- Private S3 bucket for product images
+- CloudFront distribution for global image delivery
+- Update DynamoDB with CDN URLs
+
+### [Module 10: Cleanup](./module10-cleanup.md)
+**Time:** 15-20 minutes  
+- Remove all AWS resources
+- Avoid ongoing charges
 
 ## Important Notes
 
@@ -114,10 +126,11 @@ Complete these modules in order:
 | ECS Fargate (4 services) | $3.83 |
 | Internal ALB | $0.53 |
 | API Gateway + VPC Link | $0.93 |
-| SNS/SQS/SES | <$0.03 |
-| S3 + CloudFront | $0.33-0.50 |
+| SNS/SQS | <$0.03 |
+| S3 + CloudFront (Frontend) | $0.33-0.50 |
+| S3 + CloudFront (Images) | $0.05-0.10 |
 | Route53 | $0.03 |
-| **Total per day** | **~$7.24-7.79** |
+| **Total per day** | **~$7.30-7.86** |
 
 **If completed in 4 hours:** ~$1.20-1.30  
 **Monthly production cost:** ~$218-233
