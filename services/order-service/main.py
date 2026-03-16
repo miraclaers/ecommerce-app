@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, Header
-from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from models import Order, OrderCreate, OrderItem
 from database import get_db_cursor, init_db
@@ -10,15 +9,6 @@ import json
 import base64
 
 app = FastAPI(title="Order Service")
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 def get_sns_client():
     if settings.environment == "local":
