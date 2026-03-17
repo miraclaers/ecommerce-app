@@ -5,15 +5,19 @@ Ensure you have the required tools and access before starting the AWS deployment
 
 ## Prerequisites
 
-### 1. AWS Account & CLI
-- **AWS Account** with administrative access
-- **AWS CLI v2** installed and configured ([Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html))
-- **Configured credentials** with appropriate permissions
+### 1. AWS Account
+- An AWS account with administrative access
+- AWS credentials configured (Access Key ID and Secret Access Key)
 
-### 2. Development Tools
-- **Docker** installed and running ([Installation Guide](https://docs.docker.com/get-docker/))
-- **Git** installed ([Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git))
-- **Node.js 20+** and npm for frontend builds
+### 2. Local Workstation (Linux / Mac)
+- A Linux or macOS machine to run the deployment steps
+- Windows users can use WSL2 (Ubuntu)
+
+### 3. Required Tools
+- **Git** — version control
+- **Docker** — container runtime for building and pushing images
+- **Node.js 20+** and **npm** — for building the React frontend
+- **AWS CLI v2** — for interacting with AWS services
 
 ## Step 1: Clone Repository
 
