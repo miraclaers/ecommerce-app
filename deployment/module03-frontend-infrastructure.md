@@ -149,13 +149,13 @@ https://<your-cloudfront-domain>
 ```
 
 **What works now:**
-- ✅ Sign up with email
-- ✅ Email verification
-- ✅ Login / logout
+- Sign up with email
+- Email verification
+- Login / logout
 
 **Expected (not yet working):**
-- ❌ Product listing — shows "Error loading products" (API not connected yet)
-- ❌ Cart, Orders — require authentication + API
+- Product listing — shows "Error loading products" (API not connected yet)
+- Cart, Orders — require authentication + API
 
 These will be fully functional after **Module 7: Frontend-Backend Integration**.
 

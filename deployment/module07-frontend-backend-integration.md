@@ -76,11 +76,11 @@ https://<your-cloudfront-domain>
 ```
 
 **Full test checklist:**
-- ✅ Login / signup (Cognito)
-- ✅ Product listing loads from backend
-- ✅ Add/remove items from cart
-- ✅ Place a test order
-- ✅ View order history
+- Login / signup (Cognito)
+- Product listing loads from backend
+- Add/remove items from cart
+- Place a test order
+- View order history
 
 ### Troubleshooting
 
