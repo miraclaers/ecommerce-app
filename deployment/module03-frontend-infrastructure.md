@@ -1,8 +1,7 @@
 # Module 3: Frontend Infrastructure
 
 ## Overview
-Set up the hosting infrastructure for the React frontend, configure it with Cognito values, and deploy it to S3. This lets you test login/signup functionality early. Product listing and other API-dependent features will work after **Module 7: Frontend-Backend Integration**, once the API Gateway URL is available.
-
+Set up the infrastructure for the React frontend, configure it with Cognito values, and deploy it to S3. This lets you test login/signup functionality early. Product listing and other API-dependent features will work after **Module 7: Frontend-Backend Integration**, once backend is fully deployed along with APIs.
 ## What We'll Build
 - **3.1** S3 bucket for static website hosting
 - **3.2** CloudFront distribution for CDN and HTTPS
@@ -21,16 +20,16 @@ User → CloudFront (CDN) → S3 Bucket (Static Website)
 
 ### S3 Bucket Configuration
 
-1. **S3 Console → Buckets → Create bucket**
-2. **Bucket name:** `ecommerce-frontend-<random-number>` (must be globally unique)
-3. **Region:** Choose your preferred region
+1. **S3 Console → Buckets → Create bucket -> General Purpose**
+2. **Bucket name:** `ecommerce-frontend-<some-number-or-text>` (must be globally unique)
+3. **Region:** Your AWS region (Make sure you are in the right AWS region for S3 console)
 4. **Block all public access:** Keep checked (CloudFront will access privately)
 5. **Bucket versioning:** Disable
-6. **Encryption:** Enable (SSE-S3)
+6. **Encryption:** Default - Enable (SSE-S3)
 7. **Create bucket**
 
 ### Save This Value
-- **Frontend Bucket Name** (e.g., `ecommerce-frontend-12345`)
+- **Frontend Bucket Name** (e.g., `ecommerce-frontend-chetan`)
 
 ---
 
@@ -39,30 +38,46 @@ User → CloudFront (CDN) → S3 Bucket (Static Website)
 ### Distribution Configuration
 
 1. **CloudFront Console → Distributions → Create distribution**
-2. **Origin domain:** Select your S3 bucket
-3. **Origin access:** Origin access control settings (recommended)
-4. **Create control setting:** Create new OAC
-   - Name: `ecommerce-frontend-oac`
-   - Sign requests: Yes
-   - Click Create
-5. **Viewer protocol policy:** Redirect HTTP to HTTPS
-6. **Allowed HTTP methods:** GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
-7. **Cache policy:** Caching Optimized
-8. **Origin request policy:** None
-9. **Price class:** Use all edge locations (best performance)
-10. **Default root object:** `index.html`
-11. **Create distribution**
+2. **Distribution name:** `ecommerce-distribution`
+3. **Distribution type:** Single website or app -> Next
+4. **Origin type:** Amazon S3
+5. **Origin:** Select your frontend s3 bucket
+6. **Settings:** Allow private S3 bucket access to CloudFront - Recommended
+7. **Settings:** Use recommended cache settings tailored to serving S3 content -> Next
+8. **Enable Security:** Select "Do not enable security protections"
+9. **Create distribution**
+10. **General** -> Edit -> Update Default root object: **index.html** -> Save changes
 
-### Update S3 Bucket Policy
+### Check S3 Bucket Policy to allow access to CloudFront distribution
 
-After creating the distribution, CloudFront will show a banner to update the S3 bucket policy:
+After creating the distribution, CloudFront automatically updates S3 bucket policy.
 
-1. **Copy the suggested bucket policy**
-2. **Go to S3 bucket → Permissions → Bucket policy**
-3. **Paste the policy**
-4. **Save changes**
+Example:
+```
+{
+    "Version": "2008-10-17",
+    "Id": "PolicyForCloudFrontPrivateContent",
+    "Statement": [
+        {
+            "Sid": "AllowCloudFrontServicePrincipal",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "cloudfront.amazonaws.com"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::ecommerce-frontend-chetanag/*",
+            "Condition": {
+                "ArnLike": {
+                    "AWS:SourceArn": "arn:aws:cloudfront::387258180757:distribution/E2P87PZZ9MQ3KE"
+                }
+            }
+        }
+    ]
+}
+```
+**If you don't see S3 Bucket policy updated, then modify the policy as per your AWS Account, S3 Bucket Name and CloudFront Distribution ID.**
 
-### Save These Values
+**Save These Values:**
 - **CloudFront Distribution ID** (e.g., `E1234567890ABC`)
 - **CloudFront Domain Name** (e.g., `d1234567890.cloudfront.net`)
 
@@ -134,7 +149,7 @@ aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
 
 6. **Cognito Console → User pools → ecommerce-app**
 7. **App integration tab → App clients → Click your app client**
-8. **Edit Hosted UI settings:**
+8. **Edit Login pages settings:**
    - **Allowed callback URLs:** Add `https://<your-cloudfront-domain>`
    - **Allowed sign-out URLs:** Add `https://<your-cloudfront-domain>`
 9. **Save changes**
