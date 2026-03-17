@@ -26,7 +26,7 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
 
 7. **Configure App Client Authentication**:
    - Go to your newly created User Pool → **App integration** tab → **App clients**
-   - Click on your app client name
+   - Click on your app client name and Edit
    - Under **Authentication flows**, enable:
      - **ALLOW_USER_PASSWORD_AUTH**
      - **ALLOW_USER_SRP_AUTH** 
@@ -36,7 +36,7 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
 ### Save These Values
 - **User Pool ID** (e.g., `ap-south-1_xxxxxxxxx`)
 - **App Client ID** (e.g., `1a2b3c4d5e6f7g8h9i0j1k2l3m`)
-- **Cognito Domain** (if you set up a custom domain)
+- **Cognito Domain** (User Pool -> Branding -> Domain)
 
 You'll need these for:
 - **Module 5:** Configuring microservices
@@ -45,4 +45,4 @@ You'll need these for:
 ---
 
 ## Next Steps
-Proceed to **[Module 3: Frontend Infrastructure](./module03-frontend-infrastructure.md)** to set up the S3 bucket and CloudFront distribution.
+Proceed to **[Module 3: Frontend Deployment](./module03-frontend-infrastructure.md)** to set up the S3 bucket and CloudFront distribution.
