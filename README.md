@@ -38,127 +38,13 @@ This project demonstrates a complete cloud-native application using:
 
 ### Architecture Diagram
 
-![AWS Architecture](docs/architecture-diagram.png)
-
-## Prerequisites
-
-Before you begin, ensure you have the following tools installed on your local workstation:
-
-### Required Tools
-
-- **Docker** - Container runtime for running services
-- **Docker Compose** - Multi-container orchestration
-- **Node.js 20+** - JavaScript runtime for frontend development
-- **npm** - Node package manager (comes with Node.js)
-- **Git** - Version control system
-- **AWS CLI** - Command-line tool for AWS services
-
-### Installation Options
-
-**Option 1: Automated Installation (Recommended)**
-
-First, clone the repository:
-
-```bash
-git clone https://github.com/awswithchetan/ecommerce-web-app.git
-cd ecommerce-web-app
-```
-
-Then run the installation script that automatically detects your OS and installs all prerequisites:
-
-```bash
-./install-prerequisites.sh
-```
-
-Supports:
-- macOS (uses Homebrew)
-- Ubuntu/Debian (uses apt)
-- Amazon Linux/RHEL/CentOS (uses yum)
-
-**Option 2: Manual Installation**
-
-**macOS:**
-```bash
-# Install Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install tools
-brew install node@20 git awscli
-
-# Install Docker Desktop
-# Download from: https://www.docker.com/products/docker-desktop
-```
-
-**Ubuntu/Debian:**
-```bash
-# Update packages
-sudo apt-get update
-
-# Install Docker
-sudo apt-get install -y docker.io docker-compose
-
-# Install Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Install Git
-sudo apt-get install -y git
-
-# Install unzip
-sudo apt-get install -y unzip
-
-# Install AWS CLI
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
-
-**Amazon Linux/RHEL/CentOS:**
-```bash
-# Update packages
-sudo yum update -y
-
-# Install Docker
-sudo yum install -y docker
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# Install Node.js 20
-curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-sudo yum install -y nodejs
-
-# Install Git
-sudo yum install -y git
-
-# Install AWS CLI
-sudo yum install -y aws-cli
-```
-
-### Verify Installation
-
-After installation, verify all tools are installed correctly:
-
-```bash
-docker --version
-docker-compose --version
-node --version
-npm --version
-git --version
-aws --version
-```
-
-### Post-Installation
-
-**Linux users:** Log out and log back in for Docker group permissions to take effect, or run:
-```bash
-newgrp docker
-```
+<img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/75df6e4c-e7a9-481b-acf2-253448ef9c61" />
 
 ## Getting Started
+There are 2 options to deploy this application - Local Deployment and AWS Deployment.
 
-### Step 1: Local Deployment (Recommended)
-
-Before deploying to AWS, it's highly recommended to test the application locally. This helps verify that:
+### Local Deployment (Optional)
+Before deploying to AWS, you can deploy this application locally. This helps verify that:
 - Docker images build correctly
 - Services communicate properly
 - Application logic works as expected
@@ -172,11 +58,11 @@ Local deployment uses:
 - **Nginx** - API Gateway simulator
 - **React Dev Server** - Frontend
 
-**Time required**: ~15 minutes
+**Time required**: ~30 minutes
 
-### Step 2: AWS Deployment
+### AWS Deployment
 
-Once you've verified the application works locally, deploy it to AWS to learn cloud services hands-on.
+Deploy the ecommerce application to AWS
 
 [AWS Deployment Guide](deployment/README.md)
 
@@ -188,8 +74,8 @@ The deployment is organized into modules:
 - Module 4: Container Deployment (ECR, ECS/Fargate, ALB)
 - Module 5: API Gateway (HTTP API, VPC Link)
 - Module 6: Frontend Deployment (S3, CloudFront)
-- Module 7: Event-Driven Architecture (SNS, SQS)
-- Module 8: DNS & SSL (Route53, ACM)
+- Module 7: Notification (SNS, SQS)
+- Module 8: Custom domain & SSL (Route53, ACM)
 - Module 9: Cleanup
 
 **Time required**: 3-4 hours
@@ -197,8 +83,8 @@ The deployment is organized into modules:
 ## Cost Estimates
 
 - **Local Development**: $0 (runs on your machine)
-- **AWS Deployment** (4-hour session): ~$10-15
-- **AWS Deployment** (24 hours): ~$50-75
+- **AWS Deployment** (4-hour session): ~$2-4
+- **AWS Deployment** (24 hours): ~$10-20
 
 > **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
 
@@ -224,31 +110,14 @@ ecommerce-aws-tutorial/
 │   └── module*.md               # Step-by-step modules
 └── install-prerequisites.sh     # Tool installation script
 ```
-
-## Technology Stack
-
-**Backend**
-- Python 3.11
-- FastAPI
-- SQLAlchemy
-- Boto3 (AWS SDK)
-
-**Frontend**
-- React 18
-- AWS Amplify (Authentication)
-- Axios (HTTP client)
-
-**Infrastructure**
-- Docker & Docker Compose
-- LocalStack (local AWS emulation)
-- Nginx (reverse proxy)
-
 ## Next Steps
 
-1. Install prerequisites using `./install-prerequisites.sh`
-2. Follow the [Local Deployment Guide](local-deployment/README.md)
-3. Test the application locally
-4. Proceed to [AWS Deployment](deployment/README.md)
-5. Clean up resources after learning
+Optional:
+1. Follow the [Local Deployment Guide](local-deployment/README.md)
+2. Test the application locally
+
+**AWS Deployment:**
+1. Proceed to [AWS Deployment](deployment/README.md)
+2. Clean up resources after learning
 
 Happy Learning!
