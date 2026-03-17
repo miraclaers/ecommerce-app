@@ -20,7 +20,7 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
    - **Self-registration**: Enable
    - **Required attributes for sign-up**: Select **email** and **name**
 
-5. **Add a return URL**: `https://yourdomain.com` (update this later with your CloudFront URL)
+5. **Add a return URL**: `https://yourdomain.com` (If you have your domain name, add it here)
 
 6. Click **Create user directory**
 
