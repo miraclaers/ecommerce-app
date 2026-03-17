@@ -1,4 +1,4 @@
-# Module 3: Authentication with Cognito
+# Module 2: Authentication with Cognito
 
 ## Overview
 Set up AWS Cognito User Pool for user authentication and authorization in the ecommerce application.
@@ -39,10 +39,10 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
 - **Cognito Domain** (if you set up a custom domain)
 
 You'll need these for:
-- **Module 4:** Configuring microservices
-- **Module 6:** Frontend deployment and configuration
+- **Module 5:** Configuring microservices
+- **Module 7:** Frontend-Backend Integration
 
 ---
 
 ## Next Steps
-Proceed to **[Module 4: Container Deployment](./module04-backend-deployment.md)** to deploy the microservices to ECS.
+Proceed to **[Module 3: Frontend Infrastructure](./module03-frontend-infrastructure.md)** to set up the S3 bucket and CloudFront distribution.

@@ -1,4 +1,4 @@
-# Module 5: API Gateway with VPC Link
+# Module 6: API Gatewaywith VPC Link
 
 ## Overview
 Create an HTTP API Gateway that connects to the internal Application Load Balancer using VPC Link, providing a public endpoint to access all microservices.
@@ -302,4 +302,4 @@ This parameter is used by the frontend application to know the API base URL.
 6. **Cost Effective:** Minimal API Gateway configuration reduces complexity
 
 ## Next Steps
-Proceed to **[Module 6: Frontend Deployment](./modulae06-frontend-deployment.md)** to deploy the React application.
+Proceed to **[Module 7: Frontend-Backend Integration](./module07-frontend-backend-integration.md)** to configure, build, and deploy the React application.

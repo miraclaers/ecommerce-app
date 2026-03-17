@@ -1,4 +1,4 @@
-# Module 2: Data Layer
+# Module 4: Data Layer
 
 ## Overview
 Set up the data storage layer for the ecommerce application:
@@ -272,4 +272,4 @@ After the RDS instance is created, store the database configuration in Parameter
 These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
 
 ## Next Steps
-Proceed to **[Module 3: Authentication](./module03-authentication.md)** to set up Cognito User Pools.
+Proceed to **[Module 5: Backend Deployment](./module05-backend-deployment.md)** to set up ECS and deploy the microservices.

@@ -1,4 +1,4 @@
-# Module 7: Event-Driven Architecture with SNS
+# Module 8: Event-Driven Architecture with SNS
 
 ## Overview
 Set up simple event-driven architecture using Amazon SNS for asynchronous order notifications and shipping vendor.
@@ -239,4 +239,4 @@ Once the order service is deployed:
 - Review CloudWatch logs for order service
 
 ## Next Steps
-Proceed to **[Module 8: Custom Domain name & SSL](./module08-custom-domain-and-ssl.md)** to configure custom domain and SSL certificates.
+Proceed to **[Module 9: Custom Domain & SSL](./module09-custom-domain-and-ssl.md)** to configure custom domain and SSL certificates.

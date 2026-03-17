@@ -1,4 +1,4 @@
-# Module 4: Container Deployment with ECS
+# Module 5: Container Deployment with ECS
 
 ## Overview
 Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate, using an internal Application Load Balancer and Parameter Store for configuration management.
@@ -407,4 +407,4 @@ If services are not starting properly, check the logs:
 - Check parameter exists in correct region
 
 ## Next Steps
-Proceed to **[Module 5: API Gateway](./module05-api-gateway.md)** to create the API Gateway with VPC Link integration.
+Proceed to **[Module 6: API Gateway](./module06-api-gateway.md)** to create the API Gateway with VPC Link integration.

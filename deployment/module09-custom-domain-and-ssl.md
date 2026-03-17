@@ -1,4 +1,4 @@
-# Module 8: Custom Domain & SSL 
+# Module 9: Custom Domain & SSL 
 
 ## Overview
 Configure a custom domain with SSL certificate for your ecommerce application.
@@ -12,7 +12,7 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
 
 ## Prerequisites
 - A registered domain name (can register via Route53 or use existing). I have my domain purchased from GoDaddy and DNS is managed in Route53 Public Hosted Zone.
-- Completed Module 7 (CloudFront distribution)
+- Completed Module 8 (CloudFront distribution)
 
 ## Resources to Create
 
@@ -116,4 +116,4 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
 Congratulations ! You have successfully deployed a production-ready ecommerce application on AWS with custom domain and SSL certificate.
 
 ## Next Steps
-Proceed to **[Module 9: Cleanup](./module09-cleanup.md)** to remove all AWS resources and avoid ongoing charges.
+Proceed to **[Module 10: Cleanup](./module10-cleanup.md)** to remove all AWS resources and avoid ongoing charges.
