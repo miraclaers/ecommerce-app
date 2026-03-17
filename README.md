@@ -69,14 +69,15 @@ Deploy the ecommerce application to AWS
 The deployment is organized into modules:
 - Module 0: Prerequisites
 - Module 1: Networking (VPC, Subnets, Security Groups)
-- Module 2: Data Layer (RDS, DynamoDB)
-- Module 3: Authentication (Cognito)
-- Module 4: Container Deployment (ECR, ECS/Fargate, ALB)
-- Module 5: API Gateway (HTTP API, VPC Link)
-- Module 6: Frontend Deployment (S3, CloudFront)
-- Module 7: Notification (SNS, SQS)
-- Module 8: Custom domain & SSL (Route53, ACM)
-- Module 9: Cleanup
+- Module 2: Authentication (Cognito)
+- Module 3: Frontend Infrastructure (S3, CloudFront)
+- Module 4: Data Layer (RDS, DynamoDB)
+- Module 5: Container Deployment (ECR, ECS/Fargate, ALB)
+- Module 6: API Gateway (HTTP API, VPC Link)
+- Module 7: Frontend-Backend Integration
+- Module 8: Notification (SNS, SQS)
+- Module 9: Custom Domain & SSL (Route53, ACM)
+- Module 10: Cleanup
 
 **Time required**: 3-4 hours
 
