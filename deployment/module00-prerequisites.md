@@ -28,24 +28,15 @@ git clone https://github.com/awswithchetan/ecommerce-web-app.git
 cd ecommerce-web-app
 ```
 
-## Step 2: Install Required Tools
+## Step 2: Install Required Tools (if you don't have it already)
 
-**Option 1: Automated Installation (Recommended)**
+**Automated Installation**
 
 Run the installation script that automatically detects your OS:
 
 ```bash
 bash install-prerequisites.sh
 ```
-
-This script supports:
-- macOS (uses Homebrew)
-- Ubuntu/Debian (uses apt)
-- Amazon Linux/RHEL/CentOS (uses yum)
-
-**Option 2: Manual Installation**
-
-Follow the individual installation guides linked above for each tool.
 
 ## Step 3: Verify Tool Installation
 
