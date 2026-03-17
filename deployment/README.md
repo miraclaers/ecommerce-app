@@ -4,36 +4,7 @@
 This guide walks you through deploying a production-ready microservices ecommerce application on AWS using modern cloud architecture patterns.
 
 ## Architecture Overview
-
-```
-User → Route53 → CloudFront → S3 (Frontend)
-                      ↓
-                 API Gateway (Auth) → VPC Link → Internal ALB
-                                                      ↓
-                                       ┌──────────────┼──────────────┐
-                                       │              │              │
-                                 ECS Services    ECS Services   ECS Services
-                                       │              │              │
-                                       └──────────────┼──────────────┘
-                                                      ↓
-                                       ┌──────────────┴──────────────┐
-                                       │                             │
-                                     RDS                      SNS → SQS → SES
-                                 PostgreSQL                  (Notifications)
-                               (Users, Orders)
-                                       
-                                 DynamoDB (Global)
-                             (Products, Cart)
-```
-
-## Security Architecture
-
-- **Internal ALB** (not internet-facing) for enhanced security
-- **VPC Link** for secure API Gateway to ALB communication
-- **Parameter Store** for centralized configuration management
-- **Encrypted secrets** using SecureString parameters
-- **Private subnets** for all application components
-- **Cognito JWT authentication** for API access
+<img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/d3512e16-6224-44a0-9148-d3b2d511b33d" />
 
 ## Deployment Modules
 
