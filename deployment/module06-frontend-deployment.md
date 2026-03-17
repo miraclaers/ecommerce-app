@@ -41,30 +41,22 @@ User → CloudFront (CDN) → S3 Bucket (Static Website) → API Gateway (Backen
 cd frontend/react-app
 ```
 
-2. **Create production environment file:**
-```bash
-# Create .env.production file
-echo "REACT_APP_API_URL=https://<your-api-gateway-url>" > .env.production
-```
-
-3. **Update AWS configuration file:**
+2. **Update AWS configuration file:**
 
 Edit `src/aws-config.js`:
 ```javascript
 const awsConfig = {
   Auth: {
     Cognito: {
-      userPoolId: '<your-user-pool-id>',
-      userPoolClientId: '<your-app-client-id>',
+      userPoolId: '<COGNITO_USER_POOL_ID>', // e.g., ap-south-1_xxxxxxxxx
+      userPoolClientId: '<COGNITO_CLIENT_ID>', // e.g., 1a2b3c4d5e6f7g8h9i0j1k2l3m
       loginWith: {
-        oauth: {
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: ['https://<your-cloudfront-domain>'],
-          redirectSignOut: ['https://<your-cloudfront-domain>'],
-          responseType: 'code'
-        }
-      }
+        email: true,
+      },
     }
+  },
+  API: {
+    baseUrl: '<API_GATEWAY_URL>' // e.g., https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com
   }
 };
 
@@ -89,33 +81,6 @@ This creates a `build/` directory with optimized production files.
 ```bash
 aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
 ```
-
-Replace `<your-frontend-bucket-name>` with your actual S3 bucket name.
-
----
-
-## 6.3 Upload Files to S3
-
-### Upload Build Files
-
-**Option 1: AWS CLI (Recommended)**
-```bash
-aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
-```
-
-**Option 2: Console Upload**
-1. **Go to S3 bucket → Upload**
-2. **Select all files from `build/` directory**
-   - Include all files and folders (static/, index.html, etc.)
-3. **Upload**
-
-### Enable Static Website Hosting
-
-1. **Go to bucket → Properties → Static website hosting**
-2. **Enable static website hosting**
-3. **Index document:** `index.html`
-4. **Error document:** `index.html` (for React Router support)
-5. **Save changes**
 
 ---
 
@@ -149,30 +114,7 @@ After creating the distribution, CloudFront will show a banner to update the S3 
 
 ---
 
-## 6.5 Configure Error Pages
-
-### Custom Error Pages for React Router
-
-1. **Go to CloudFront distribution → Error pages → Create custom error response**
-
-**404 Error Page:**
-2. **HTTP error code:** 404
-3. **Customize error response:** Yes
-4. **Response page path:** `/index.html`
-5. **HTTP response code:** 200
-6. **Create custom error response**
-
-**403 Error Page:**
-7. **Create another custom error response**
-8. **HTTP error code:** 403
-9. **Customize error response:** Yes
-10. **Response page path:** `/index.html`
-11. **HTTP response code:** 200
-12. **Create custom error response**
-
----
-
-## 6.6 Test Frontend Deployment
+## 6.5 Test Frontend Deployment
 
 ### Get CloudFront URL
 
@@ -193,44 +135,14 @@ curl https://d1234567890.cloudfront.net
 4. **Test authentication:** Login/logout functionality
 5. **Test API calls:** Product listing, cart operations
 
-### Verify Integration
-
-**Check API Integration:**
-- Products page loads data from API Gateway
-- Authentication redirects work properly
-- Protected routes require login
-- API calls include proper CORS headers
-
-**Check Performance:**
-- Static assets load from CloudFront edge locations
-- HTTPS certificate works properly
-- Caching headers are set correctly
-
-### Update Cognito Redirect URLs
-
-1. **Cognito Console → User pools → ecommerce-users**
-2. **App integration → App clients → ecommerce-web-client**
-3. **Edit Hosted UI settings**
-4. **Allowed callback URLs:** Add `https://d1234567890.cloudfront.net`
-5. **Allowed sign-out URLs:** Add `https://d1234567890.cloudfront.net`
-6. **Save changes**
 
 ### Troubleshooting
 
 **White screen/blank page:**
 - Check browser console for JavaScript errors
-- Verify API_URL in environment configuration
+- Verify all the values in aws_config.js 
 - Check CloudFront error pages configuration
-
-**API calls failing:**
-- Verify CORS configuration in API Gateway
-- Check API Gateway URL in frontend configuration
-- Ensure JWT tokens are being sent properly
-
-**Authentication not working:**
-- Update Cognito callback URLs with CloudFront domain
-- Check aws-config.js has correct User Pool settings
-- Verify redirect URLs match exactly
+- Check CloudWatch logs for service specific errors
 
 ## Next Steps
-Proceed to **[Module 7: Event-Driven Architecture](./module7-event-driven.md)** to set up SNS and SQS for notifications.
+Proceed to **[Module 7: Notification](./module07-notification.md)** to set up SNS and SQS for notifications.

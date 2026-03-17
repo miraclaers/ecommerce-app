@@ -100,4 +100,4 @@ ecommerce-vpc (10.10.0.0/16)
 3. **Associate:** Both private database subnets
 
 ## Next Steps
-Proceed to **[Module 2: Data Layer](./module2-data-layer.md)** to create the databases.
+Proceed to **[Module 2: Data Layer](./module02-data-layer.md)** to create the databases.

@@ -2,12 +2,10 @@
 
 ## Overview
 Set up the data storage layer for the ecommerce application:
-- **S3** for product images with public read access
-- **DynamoDB** for high-performance NoSQL data (products, cart)
-- **RDS PostgreSQL** for relational data (users, orders) in private subnets
-- **Parameter Store** for database configuration management
-
-This module creates the foundation for data storage across all microservices with proper security and performance considerations.
+- **S3** for product images with public read access.
+- **DynamoDB** for high-performance NoSQL database (ecommerce-products, ecommerce-cart tables).
+- **RDS PostgreSQL** for relational data (users, orders) in private subnets.
+- **Parameter Store** for storing the configurations such as database host, username/password for microservices to read from.
 
 ---
 
@@ -38,7 +36,7 @@ This module creates the foundation for data storage across all microservices wit
       "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::ecommerce-product-images-<your-bucket-name>/*"
+      "Resource": "arn:aws:s3:::<your-bucket-name>/*"
     }
   ]
 }
@@ -59,11 +57,12 @@ This module creates the foundation for data storage across all microservices wit
 ```
 
 ### Upload Product Images
+There are some sample images under data/product-images/ directory. You can run following script to upload these images to your S3 bucket.
 
 **Using Upload Script:**
 ```bash
 cd data
-./upload-images-to-s3.sh ecommerce-product-images-<your-bucket-name>
+bash upload-images-to-s3.sh <your-bucket-name>
 ```
 
 This script uploads sample product images (prod-001.jpg through prod-020.jpg) to your S3 bucket.
@@ -73,9 +72,9 @@ This script uploads sample product images (prod-001.jpg through prod-020.jpg) to
 2. **Add files** (name them: prod-001.jpg, prod-002.jpg, etc.)
 3. **Upload**
 
-**Image URL Format:**
+**Verify that you are able to access the images publicly over the browser using image URL:**
 ```
-https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg
+Example: https://<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg
 ```
 
 ---
@@ -104,33 +103,29 @@ https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/pr
 7. **Encryption:** Amazon DynamoDB owned key
 8. **Create table**
 
-**Important:** The cart table should only have `user_id` as the partition key. Do not add a sort key, as the cart service stores all cart items as a single document per user.
 
 ### Load Sample Products Data
 
 **Step 1: Update Product Image URLs**
 
-First, update the products.json file with your S3 bucket URLs:
+First, update the products.json file with your S3 bucket image URLs:
 
 ```bash
 cd data
-./update-product-image-urls.sh ecommerce-product-images-<your-bucket-name> <your-region>
+bash update-product-image-urls.sh <your-bucket-name> <your-region>
 ```
 
 Example:
 ```bash
-./update-product-image-urls.sh ecommerce-product-images-12345 ap-south-1
+bash update-product-image-urls.sh ecommerce-product-images-12345 ap-south-1
 ```
 
-This script:
-- Updates all image URLs in `products.json` to point to your S3 bucket
-- Creates a backup of the original file
-- Shows a sample URL for verification
+This script updates all image URLs and creates/updates `products.json` file. We will now use this file to update the DynamoDB table.
 
 **Step 2: Load Products into DynamoDB**
 
 ```bash
-./load-products.sh <your-region>
+bash load-products.sh <your-region>
 ```
 
 This script loads 20 sample products from the updated `data/products.json` into your DynamoDB table.
@@ -259,6 +254,11 @@ After the RDS instance is created, store the database configuration in Parameter
 
 1. **Systems Manager Console → Parameter Store → Create parameter**
 
+**AWS Region Parameter:**
+- **Name:** `/ecommerce/dev/aws/region`
+- **Type:** String
+- **Value:** `<your-aws-region>` (e.g. ap-south-1 or us-east-1)
+
 **Database Host Parameter:**
 - **Name:** `/ecommerce/dev/db/host`
 - **Type:** String
@@ -272,4 +272,4 @@ After the RDS instance is created, store the database configuration in Parameter
 These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
 
 ## Next Steps
-Proceed to **[Module 3: Authentication](./module3-authentication.md)** to set up Cognito User Pools.
+Proceed to **[Module 3: Authentication](./module03-authentication.md)** to set up Cognito User Pools.

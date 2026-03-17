@@ -1,14 +1,14 @@
 # Module 7: Event-Driven Architecture with SNS
 
 ## Overview
-Set up simple event-driven architecture using Amazon SNS for asynchronous order notifications with direct email subscriptions.
+Set up simple event-driven architecture using Amazon SNS for asynchronous order notifications and shipping vendor.
 
 ## What We'll Build
 - **7.1** Create SNS topic for order events
-- **7.2** Create SQS queue for order logging
+- **7.2** Create SQS queue for order shipping
 - **7.3** Configure SNS subscriptions (Email + SQS)
-- **7.4** Update Parameter Store with SNS topic ARN
-- **7.5** Test event-driven workflow
+- **7.4** Update SSM Parameter Store with SNS topic ARN
+- **7.5** Test the notification workflow
 
 ## Architecture
 ```
@@ -19,28 +19,11 @@ Order Service → SNS Topic → Email Subscription (Direct)
 When an order is placed:
 1. **Order Service** publishes message to SNS topic
 2. **SNS** sends email notification directly to subscriber
-3. **SNS** also sends message to SQS queue for logging/monitoring
-
-**Benefits:**
-- Simple and reliable email delivery
-- No Lambda complexity
-- Direct SNS email notifications (less likely to be spam)
-- SQS queue for audit trail
+3. **SNS** also sends message to SQS queue for shipping
 
 ---
 
 ## 7.1 Create SNS Topic
-
-For production, you'll need to:
-- Request production access (move out of sandbox)
-- Verify your domain instead of individual emails
-- Configure DKIM and SPF records
-
-**For this tutorial, sandbox mode is sufficient.**
-
----
-
-## 7.2 Create SNS Topic
 
 ### SNS Topic Configuration
 
@@ -68,12 +51,8 @@ For production, you'll need to:
 
 1. **SQS Console → Queues → Create queue**
 2. **Type:** Standard queue
-3. **Name:** `ecommerce-order-logs`
-4. **Configuration:**
-   - Visibility timeout: 30 seconds
-   - Message retention period: 14 days
-   - Delivery delay: 0 seconds
-5. **Create queue**
+3. **Name:** `ecommerce-order-shipping`
+4. **Create queue**
 
 ### Configure SQS Queue Policy
 
@@ -90,7 +69,7 @@ For production, you'll need to:
         "Service": "sns.amazonaws.com"
       },
       "Action": "sqs:SendMessage",
-      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-order-logs",
+      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-order-shipping",
       "Condition": {
         "ArnEquals": {
           "aws:SourceArn": "arn:aws:sns:<region>:<account-id>:ecommerce-order-events"
@@ -119,7 +98,7 @@ For production, you'll need to:
 7. **Click "Confirm subscription"** link in the email
 8. **Verify status** shows "Confirmed" in SNS console
 
-### SQS Subscription for Logging
+### SQS Subscription for Shipping
 
 1. **Create subscription**
 2. **Topic ARN:** Select `ecommerce-order-events`
@@ -132,7 +111,7 @@ For production, you'll need to:
 
 You now have two subscriptions:
 - **Email:** Direct notifications to your email
-- **SQS:** Message logging for audit/monitoring
+- **SQS:** Message for shipping vendor
 
 ---
 
@@ -220,7 +199,7 @@ This parameter is already created and used by the order service to publish messa
    ```
 3. **Publish message**
 4. **Check your email** - notification should arrive directly from SNS
-5. **Check SQS queue** - message should appear in `ecommerce-order-logs`
+5. **Check SQS queue** - message should appear in `ecommerce-order-shipping`
 
 ### Test with Order Service
 
@@ -228,7 +207,7 @@ Once the order service is deployed:
 1. **Place an order** through the frontend
 2. **Order service publishes** to SNS topic
 3. **SNS sends email** directly to subscriber
-4. **SNS also sends** message to SQS queue for logging
+4. **SNS also sends** message to SQS queue for shipping
 
 ### Verify Message Flow
 
@@ -238,7 +217,7 @@ Once the order service is deployed:
 - Body contains the order JSON
 
 **Check SQS Queue:**
-1. **SQS Console → ecommerce-order-logs**
+1. **SQS Console → ecommerce-order-shipping**
 2. **Send and receive messages → Poll for messages**
 3. **Verify message** contains order details
 
@@ -259,23 +238,5 @@ Once the order service is deployed:
 - Check ECS task role has SNS permissions
 - Review CloudWatch logs for order service
 
-## Architecture Benefits
-
-1. **Simple:** Direct SNS email delivery, no Lambda complexity
-2. **Reliable:** SNS handles email delivery and retries
-3. **Cost-effective:** No Lambda execution costs
-4. **Decoupled:** Order service doesn't wait for email sending
-5. **Auditable:** SQS queue maintains order event history
-6. **Scalable:** SNS handles high message volumes automatically
-
-## Cost Estimate
-
-For 1000 orders/month:
-- SNS: ~$0.50 (1000 publishes + 2000 deliveries)
-- SQS: ~$0.40 (1000 messages)
-- Email delivery: Free (SNS email notifications)
-
-**Total: ~$0.90/month**
-
 ## Next Steps
-Proceed to **[Module 8: DNS & SSL](./module8-dns-ssl.md)** to configure custom domain and SSL certificates.
+Proceed to **[Module 8: Custom Domain name & SSL](./module08-custom-domain-and-ssl.md)** to configure custom domain and SSL certificates.

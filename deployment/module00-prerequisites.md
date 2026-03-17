@@ -31,7 +31,7 @@ cd ecommerce-web-app
 Run the installation script that automatically detects your OS:
 
 ```bash
-./install-prerequisites.sh
+bash install-prerequisites.sh
 ```
 
 This script supports:
@@ -71,18 +71,4 @@ aws sts get-caller-identity
 aws ec2 describe-regions --query 'Regions[0:3].RegionName'
 ```
 
-## Step 5: Configure AWS CLI (if needed)
-aws ec2 describe-regions --query 'Regions[0:3].RegionName' --output table
-```
-
-## Step 2: Verify Docker
-
-```bash
-# Check Docker installation
-docker --version
-
-# Test Docker functionality
-docker run hello-world
-```
-
-If all commands work without errors, you're ready to proceed to **[Module 1: Networking Foundation](./module1-networking.md)**.
+If all commands work without errors, you're ready to proceed to **[Module 1: Networking Foundation](./module01-networking.md)**.

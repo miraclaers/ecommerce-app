@@ -45,4 +45,4 @@ You'll need these for:
 ---
 
 ## Next Steps
-Proceed to **[Module 4: Container Deployment](./module4-container-deployment.md)** to deploy the microservices to ECS.
+Proceed to **[Module 4: Container Deployment](./module04-backend-deployment.md)** to deploy the microservices to ECS.

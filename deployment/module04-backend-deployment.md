@@ -144,7 +144,6 @@ The ECR registry URL format is: `<account-id>.dkr.ecr.<your-region>.amazonaws.co
 - **`<your-region>`** = Your AWS region (e.g., us-east-1, ap-south-1)
 
 **To find your ECR registry URL:**
-- **CLI:** `aws sts get-caller-identity --query Account --output text`
 - **Console:** ECR Console → Repositories → Click any repository → Copy the URI (everything before the repository name)
 
 ### Build and Push Product Service Image
@@ -338,7 +337,7 @@ Create services for all microservices:
 
 ### Check Target Group Health
 
-1. **EC2 Console → Target Groups**
+1. **EC2 Console -> Load Balancer → Target Groups**
 2. **For each target group, verify:**
    - **Registered targets:** 1
    - **Health status:** Healthy
@@ -374,8 +373,9 @@ ssh -i your-key.pem ec2-user@<bastion-public-ip>
 ```bash
 curl http://<internal-alb-dns-name>/products
 ```
+This should return the list of all the products.
 
-**Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
+Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
 ---
 
 ## 4.11 Troubleshooting Guide
@@ -390,8 +390,6 @@ If services are not starting properly, check the logs:
    - `/ecommerce/cart-service`
    - `/ecommerce/user-service`
    - `/ecommerce/order-service`
-
-### Common Issues
 
 **Service not starting:**
 - Check ECR image URI in task definition
@@ -409,4 +407,4 @@ If services are not starting properly, check the logs:
 - Check parameter exists in correct region
 
 ## Next Steps
-Proceed to **[Module 5: API Gateway](./module5-api-gateway.md)** to create the API Gateway with VPC Link integration.
+Proceed to **[Module 5: API Gateway](./module05-api-gateway.md)** to create the API Gateway with VPC Link integration.

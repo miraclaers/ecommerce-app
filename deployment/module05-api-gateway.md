@@ -1,17 +1,17 @@
 # Module 5: API Gateway with VPC Link
 
 ## Overview
-Create an HTTP API Gateway that connects to the internal Application Load Balancer using VPC Link, providing a public endpoint for the frontend application to access all microservices.
+Create an HTTP API Gateway that connects to the internal Application Load Balancer using VPC Link, providing a public endpoint to access all microservices.
 
 ## What We'll Build
 - **5.1** VPC Link for secure connection to internal ALB
 - **5.2** HTTP API Gateway with $default stage
 - **5.3** Single HTTP proxy integration to internal ALB
-- **5.4** JWT Authorizer for Cognito authentication
+- **5.4** Cognito JWT Authorizer for authentication
 - **5.5** Three API routes: public products, authenticated proxy, and CORS
 - **5.6** CORS configuration for frontend access
 - **5.7** API endpoint testing with mixed authentication
-- **5.8** Parameter Store configuration for API URL
+- **5.8** Parameter Store configuration for API Gateway URL
 
 ## Architecture
 ```
@@ -20,7 +20,7 @@ Internet → API Gateway → VPC Link → Internal ALB → ECS Services
 
 The API Gateway will have three specific routes:
 - `GET /products` → Product Service (public, no auth)
-- `ANY /{proxy+}` → All Services (authenticated, JWT required)
+- `ANY /{proxy+}` → All Services (authenticated, Cognito-authorizer required)
 - `OPTIONS /{proxy+}` → CORS preflight (public, no auth)
 
 ---
@@ -65,25 +65,14 @@ The API Gateway will have three specific routes:
 3. **API name:** `ecommerce-api`
 4. **Description:** "eCommerce HTTP API"
 5. **Next**
-
-### Skip Integrations and Routes
 6. **Skip adding integrations** - we'll configure these manually
-7. **Next**
-
-### Configure Stages
-8. **Stage name:** `$default`
-9. **Auto-deploy:** Yes
-10. **Next**
-
-### Review and Create
-11. **Review settings**
-12. **Create**
+7. **Create**
 
 ---
 
 ## 5.3 Create HTTP Integration
 
-### Single ALB Integration
+### ALB Integration over VPCLink (VPC Private Resource integration)
 
 Create one integration that will be used by all routes:
 
@@ -99,7 +88,7 @@ Create one integration that will be used by all routes:
 
 ---
 
-## 5.4 Create JWT Authorizer
+## 5.4 Create Cognito JWT Authorizer
 
 ### Cognito JWT Authorizer Configuration
 
@@ -177,7 +166,14 @@ Create one integration that will be used by all routes:
 1. **Go to your API → Stages → $default**
 2. **Copy the Invoke URL** (e.g., `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`)
 
-### Get JWT Token for Testing
+### Test All Service Endpoints
+
+**Test Public Products Endpoint (No Auth Required):**
+```bash
+curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/products
+```
+
+**Test Authenticated Endpoints (JWT Required):**
 
 Before testing authenticated endpoints, you need to get a JWT token from Cognito:
 
@@ -219,14 +215,6 @@ JWT_TOKEN=$(aws cognito-idp admin-initiate-auth \
 echo "JWT Token: $JWT_TOKEN"
 ```
 
-### Test All Service Endpoints
-
-**Test Public Products Endpoint (No Auth Required):**
-```bash
-curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/products
-```
-
-**Test Authenticated Endpoints (JWT Required):**
 ```bash
 # Use the JWT token obtained above
 curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart
@@ -302,11 +290,11 @@ Each endpoint should return a JSON response from the respective microservice whe
 3. **Type:** String
 4. **Value:** `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`
 
-This parameter can be used by the frontend application to know the API base URL.
+This parameter is used by the frontend application to know the API base URL.
 
-## Architecture Benefits
+## We have configured:
 
-1. **Mixed Authentication:** Public products endpoint, authenticated for other services
+1. **Authentication:** Public products endpoint, authenticated for other services
 2. **CORS Support:** Dedicated OPTIONS route for preflight requests
 3. **ALB Handles Logic:** Path-based routing managed by ALB (already configured)
 4. **Secure Connection:** VPC Link ensures private communication
@@ -314,4 +302,4 @@ This parameter can be used by the frontend application to know the API base URL.
 6. **Cost Effective:** Minimal API Gateway configuration reduces complexity
 
 ## Next Steps
-Proceed to **[Module 6: Frontend Deployment](./module6-frontend-deployment.md)** to deploy the React application.
+Proceed to **[Module 6: Frontend Deployment](./modulae06-frontend-deployment.md)** to deploy the React application.
