@@ -21,10 +21,45 @@ A microservices-based eCommerce application running locally with LocalStack (AWS
 
 ## Prerequisites
 
-- Docker & Docker Compose
-- Node.js 16+ and npm
-- AWS CLI (for LocalStack)
-- AWS Cognito User Pool (for authentication)
+### 1. AWS Account
+- An AWS account (needed for Cognito authentication)
+
+### 2. Local Workstation (Linux / Mac)
+- A Linux or macOS machine
+- Windows users can use WSL2 (Ubuntu)
+
+### 3. Required Tools
+- **Git** — version control
+- **Docker** and **Docker Compose** — for running services locally
+- **Node.js 20+** and **npm** — for the React frontend
+- **AWS CLI v2** — for interacting with LocalStack
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/awswithchetan/ecommerce-web-app.git
+cd ecommerce-web-app
+```
+
+### Step 2: Install Required Tools
+
+**Option 1: Automated (Recommended)**
+```bash
+bash install-prerequisites.sh
+```
+
+**Option 2: Manual** — install Git, Docker, Node.js 20+, and AWS CLI v2 individually for your OS.
+
+### Step 3: Verify
+
+```bash
+aws --version
+docker --version
+node --version
+git --version
+```
+
+---
 
 ## Quick Start
 
