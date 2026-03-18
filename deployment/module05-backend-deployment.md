@@ -1,28 +1,28 @@
-# Module 5: Container Deployment with ECS
+# Module 5: Backend Services Deployment with ECS and ALB
 
 ## Overview
 Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate, using an internal Application Load Balancer and Parameter Store for configuration management.
 
 ## What We'll Build
-- **4.1** Internal Application Load Balancer with target groups and routing rules
-- **4.2** Parameter Store configuration for service URLs
-- **4.3** ECR repositories for Docker images
-- **4.4** Build and push Docker images to ECR
-- **4.5** IAM role for ECS tasks with required permissions
-- **4.6** ECS security group for container networking
-- **4.7** ECS task definitions with environment variables
-- **4.8** ECS cluster and services deployment
-- **4.9** Service status verification
-- **4.10** API endpoint testing with bastion host
+- **4.1** Application Load Balancer (internal) with target groups and routing rules
+- **4.2** ECR repositories for Docker images
+- **4.3** Build and push Docker images to ECR
+- **4.4** IAM role for ECS tasks with required permissions
+- **4.5** ECS security group for container networking
+- **4.6** ECS task definitions with environment variables
+- **4.7** ECS cluster and services deployment
+- **4.8** Service status verification
+- **4.9** ALB endpoint service accessibility test
+- **4.10** Parameter Store configuration for service URLs
 - **4.11** Troubleshooting guide and common issues
 
 ---
 
-## 4.1 Create Internal Application Load Balancer
+## 4.1 Create Application Load Balancer (internal)
 
 ### 4.1.1 Create ALB Security Group
 
-1. **VPC Console → Security Groups → Create security group**
+1. **EC2 Console → Security Groups → Create security group**
 2. **Name:** `ecommerce-alb-sg`
 3. **Description:** "Security group for internal ALB"
 4. **VPC:** Select `ecommerce-vpc`
@@ -37,7 +37,7 @@ Deploy microservices as Docker containers on Amazon ECS (Elastic Container Servi
 Create 4 target groups for the microservices first (required for ALB creation):
 
 **Product Service Target Group:**
-1. **EC2 Console → Target Groups → Create target group**
+1. **EC2 Console → Load Balancing -> Target Groups → Create target group**
 2. **Target type:** IP addresses
 3. **Target group name:** `ecommerce-product-tg`
 4. **Protocol:** HTTP, Port: 8001
@@ -45,12 +45,12 @@ Create 4 target groups for the microservices first (required for ALB creation):
 6. **Health check path:** `/health`
 7. **Create target group**
 
-**Repeat for other services:**
+**Repeat for other services target groups:**
 - **Cart Service:** `ecommerce-cart-tg`, Port: 8002
 - **User Service:** `ecommerce-user-tg`, Port: 8003  
 - **Order Service:** `ecommerce-order-tg`, Port: 8004
 
-### 4.1.3 Create Internal Application Load Balancer
+### 4.1.3 Create Application Load Balancer
 
 1. **EC2 Console → Load Balancers → Create load balancer**
 2. **Application Load Balancer → Create**
@@ -251,7 +251,7 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 5. **CPU:** 0.25 vCPU
 6. **Memory:** 0.5 GB
 7. **Task role:** `ecommerce-ecs-task-role`
-8. **Task execution role:** `ecsTaskExecutionRole`
+8. **Task execution role:** Create default role (This should create a role `ecsTaskExecutionRole` automatically. We will reuse this role for other services.)
 
 **Container definition:**
 
@@ -290,7 +290,7 @@ Create task definitions for all services:
 
 1. **ECS Console → Clusters → Create cluster**
 2. **Cluster name:** `ecommerce-cluster`
-3. **Infrastructure:** AWS Fargate (serverless)
+3. **Infrastructure:** Fargate Only (serverless)
 4. **Create cluster**
 
 ### Create ECS Service for Product Service
@@ -301,10 +301,10 @@ Create task definitions for all services:
 4. **Service name:** `ecommerce-product-service`
 5. **Desired tasks:** 1
 6. **Networking - VPC:** `ecommerce-vpc`
-8. **Subnets:** Select both **private ECS subnets**
+8. **Subnets:** Select both **private ECS subnets** (deselect rest of the subnets if they are auto selected)
 9. **Security group:** `ecommerce-ecs-sg`
-10. **Public IP:** Disabled
-11. **Load Balancing (Optional):** Enable "Use load balancing"
+10. **Public IP:** Turned off
+11. **Load Balancing:** Enable "Use load balancing"
 12. **Load balancer type:** Application Load Balancer
 13. **Load balancer:** `ecommerce-internal-alb`
 14. **Target group:** `ecommerce-product-tg`
@@ -346,7 +346,7 @@ Create services for all microservices:
 
 ## 4.10 Test API Endpoints (Optional but recommended)
 
-### Launch Bastion Host (Stop or Terminate instance after validation)
+### Launch a Bastion Host for Testing as we can't directly access internal ALB URL (Stop or Terminate instance after validation)
 
 **Create Bastion Host:**
 1. **EC2 Console → Launch Instance**
