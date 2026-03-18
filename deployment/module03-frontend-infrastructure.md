@@ -140,7 +140,7 @@ npm run build
 
 5. **Upload to S3:**
 ```bash
-aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
+aws s3 sync build/ s3://<your-frontend-bucket-name> --delete --exclude "images/*"
 ```
 
 ### Update Cognito Callback URL
