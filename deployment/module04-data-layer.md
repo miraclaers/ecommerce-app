@@ -2,7 +2,7 @@
 
 ## Overview
 Set up the data storage layer for the ecommerce application:
-- **S3** for product images with public read access.
+- **S3** for product images served through Amazon CloudFront for caching and optimized delivery.
 - **DynamoDB** for high-performance NoSQL database (ecommerce-products, ecommerce-cart tables).
 - **RDS PostgreSQL** for relational data (users, orders) in private subnets.
 - **Parameter Store** for storing the configurations such as database host, username/password for microservices to read from.
@@ -11,52 +11,8 @@ Set up the data storage layer for the ecommerce application:
 
 ## 2.1 S3 - Product Images Storage
 
-### Create S3 Bucket
+### Upload product images to S3 bucket. We will use frontend bucket for product images as well.
 
-1. **S3 Console → Buckets → Create bucket**
-2. **Bucket name:** `ecommerce-product-images-<random-number>` (must be globally unique)
-3. **Region:** Choose your preferred region
-4. **Block all public access:** **Uncheck** (we need public read for images)
-5. **Acknowledge the warning**
-6. **Bucket versioning:** Disable
-7. **Encryption:** Enable (SSE-S3)
-8. **Create bucket**
-
-### Configure Public Read Access
-
-**Bucket Policy:**
-1. **Go to bucket → Permissions → Bucket policy**
-2. **Add policy:**
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "PublicReadGetObject",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::<your-bucket-name>/*"
-    }
-  ]
-}
-```
-
-**CORS Configuration:**
-1. **Go to bucket → Permissions → CORS**
-2. **Add configuration:**
-```json
-[
-  {
-    "AllowedHeaders": ["*"],
-    "AllowedMethods": ["GET", "HEAD"],
-    "AllowedOrigins": ["*"],
-    "ExposeHeaders": []
-  }
-]
-```
-
-### Upload Product Images
 There are some sample images under data/product-images/ directory. You can run following script to upload these images to your S3 bucket.
 
 **Using Upload Script:**
@@ -68,13 +24,13 @@ bash upload-images-to-s3.sh <your-bucket-name>
 This script uploads sample product images (prod-001.jpg through prod-020.jpg) to your S3 bucket.
 
 **Manual Upload:**
-1. **Go to S3 bucket → Upload**
+1. **Go to frontend S3 bucket → Create images/products/ folder -> Upload**
 2. **Add files** (name them: prod-001.jpg, prod-002.jpg, etc.)
 3. **Upload**
 
-**Verify that you are able to access the images publicly over the browser using image URL:**
+**Verify that you are able to access the images publicly over the browser using CloudFront URL:**
 ```
-Example: https://<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg
+Example: https://dhzk1s0exnne1.cloudfront.net/images/products/prod-001.jpg
 ```
 
 ---
@@ -108,16 +64,16 @@ Example: https://<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg
 
 **Step 1: Update Product Image URLs**
 
-First, update the products.json file with your S3 bucket image URLs:
+First, update the products.json file with Product image public URLs:
 
 ```bash
 cd data
-bash update-product-image-urls.sh <your-bucket-name> <your-region>
+bash update-product-image-urls.sh <cloudfront URL>
 ```
 
 Example:
 ```bash
-bash update-product-image-urls.sh ecommerce-product-images-12345 ap-south-1
+bash update-product-image-urls.sh https://dhzk1s0exnne1.cloudfront.net
 ```
 
 This script updates all image URLs and creates/updates `products.json` file. We will now use this file to update the DynamoDB table.
@@ -128,7 +84,7 @@ This script updates all image URLs and creates/updates `products.json` file. We 
 bash load-products.sh <your-region>
 ```
 
-This script loads 20 sample products from the updated `data/products.json` into your DynamoDB table.
+This script loads 20 sample products from the updated `products.json` into your DynamoDB ecommerce-products table.
 
 **Manual Data Entry:**
 1. **Go to DynamoDB Console → Tables → ecommerce-products**
@@ -141,7 +97,7 @@ This script loads 20 sample products from the updated `data/products.json` into 
   "description": "Premium noise-cancelling over-ear headphones",
   "price": 89.99,
   "stock": 150,
-  "image_url": "https://ecommerce-product-images-<bucket-name>.s3.<your-region>.amazonaws.com/prod-001.jpg",
+  "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-001.jpg",
   "category": "Electronics"
 }
 ```
@@ -207,7 +163,7 @@ This script loads 20 sample products from the updated `data/products.json` into 
 <details>
 <summary><strong>📋 Database Schema Reference (Click to expand)</strong></summary>
 
-The database schema will be automatically created by each microservice on startup:
+**The database tables will be automatically created by each microservice on startup:**
 
 **Users Table** (user-service):
 ```sql
