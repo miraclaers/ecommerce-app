@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import './Orders.css';
 
-function Orders() {
+function Orders({ user }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (user) loadOrders();
+    else setLoading(false);
+  }, [user]);
 
   const loadOrders = async () => {
     try {
@@ -22,6 +23,8 @@ function Orders() {
   };
 
   if (loading) return <div className="loading">Loading orders...</div>;
+
+  if (!user) return <div className="no-orders">Please <a href="/login">sign in</a> to view your orders.</div>;
 
   return (
     <div className="orders">

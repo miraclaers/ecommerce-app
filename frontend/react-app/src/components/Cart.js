@@ -3,15 +3,16 @@ import { api } from '../api';
 import { useCart } from '../CartContext';
 import './Cart.css';
 
-function Cart() {
+function Cart({ user }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const { refreshCartCount } = useCart();
 
   useEffect(() => {
-    loadCart();
-  }, []);
+    if (user) loadCart();
+    else setLoading(false);
+  }, [user]);
 
   const loadCart = async () => {
     try {
@@ -59,6 +60,8 @@ function Cart() {
   };
 
   if (loading) return <div className="loading">Loading cart...</div>;
+
+  if (!user) return <div className="empty-cart">Please <a href="/login">sign in</a> to view your cart.</div>;
 
   return (
     <div className="cart">

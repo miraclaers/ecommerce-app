@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Authenticator } from '@aws-amplify/ui-react';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import Navbar from './components/Navbar';
 import Products from './components/Products';
@@ -10,22 +10,16 @@ import { api } from './api';
 import { CartProvider } from './CartContext';
 import './App.css';
 
-// Component to handle profile creation
-function AppContent({ signOut, user }) {
+function AppContent() {
+  const { user, signOut } = useAuthenticator((context) => [context.user]);
+
   useEffect(() => {
     if (user) {
       const email = user.signInDetails?.loginId || user.username;
       const name = user.username;
-      
-      // Check if profile exists, create only if it doesn't
-      api.getProfile().catch((error) => {
-        console.log('Profile not found, creating...', { email, name });
-        // Profile doesn't exist, create it
+      api.getProfile().catch(() => {
         api.createProfile(email, name)
-          .then(() => console.log('Profile created successfully'))
-          .catch((err) => {
-            console.error('Failed to create profile:', err);
-          });
+          .catch((err) => console.error('Failed to create profile:', err));
       });
     }
   }, [user]);
@@ -36,9 +30,9 @@ function AppContent({ signOut, user }) {
         <div className="App">
           <Navbar signOut={signOut} user={user} />
           <Routes>
-            <Route path="/" element={<Products />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/orders" element={<Orders />} />
+            <Route path="/" element={<Products user={user} />} />
+            <Route path="/cart" element={<Cart user={user} />} />
+            <Route path="/orders" element={<Orders user={user} />} />
           </Routes>
         </div>
       </Router>
@@ -48,24 +42,9 @@ function AppContent({ signOut, user }) {
 
 function App() {
   return (
-    <Authenticator
-      signUpAttributes={['email', 'name']}
-      components={{
-        SignUp: {
-          FormFields() {
-            return (
-              <>
-                <Authenticator.SignUp.FormFields />
-              </>
-            );
-          },
-        },
-      }}
-    >
-      {({ signOut, user }) => (
-        <AppContent signOut={signOut} user={user} />
-      )}
-    </Authenticator>
+    <Authenticator.Provider>
+      <AppContent />
+    </Authenticator.Provider>
   );
 }
 

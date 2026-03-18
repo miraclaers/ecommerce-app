@@ -3,7 +3,7 @@ import { api } from '../api';
 import { useCart } from '../CartContext';
 import './Products.css';
 
-function Products() {
+function Products({ user }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -25,6 +25,11 @@ function Products() {
   };
 
   const handleAddToCart = async (product) => {
+    if (!user) {
+      setMessage('Please sign in to add items to cart');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
     try {
       await api.addToCart(product.product_id, 1, product.price);
       setMessage(`Added ${product.name} to cart!`);
