@@ -13,7 +13,7 @@ Set up simple event-driven architecture using Amazon SNS for asynchronous order 
 ## Architecture
 ```
 Order Service → SNS Topic → Email Subscription (Direct)
-                        → SQS Queue (Logging)
+                          → SQS Queue (Shipping)
 ```
 
 When an order is placed:
@@ -54,35 +54,6 @@ When an order is placed:
 3. **Name:** `ecommerce-order-shipping`
 4. **Create queue**
 
-### Configure SQS Queue Policy
-
-6. **Access policy → Edit**
-7. **Add policy to allow SNS to send messages:**
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "sns.amazonaws.com"
-      },
-      "Action": "sqs:SendMessage",
-      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-order-shipping",
-      "Condition": {
-        "ArnEquals": {
-          "aws:SourceArn": "arn:aws:sns:<region>:<account-id>:ecommerce-order-events"
-        }
-      }
-    }
-  ]
-}
-```
-
-8. **Replace `<region>` and `<account-id>`** with your values
-9. **Save policy**
-
 ---
 
 ## 7.3 Configure SNS Subscriptions
@@ -107,6 +78,31 @@ When an order is placed:
 5. **Create subscription**
 6. **Verify status** shows "Confirmed"
 
+This should automatically update the SQS Policy to allow SQS:SendMessage action for SNS Topic.
+
+Go to SQS Queue -> Queue Policies and Verify.
+
+If you don't see Policy statement for SNS Topic then you can also manually change the policy like below (replace region, account id, topic arn):
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:<region>:<account-id>:ecommerce-order-shipping",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:sns:<region>:<account-id>:ecommerce-order-events"
+        }
+      }
+    }
+  ]
+}
+```
 ### Subscription Summary
 
 You now have two subscriptions:
@@ -129,97 +125,12 @@ This parameter is already created and used by the order service to publish messa
 
 ---
 
-## 7.7 Test Event-Driven Workflow
+## 7.7 Test Notification Workflow
 
-### Test Lambda Function Directly
-
-1. **Lambda Console → Test tab**
-2. **Create test event:**
-   - Event name: `test-order`
-   - Template: SQS
-3. **Replace event JSON:**
-
-```json
-{
-  "Records": [
-    {
-      "body": "{\"Message\": \"{\\\"order_id\\\": \\\"test-001\\\", \\\"user_email\\\": \\\"your-verified-email@example.com\\\", \\\"total_amount\\\": 99.99, \\\"items\\\": [{\\\"product_id\\\": \\\"prod-001\\\", \\\"quantity\\\": 2, \\\"price\\\": 49.99}]}\"}"
-    }
-  ]
-}
-```
-
-4. **Replace `your-verified-email@example.com`** with your verified SES email
-5. **Test**
-6. **Check your email** - you should receive order confirmation
-
-### Test SNS to Lambda Flow
-
-1. **Go to SNS topic → Publish message**
-2. **Message body:**
-
-```json
-{
-  "order_id": "test-002",
-  "user_email": "your-verified-email@example.com",
-  "total_amount": 149.99,
-  "items": [
-    {
-      "product_id": "prod-001",
-      "quantity": 1,
-      "price": 89.99
-    },
-    {
-      "product_id": "prod-002",
-      "quantity": 2,
-      "price": 29.99
-    }
-  ]
-}
-## 7.5 Test Event-Driven Workflow
-
-### Test SNS Topic Directly
-
-1. **SNS Console → Topics → ecommerce-order-events**
-2. **Publish message → Create message:**
-   ```json
-   {
-     "order_id": "test-123",
-     "user_email": "customer@example.com",
-     "total_amount": 99.99,
-     "items": [
-       {
-         "product_id": "prod-001",
-         "name": "Test Product",
-         "quantity": 1,
-         "price": 99.99
-       }
-     ]
-   }
-   ```
-3. **Publish message**
-4. **Check your email** - notification should arrive directly from SNS
-5. **Check SQS queue** - message should appear in `ecommerce-order-shipping`
-
-### Test with Order Service
-
-Once the order service is deployed:
 1. **Place an order** through the frontend
 2. **Order service publishes** to SNS topic
-3. **SNS sends email** directly to subscriber
-4. **SNS also sends** message to SQS queue for shipping
-
-### Verify Message Flow
-
-**Check Email:**
-- Order notification email from SNS
-- Subject: "Notification from Amazon SNS Topic"
-- Body contains the order JSON
-
-**Check SQS Queue:**
-1. **SQS Console → ecommerce-order-shipping**
-2. **Send and receive messages → Poll for messages**
-3. **Verify message** contains order details
+3. **SNS sends email** Check email for order notification
+4. **SNS also sends** message to SQS queue for shipping. Verify messages in the SQS queue -> Send and receive message -> Poll for messages.
 
 ### Troubleshooting
 
