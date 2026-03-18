@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 
 class Settings(BaseSettings):
-    model_config = ConfigDict(frozen=False)
+    model_config = ConfigDict(frozen=False, env_file=".env")
 
     environment: str = "local"
     
@@ -73,8 +73,5 @@ class Settings(BaseSettings):
         except Exception as e:
             print(f"Warning: Could not load parameters from Parameter Store: {e}")
             print("Using default/environment variable values")
-    
-    class Config:
-        env_file = ".env"
 
 settings = Settings()
