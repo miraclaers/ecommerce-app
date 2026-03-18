@@ -2,8 +2,14 @@
 
 set -e
 
-REGION="us-west-2"
-ACCOUNT_ID="387258180757"
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: bash build-and-deploy-services.sh <account-id> <region>"
+  echo "Example: bash build-and-deploy-services.sh 123456789012 us-west-2"
+  exit 1
+fi
+
+ACCOUNT_ID="$1"
+REGION="$2"
 ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 CLUSTER="ecommerce-cluster"
 
