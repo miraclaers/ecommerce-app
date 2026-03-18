@@ -51,13 +51,16 @@ export default awsConfig;
 
 ```bash
 npm run build
-aws s3 sync build/ s3://<your-frontend-bucket-name> --delete
+aws s3 sync build/ s3://<your-frontend-bucket-name> --delete --exclude "images/*"
 ```
 
 ---
 
-## 7.3 Invalidate CloudFront Cache
+## 7.3 Invalidate CloudFront Cache from AWS Console or using AWS CLI
 
+Go to CloudFront Distribution -> Invalidations -> Create invalidation -> Object paths: `/*` -> Create invalidation
+
+Using AWS CLI:
 ```bash
 aws cloudfront create-invalidation \
   --distribution-id <your-cloudfront-distribution-id> \
