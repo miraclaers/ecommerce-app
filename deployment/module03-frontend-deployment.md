@@ -1,4 +1,4 @@
-# Module 3: Frontend Infrastructure
+# Module 3: Frontend Deployment
 
 ## Overview
 Set up the infrastructure for the React frontend, configure it with Cognito values, and deploy it to S3. This lets you test login/signup functionality early. Product listing and other API-dependent features will work after **Module 7: Frontend-Backend Integration**, once backend is fully deployed along with APIs.

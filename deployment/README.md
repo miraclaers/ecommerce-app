@@ -23,13 +23,13 @@ Complete these modules in order:
 - Create VPC with public and private subnets across 2 AZs
 - Set up Internet Gateway and NAT Gateway for connectivity
 
-### [Module 2: Authentication](./module02-authentication.md)
+### [Module 2: Authentication](./module02-cognito-authentication.md)
 **Time:** 30-45 minutes  
 **Services:** Cognito User Pools
 - User registration and authentication
 - JWT token management
 
-### [Module 3: Frontend Infrastructure](./module03-frontend-infrastructure.md)
+### [Module 3: Frontend Deployment](./module03-frontend-deployment.md)
 **Time:** 15-20 minutes  
 **Services:** S3, CloudFront
 - S3 bucket for static website hosting

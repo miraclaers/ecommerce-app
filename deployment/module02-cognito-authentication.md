@@ -45,4 +45,4 @@ You'll need these for:
 ---
 
 ## Next Steps
-Proceed to **[Module 3: Frontend Deployment](./module03-frontend-infrastructure.md)** to set up the S3 bucket and CloudFront distribution.
+Proceed to **[Module 3: Frontend Deployment](./module03-frontend-deployment.md)** to set up the S3 bucket and CloudFront distribution.
