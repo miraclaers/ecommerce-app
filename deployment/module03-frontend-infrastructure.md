@@ -46,7 +46,6 @@ User → CloudFront (CDN) → S3 Bucket (Static Website)
 7. **Settings:** Use recommended cache settings tailored to serving S3 content -> Next
 8. **Enable Security:** Select "Do not enable security protections"
 9. **Create distribution**
-10. **General** -> Edit -> Update Default root object: **index.html** -> Save changes
 
 ### Check S3 Bucket Policy to allow access to CloudFront distribution
 
@@ -75,25 +74,24 @@ Example:
     ]
 }
 ```
-**If you don't see S3 Bucket policy updated, then modify the policy as per your AWS Account, S3 Bucket Name and CloudFront Distribution ID.**
+If you don't see S3 Bucket policy updated, then modify the policy as per your AWS Account, S3 Bucket Name and CloudFront Distribution ID.
+
+## 3.3 Configure Root document and Custom Error Pages
+
+React is a single-page application (SPA). All routes must return `index.html` so React Router can handle navigation client-side.
+
+1. **Go to your CloudFront distribution -> General** -> Edit -> Update Default root object: **index.html** -> Save changes
+2. **Error pages → Create custom error response**
+3. **HTTP error code:** 403
+4. **Customize error response:** Yes
+5. **Response page path:** `/index.html`
+6. **HTTP response code:** 200
+7. **Create**
+8. **Repeat for HTTP error code 404**
 
 **Save These Values:**
 - **CloudFront Distribution ID** (e.g., `E1234567890ABC`)
 - **CloudFront Domain Name** (e.g., `d1234567890.cloudfront.net`)
-
----
-
-## 3.3 Configure Custom Error Pages for React Router
-
-React is a single-page application (SPA). All routes must return `index.html` so React Router can handle navigation client-side.
-
-1. **Go to your CloudFront distribution → Error pages → Create custom error response**
-2. **HTTP error code:** 403
-3. **Customize error response:** Yes
-4. **Response page path:** `/index.html`
-5. **HTTP response code:** 200
-6. **Create**
-7. **Repeat for HTTP error code 404**
 
 ---
 
