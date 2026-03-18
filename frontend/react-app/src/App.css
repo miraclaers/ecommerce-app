@@ -61,11 +61,14 @@ html {
 }
 
 .login-modal {
-  background: white;
   border-radius: 8px;
-  padding: 24px;
-  max-width: 480px;
-  width: 100%;
+  overflow: hidden;
+}
+
+.login-modal [data-amplify-container] {
+  background: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 .link-btn {
