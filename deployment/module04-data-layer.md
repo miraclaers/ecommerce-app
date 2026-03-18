@@ -134,30 +134,29 @@ This script loads 20 sample products from the updated `products.json` into your 
 ### Create RDS Instance
 
 1. **RDS Console → Databases → Create database**
-2. **Choose creation method:** Standard create
-3. **Engine options:**
+2. **Engine options:**
    - Engine type: PostgreSQL
-   - Version: PostgreSQL 15.x (latest)
-4. **Templates:** Dev/Test
+3. **Choose a database creation method:** Full configuration
+4. **Templates:** Free Tier or Dev/Test
 5. **Settings:**
-   - DB instance identifier: `ecommerce-db`
+   - DB instance identifier: **`ecommercedb-instance`**
    - Master username: `postgres`
-   - Master password: (create strong password - save it!)
-6. **Instance configuration:**
+   - Master password: (create a password - remember or save it!)
+6. **Database authentication:** Password authentication
+7. **Instance configuration:**
    - DB instance class: Burstable classes - db.t3.micro
-7. **Connectivity:**
+8. **Connectivity:**
    - VPC: `ecommerce-vpc`
    - DB subnet group: `ecommerce-db-subnet-group`
    - Public access: No
    - VPC security group: Choose existing - `ecommerce-rds-sg`
-   - Availability Zone: No preference (Single-AZ for Dev/Test)
-8. **Database authentication:** Password authentication
+   - Availability Zone: Choose first AZ
 9. **Monitoring:**
-   - Uncheck "Enable Enhanced Monitoring" (to reduce costs)
+   - Uncheck "Enable Performance Insights" (We don't need this for Dev/Test database)
 10. **Additional configuration:**
-    - **IMPORTANT:** Initial database name: `ecommercedb` (This is critical - don't skip!)
-    - Uncheck "Enable automated backups" (Backup retention period: 0 days)
-    - Uncheck "Enable encryption" (to simplify tutorial setup)
+    - **IMPORTANT:** Initial database name: **`ecommercedb`** (This is critical - don't skip!)
+    - Uncheck "Enable automated backups" (We don't need this for Dev/Test database)
+    - Uncheck "Enable encryption" (We don't need this for Dev/Test database)
 11. **Create database** (takes 5-10 minutes)
 
 <details>
