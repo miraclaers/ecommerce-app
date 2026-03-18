@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import './Orders.css';
 
-function Orders({ user }) {
+function Orders({ user, onSignInClick }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +24,7 @@ function Orders({ user }) {
 
   if (loading) return <div className="loading">Loading orders...</div>;
 
-  if (!user) return <div className="no-orders">Please <a href="/login">sign in</a> to view your orders.</div>;
+  if (!user) return <div className="no-orders">Please <button className="link-btn" onClick={onSignInClick}>sign in</button> to view your orders.</div>;
 
   return (
     <div className="orders">

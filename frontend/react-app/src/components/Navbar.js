@@ -1,12 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useCart } from '../CartContext';
 import logo from '../assets/logo.svg';
 import './Navbar.css';
 
-function Navbar({ signOut, user }) {
-  const { toSignIn } = useAuthenticator();
+function Navbar({ signOut, user, onSignInClick }) {
   const displayName = user?.signInDetails?.loginId || user?.username || 'User';
   const { cartCount } = useCart();
   
@@ -41,7 +39,7 @@ function Navbar({ signOut, user }) {
             <button onClick={signOut} className="signout-btn">Sign Out</button>
           </div>
         ) : (
-          <button onClick={toSignIn} className="signout-btn">Sign In</button>
+          <button onClick={onSignInClick} className="signout-btn">Sign In</button>
         )}
       </div>
     </nav>

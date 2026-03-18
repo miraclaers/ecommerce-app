@@ -3,7 +3,7 @@ import { api } from '../api';
 import { useCart } from '../CartContext';
 import './Cart.css';
 
-function Cart({ user }) {
+function Cart({ user, onSignInClick }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -61,7 +61,7 @@ function Cart({ user }) {
 
   if (loading) return <div className="loading">Loading cart...</div>;
 
-  if (!user) return <div className="empty-cart">Please <a href="/login">sign in</a> to view your cart.</div>;
+  if (!user) return <div className="empty-cart">Please <button className="link-btn" onClick={onSignInClick}>sign in</button> to view your cart.</div>;
 
   return (
     <div className="cart">

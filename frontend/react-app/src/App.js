@@ -10,11 +10,12 @@ import { api } from './api';
 import { CartProvider } from './CartContext';
 import './App.css';
 
-function AppContent() {
+function AppContent({ showLogin, setShowLogin }) {
   const { user, signOut } = useAuthenticator((context) => [context.user]);
 
   useEffect(() => {
     if (user) {
+      setShowLogin(false);
       const email = user.signInDetails?.loginId || user.username;
       const name = user.username;
       api.getProfile().catch(() => {
@@ -28,11 +29,18 @@ function AppContent() {
     <CartProvider user={user}>
       <Router>
         <div className="App">
-          <Navbar signOut={signOut} user={user} />
+          <Navbar signOut={signOut} user={user} onSignInClick={() => setShowLogin(true)} />
+          {showLogin && !user && (
+            <div className="login-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowLogin(false); }}>
+              <div className="login-modal">
+                <Authenticator signUpAttributes={['email', 'name']} />
+              </div>
+            </div>
+          )}
           <Routes>
-            <Route path="/" element={<Products user={user} />} />
-            <Route path="/cart" element={<Cart user={user} />} />
-            <Route path="/orders" element={<Orders user={user} />} />
+            <Route path="/" element={<Products user={user} onSignInClick={() => setShowLogin(true)} />} />
+            <Route path="/cart" element={<Cart user={user} onSignInClick={() => setShowLogin(true)} />} />
+            <Route path="/orders" element={<Orders user={user} onSignInClick={() => setShowLogin(true)} />} />
           </Routes>
         </div>
       </Router>
@@ -41,9 +49,11 @@ function AppContent() {
 }
 
 function App() {
+  const [showLogin, setShowLogin] = useState(false);
+
   return (
     <Authenticator.Provider>
-      <AppContent />
+      <AppContent showLogin={showLogin} setShowLogin={setShowLogin} />
     </Authenticator.Provider>
   );
 }
