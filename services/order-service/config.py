@@ -1,8 +1,11 @@
 import os
 import boto3
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(frozen=False)
+
     environment: str = "local"
     
     # Default values for local development
