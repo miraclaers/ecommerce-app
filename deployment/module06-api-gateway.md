@@ -97,7 +97,7 @@ Create one integration that will be used by all routes:
 3. **Authorizer type:** JWT
 4. **Identity source:** `$request.header.Authorization`
 5. **Issuer URL:** `https://cognito-idp.<your-region>.amazonaws.com/<user-pool-id>`
-   - Replace `<your-region>` and `<user-pool-id>` with your values
+   - Replace `<your-region>` and `<user-pool-id>` with your values or get this URL from Cognito -> User Pool -> App Client -> Quick Setup guide -> authority
 6. **Audience:** `<your-app-client-id>`
    - Use the App Client ID from Module 3
 7. **Create authorizer**
@@ -165,6 +165,7 @@ Create one integration that will be used by all routes:
 
 1. **Go to your API → Stages → $default**
 2. **Copy the Invoke URL** (e.g., `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`)
+3. This parameter is used by the frontend application to know the API base URL to access backend services. We will configure it in the next module.
 
 ### Test All Service Endpoints
 
@@ -173,82 +174,13 @@ Create one integration that will be used by all routes:
 curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/products
 ```
 
-**Test Authenticated Endpoints (JWT Required):**
-
-Before testing authenticated endpoints, you need to get a JWT token from Cognito:
-
-**Create Test User (if needed):**
-```bash
-# Create a test user
-aws cognito-idp admin-create-user \
-  --user-pool-id $USER_POOL_ID \
-  --username testuser@example.com \
-  --user-attributes Name=email,Value=testuser@example.com Name=name,Value="Test User" \
-  --temporary-password "TempPass123!" \
-  --message-action SUPPRESS
-
-# Set permanent password
-aws cognito-idp admin-set-user-password \
-  --user-pool-id $USER_POOL_ID \
-  --username testuser@example.com \
-  --password "TestPass123!" \
-  --permanent
-```
-
-**Get JWT Token using AWS CLI:**
-```bash
-# Replace with your values from Module 3
-USER_POOL_ID="<your-user-pool-id>"
-CLIENT_ID="<your-app-client-id>"
-USERNAME="<test-user-email>"
-PASSWORD="<test-user-password>"
-
-# Get JWT token
-JWT_TOKEN=$(aws cognito-idp admin-initiate-auth \
-  --user-pool-id $USER_POOL_ID \
-  --client-id $CLIENT_ID \
-  --auth-flow ADMIN_NO_SRP_AUTH \
-  --auth-parameters USERNAME=$USERNAME,PASSWORD=$PASSWORD \
-  --query 'AuthenticationResult.IdToken' \
-  --output text)
-
-echo "JWT Token: $JWT_TOKEN"
-```
-
-```bash
-# Use the JWT token obtained above
-curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart
-
-curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/users
-
-curl -H "Authorization: Bearer $JWT_TOKEN" https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
-```
-
-**Test CORS Preflight (No Auth Required):**
-```bash
-curl -X OPTIONS https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart \
-  -H "Origin: http://localhost:3000" \
-  -H "Access-Control-Request-Method: GET" \
-  -H "Access-Control-Request-Headers: Authorization" \
-  -v
-```
-
-**Test Without Token on Protected Endpoints (Should Return 401):**
+**Test Authorized Endpoints (Should Return 401):**
 ```bash
 curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/cart
 curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/users
 curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
 # Expected: {"message":"Unauthorized"}
 ```
-
-### Expected Response
-Each endpoint should return a JSON response from the respective microservice when a valid JWT token is provided. If you get errors, verify:
-- VPC Link status is "Available"
-- Internal ALB is healthy and accessible
-- ECS services are running and registered with target groups
-- Security groups allow traffic flow
-- **JWT token is valid and not expired**
-- **Cognito User Pool ID and App Client ID are correct in authorizer**
 
 ### Troubleshooting
 
@@ -281,25 +213,12 @@ Each endpoint should return a JSON response from the respective microservice whe
 
 ---
 
-## 5.8 Update Parameter Store
-
-### API Gateway URL Parameter
-
-1. **Systems Manager Console → Parameter Store → Create parameter**
-2. **Name:** `/ecommerce/dev/api-gateway-url`
-3. **Type:** String
-4. **Value:** `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`
-
-This parameter is used by the frontend application to know the API base URL.
-
 ## We have configured:
 
 1. **Authentication:** Public products endpoint, authenticated for other services
 2. **CORS Support:** Dedicated OPTIONS route for preflight requests
-3. **ALB Handles Logic:** Path-based routing managed by ALB (already configured)
-4. **Secure Connection:** VPC Link ensures private communication
-5. **Flexible Access:** Public product browsing, authenticated user actions
-6. **Cost Effective:** Minimal API Gateway configuration reduces complexity
+3. **Secure Connection:** VPC Link ensures private communication between API gateway and ALB.
+4. **Flexible Access:** Public product browsing, authenticated user actions
 
 ## Next Steps
 Proceed to **[Module 7: Frontend-Backend Integration](./module07-frontend-backend-integration.md)** to configure, build, and deploy the React application.
