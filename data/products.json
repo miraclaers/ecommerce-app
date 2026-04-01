@@ -6,7 +6,7 @@
     "price": 89.99,
     "stock": 150,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-001.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-001.jpg"
   },
   {
     "product_id": "prod-002",
@@ -15,7 +15,7 @@
     "price": 299.99,
     "stock": 85,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-002.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-002.jpg"
   },
   {
     "product_id": "prod-003",
@@ -24,7 +24,7 @@
     "price": 129.99,
     "stock": 200,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-003.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-003.jpg"
   },
   {
     "product_id": "prod-004",
@@ -33,7 +33,7 @@
     "price": 79.99,
     "stock": 120,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-004.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-004.jpg"
   },
   {
     "product_id": "prod-005",
@@ -42,7 +42,7 @@
     "price": 59.99,
     "stock": 250,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-005.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-005.jpg"
   },
   {
     "product_id": "prod-006",
@@ -51,7 +51,7 @@
     "price": 39.99,
     "stock": 300,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-006.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-006.jpg"
   },
   {
     "product_id": "prod-007",
@@ -60,7 +60,7 @@
     "price": 119.99,
     "stock": 180,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-007.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-007.jpg"
   },
   {
     "product_id": "prod-008",
@@ -69,7 +69,7 @@
     "price": 34.99,
     "stock": 220,
     "category": "Accessories",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-008.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-008.jpg"
   },
   {
     "product_id": "prod-009",
@@ -78,7 +78,7 @@
     "price": 24.99,
     "stock": 400,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-009.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-009.jpg"
   },
   {
     "product_id": "prod-010",
@@ -87,7 +87,7 @@
     "price": 49.99,
     "stock": 175,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-010.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-010.jpg"
   },
   {
     "product_id": "prod-011",
@@ -96,7 +96,7 @@
     "price": 189.99,
     "stock": 95,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-011.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-011.jpg"
   },
   {
     "product_id": "prod-012",
@@ -105,7 +105,7 @@
     "price": 29.99,
     "stock": 280,
     "category": "Accessories",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-012.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-012.jpg"
   },
   {
     "product_id": "prod-013",
@@ -114,7 +114,7 @@
     "price": 44.99,
     "stock": 160,
     "category": "Accessories",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-013.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-013.jpg"
   },
   {
     "product_id": "prod-014",
@@ -123,7 +123,7 @@
     "price": 69.99,
     "stock": 140,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-014.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-014.jpg"
   },
   {
     "product_id": "prod-015",
@@ -132,7 +132,7 @@
     "price": 19.99,
     "stock": 350,
     "category": "Accessories",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-015.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-015.jpg"
   },
   {
     "product_id": "prod-016",
@@ -141,7 +141,7 @@
     "price": 249.99,
     "stock": 65,
     "category": "Furniture",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-016.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-016.jpg"
   },
   {
     "product_id": "prod-017",
@@ -150,7 +150,7 @@
     "price": 39.99,
     "stock": 190,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-017.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-017.jpg"
   },
   {
     "product_id": "prod-018",
@@ -159,7 +159,7 @@
     "price": 34.99,
     "stock": 210,
     "category": "Electronics",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-018.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-018.jpg"
   },
   {
     "product_id": "prod-019",
@@ -168,7 +168,7 @@
     "price": 14.99,
     "stock": 500,
     "category": "Accessories",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-019.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-019.jpg"
   },
   {
     "product_id": "prod-020",
@@ -177,6 +177,6 @@
     "price": 9.99,
     "stock": 600,
     "category": "Accessories",
-    "image_url": "https://chetan-future-store.s3.ap-south-1.amazonaws.com/images/products/prod-020.jpg"
+    "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-020.jpg"
   }
 ]

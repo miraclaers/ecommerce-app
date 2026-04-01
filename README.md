@@ -8,13 +8,9 @@ A production-grade microservices-based eCommerce application built for learning 
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
-- [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-  - [Local Deployment](#step-1-local-deployment-recommended)
-  - [AWS Deployment](#step-2-aws-deployment)
 - [Cost Estimates](#cost-estimates)
 - [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
 
 ## Architecture Overview
 
@@ -41,24 +37,8 @@ This project demonstrates a complete cloud-native application using:
 <img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/75df6e4c-e7a9-481b-acf2-253448ef9c61" />
 
 ## Getting Started
-There are 2 options to deploy this application - Local Deployment and AWS Deployment.
 
-### Local Deployment (Optional)
-Before deploying to AWS, you can deploy this application locally. This helps verify that:
-- Docker images build correctly
-- Services communicate properly
-- Application logic works as expected
-- You understand the application flow
-
-[Local Deployment Guide](local-deployment/README.md)
-
-Local deployment uses:
-- **LocalStack** - AWS service emulator (DynamoDB, SNS, SQS, SES)
-- **PostgreSQL** - Local database
-- **Nginx** - API Gateway simulator
-- **React Dev Server** - Frontend
-
-**Time required**: ~30 minutes
+> **Local Deployment**: To run this application locally with Docker + LocalStack, see the [ecommerce-local-app](https://github.com/YOUR_USERNAME/ecommerce-local-app) repo.
 
 ### AWS Deployment
 
@@ -92,32 +72,23 @@ The deployment is organized into modules:
 ## Project Structure
 
 ```
-ecommerce-aws-tutorial/
+ecommerce-web-app/
 ├── services/                    # Backend microservices
 │   ├── product-service/         # Python FastAPI
 │   ├── cart-service/            # Python FastAPI
 │   ├── user-service/            # Python FastAPI
-│   ├── order-service/           # Python FastAPI
-│   └── notification-service/    # Python FastAPI
+│   └── order-service/           # Python FastAPI
 ├── frontend/
 │   └── react-app/               # React application
-├── local-deployment/            # Local development setup
-│   ├── README.md                # Local deployment guide
-│   ├── docker-compose.yml       # LocalStack + services
-│   ├── nginx.conf               # API Gateway simulator
-│   └── data/                    # Sample product data
+├── data/                        # Product data + S3 upload scripts
 ├── deployment/                  # AWS deployment guides
 │   ├── README.md                # Deployment overview
 │   └── module*.md               # Step-by-step modules
 └── install-prerequisites.sh     # Tool installation script
 ```
+
 ## Next Steps
 
-Optional:
-1. Follow the [Local Deployment Guide](local-deployment/README.md)
-2. Test the application locally
-
-**AWS Deployment:**
 1. Proceed to [AWS Deployment](deployment/README.md)
 2. Clean up resources after learning
 

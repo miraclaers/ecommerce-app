@@ -9,7 +9,7 @@ const awsConfig = {
     }
   },
   API: {
-    baseUrl: '' // e.g., https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com
+    baseUrl: 'https://q3sy15kjs8.execute-api.us-west-2.amazonaws.com' // e.g., https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com
   }
 };
 
