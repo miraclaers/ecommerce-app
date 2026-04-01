@@ -3,12 +3,13 @@
 ## Overview
 Set up simple event-driven architecture using Amazon SNS for asynchronous order notifications and shipping vendor.
 
-## What We'll Build
+## What We'll be doing
 - **7.1** Create SNS topic for order events
 - **7.2** Create SQS queue for order shipping
 - **7.3** Configure SNS subscriptions (Email + SQS)
 - **7.4** Update SSM Parameter Store with SNS topic ARN
-- **7.5** Test the notification workflow
+- **7.5** Restart Order Service
+- **7.6** Test the notification workflow
 
 ## Architecture
 ```
@@ -133,7 +134,7 @@ This will make sure that Order Service featches SNS Topic ARN from SSM Parameter
 
 ---
 
-## 7.7 Test Notification Workflow
+## 7.6 Test Notification Workflow
 
 1. **Place an order** through the frontend
 2. **Order service publishes** to SNS topic
