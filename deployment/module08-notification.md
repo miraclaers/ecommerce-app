@@ -124,6 +124,14 @@ You now have two subscriptions:
 This parameter is already created and used by the order service to publish messages to SNS.
 
 ---
+## 7.5 Restart the Order Service to featch SNS Topic ARN
+
+1. **ECS Cluster -> Services -> Order Service -> Force new deployment**
+2. Wait until Order Service status changes to 1 Task Running
+
+This will make sure that Order Service featches SNS Topic ARN from SSM Parameter Store and publishes order event on to the topic.
+
+---
 
 ## 7.7 Test Notification Workflow
 
