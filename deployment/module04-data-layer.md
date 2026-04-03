@@ -1,18 +1,17 @@
 # Module 4: Data Layer
 
 ## Overview
-Set up the data storage layer for the ecommerce application:
-- **S3** for product images served through Amazon CloudFront for caching and optimized delivery.
-- **DynamoDB** for high-performance NoSQL database (ecommerce-products, ecommerce-cart tables).
-- **RDS PostgreSQL** for relational data (users, orders) in private subnets.
-- **Parameter Store** for storing the configurations such as database host, username/password for microservices to read from.
+Let's set up the data storage and databases for the application.
 
----
+## In this module
+- Upload product images to S3 bucket. Images will be served through Amazon CloudFront for caching and optimized delivery.
+- Create DynamoDB tables for storing products data and cart.
+- Create RDS PostgreSQL relational database for storing users, orders data.
+- Create parameters in Systems Manager Parameter Store for storing the configurations such as database host, username/password for microservices to read from.
 
-## 2.1 S3 - Product Images Storage
+## 4.1 Upload Product Images to S3 bucket
 
-### Upload product images to S3 bucket. We will use frontend bucket for product images as well.
-
+We will use the same frontend bucket for product images as well.
 There are some sample images under data/product-images/ directory. You can run following script to upload these images to your S3 bucket.
 
 **Using Upload Script:**
@@ -23,49 +22,52 @@ bash upload-images-to-s3.sh <your-bucket-name>
 
 This script uploads sample product images (prod-001.jpg through prod-020.jpg) to your S3 bucket.
 
-**Manual Upload:**
-1. **Go to frontend S3 bucket → Create images/products/ folder -> Upload**
-2. **Add files** (name them: prod-001.jpg, prod-002.jpg, etc.)
-3. **Upload**
-
 **Verify that you are able to access the images publicly over the browser using CloudFront URL:**
 ```
 Example: https://dhzk1s0exnne1.cloudfront.net/images/products/prod-001.jpg
 ```
 
----
+## 4.2 DynamoDB - NoSQL Database
 
-## 2.2 DynamoDB - NoSQL Tables
-
-### Products Table
+### Create Products Table
 
 1. **DynamoDB Console → Tables → Create table**
 2. **Table name:** `ecommerce-products`
 3. **Partition key:** `product_id` (String)
-4. **Table settings:** Customize settings
+4. **Sort key:** Leave empty (no sort key needed)
 5. **Table class:** DynamoDB Standard
 6. **Capacity mode:** On-demand
-7. **Encryption:** Amazon DynamoDB owned key
-8. **Create table**
+7. **Create table**
 
-### Cart Table
+### Create Cart Table
 
 1. **DynamoDB Console → Tables → Create table**
 2. **Table name:** `ecommerce-cart`
 3. **Partition key:** `user_id` (String)
 4. **Sort key:** Leave empty (no sort key needed)
-5. **Table settings:** Customize settings
+5. **Table class:** DynamoDB Standard
 6. **Capacity mode:** On-demand
-7. **Encryption:** Amazon DynamoDB owned key
-8. **Create table**
+7. **Create table**
 
 
 ### Load Sample Products Data
 
+There is a sample data file products.json in the repo which contains data for 20 products. The data is in the following format:
+```json
+{
+  "product_id": "prod-001",
+  "name": "Wireless Bluetooth Headphones",
+  "description": "Premium noise-cancelling over-ear headphones",
+  "price": 89.99,
+  "stock": 150,
+  "image_url": "https://example.com/images/products/prod-001.jpg",
+  "category": "Electronics"
+}
+```
+
+As you can see the data for each product also contains product image URL (dummy). Hence, first we need to update the products.json file with Product image URLs that we will use in our application. The URL should be the CloudFront URL for each imagae that you just verified after uploading images to S3.
+
 **Step 1: Update Product Image URLs**
-
-First, update the products.json file with Product image public URLs:
-
 ```bash
 cd data
 bash update-product-image-urls.sh <cloudfront URL>
@@ -76,7 +78,7 @@ Example:
 bash update-product-image-urls.sh https://dhzk1s0exnne1.cloudfront.net
 ```
 
-This script updates all image URLs and creates/updates `products.json` file. We will now use this file to update the DynamoDB table.
+This script updates all image URLs in `products.json` file. We will now use this file to update the DynamoDB table.
 
 **Step 2: Load Products into DynamoDB**
 
@@ -86,23 +88,9 @@ bash load-products.sh <your-region>
 
 This script loads 20 sample products from the updated `products.json` into your DynamoDB ecommerce-products table.
 
-**Manual Data Entry:**
-1. **Go to DynamoDB Console → Tables → ecommerce-products**
-2. **Actions → Create item**
-3. **Add sample product:**
-```json
-{
-  "product_id": "prod-001",
-  "name": "Wireless Bluetooth Headphones",
-  "description": "Premium noise-cancelling over-ear headphones",
-  "price": 89.99,
-  "stock": 150,
-  "image_url": "https://dhzk1s0exnne1.cloudfront.net/images/products/prod-001.jpg",
-  "category": "Electronics"
-}
-```
+**Step 3: Verify that DynamoDB table is updated**
 
----
+Go to DynamoDB -> ecommerce_products table and check if you see 20 products data with updated image URLs.
 
 ## 2.3 RDS - PostgreSQL Database
 
@@ -160,9 +148,9 @@ This script loads 20 sample products from the updated `products.json` into your 
 11. **Create database** (takes 5-10 minutes)
 
 <details>
-<summary><strong>📋 Database Schema Reference (Click to expand)</strong></summary>
+<summary><strong>📋 Database Schema - Just for the reference (Click to expand)</strong></summary>
 
-**The database tables will be automatically created by each microservice on startup:**
+**The database tables will be automatically created by each microservice on startup. We don't need to create it.**
 
 **Users Table** (user-service):
 ```sql
@@ -199,8 +187,6 @@ CREATE TABLE order_items (
 
 </details>
 
----
-
 ## 2.4 Parameter Store - Configuration Management
 
 ### Create Database Configuration Parameters
@@ -227,4 +213,4 @@ After the RDS instance is created, store the database configuration in Parameter
 These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
 
 ## Next Steps
-Proceed to **[Module 5: Backend Deployment](./module05-backend-deployment.md)** to set up ECS and deploy the microservices.
+Proceed to **[Module 5: Backend Deployment](./module05-backend-deployment.md)**
