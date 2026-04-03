@@ -3,9 +3,11 @@
 ## Overview
 Set up AWS Cognito User Pool and App Client for user authentication and authorization.
 
----
+## In this module
+- **2.1** Create Cognito User Pool
+- **2.2** Configure Cognito User Pool App Client
 
-## 3.1 Create User Pool
+## 2.1 Create User Pool
 
 1. Go to **AWS Cognito Console** → **User pools** → **Create user pool**
 
@@ -22,7 +24,7 @@ Set up AWS Cognito User Pool and App Client for user authentication and authoriz
 
 6. Click **Create user directory**
 
-## 3.2 Configure Cognito User Pool App Client
+## 2.2 Configure Cognito User Pool App Client
 - Go to your newly created User Pool → **App integration** tab → **App clients**
 - Click on your app client name and Edit
 - Under **Authentication flows**, enable:
@@ -31,7 +33,7 @@ Set up AWS Cognito User Pool and App Client for user authentication and authoriz
   - **ALLOW_REFRESH_TOKEN_AUTH**
 - Click **Save changes**
 
-## 3.3 Save These Values
+## Save These Values
 Copy and save following values somewhere in notepad
 - **User Pool ID** (e.g., `ap-south-1_xxxxxxxxx`)
 - **App Client ID** (e.g., `1a2b3c4d5e6f7g8h9i0j1k2l3m`)
@@ -40,7 +42,6 @@ Copy and save following values somewhere in notepad
 You'll need these for:
 - **Module 3:** Frontend deployment
 
----
 
 ## Next Steps
 Proceed to **[Module 3: Frontend Deployment](./module03-frontend-deployment.md)**
