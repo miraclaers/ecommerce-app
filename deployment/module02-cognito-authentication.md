@@ -1,13 +1,11 @@
 # Module 2: Authentication with Cognito
 
 ## Overview
-Set up AWS Cognito User Pool for user authentication and authorization in the ecommerce application.
+Set up AWS Cognito User Pool and App Client for user authentication and authorization.
 
 ---
 
 ## 3.1 Create User Pool
-
-### Step-by-Step Configuration
 
 1. Go to **AWS Cognito Console** → **User pools** → **Create user pool**
 
@@ -20,29 +18,29 @@ Set up AWS Cognito User Pool for user authentication and authorization in the ec
    - **Self-registration**: Enable
    - **Required attributes for sign-up**: Select **email** and **name**
 
-5. **Add a return URL**: `https://yourdomain.com` (If you have your domain name, add it here)
+5. **Add a return URL**: `https://yourdomain.com` (If you have your domain name, add it here otherwise leave it blank)
 
 6. Click **Create user directory**
 
-7. **Configure App Client Authentication**:
-   - Go to your newly created User Pool → **App integration** tab → **App clients**
-   - Click on your app client name and Edit
-   - Under **Authentication flows**, enable:
-     - **ALLOW_USER_PASSWORD_AUTH**
-     - **ALLOW_USER_SRP_AUTH** 
-     - **ALLOW_REFRESH_TOKEN_AUTH**
-   - Click **Save changes**
+## 3.2 Configure Cognito User Pool App Client
+- Go to your newly created User Pool → **App integration** tab → **App clients**
+- Click on your app client name and Edit
+- Under **Authentication flows**, enable:
+  - **ALLOW_USER_PASSWORD_AUTH**
+  - **ALLOW_USER_SRP_AUTH** 
+  - **ALLOW_REFRESH_TOKEN_AUTH**
+- Click **Save changes**
 
-### Save These Values
+## 3.3 Save These Values
+Copy and save following values somewhere in notepad
 - **User Pool ID** (e.g., `ap-south-1_xxxxxxxxx`)
 - **App Client ID** (e.g., `1a2b3c4d5e6f7g8h9i0j1k2l3m`)
 - **Cognito Domain** (User Pool -> Branding -> Domain)
 
 You'll need these for:
-- **Module 5:** Configuring microservices
-- **Module 7:** Frontend-Backend Integration
+- **Module 3:** Frontend deployment
 
 ---
 
 ## Next Steps
-Proceed to **[Module 3: Frontend Deployment](./module03-frontend-deployment.md)** to set up the S3 bucket and CloudFront distribution.
+Proceed to **[Module 3: Frontend Deployment](./module03-frontend-deployment.md)**
