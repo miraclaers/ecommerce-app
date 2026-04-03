@@ -7,11 +7,11 @@ This lets you test login/signup functionality early.
 Note: Product listing and other API-dependent features will work after **Module 7: Frontend-Backend Integration**, once backend is fully deployed along with APIs.
 
 ## In this module
-- **3.1** Create S3 bucket for hosting frontend build assets
-- **3.2** Create CloudFront distribution with S3 origin
-- **3.3** Configure CloudFront Root document and Custom Error Pages
-- **3.4** Configure and Build React Application and Deploy to S3
-- **3.5** Test login/signup functionality
+- Create S3 bucket for hosting frontend build assets
+- Create CloudFront distribution with S3 origin
+- Configure CloudFront Root document and Custom Error Pages
+- Configure and Build React Application and Deploy to S3
+- Test login/signup functionality
 
 ## Architecture
 <img width="800" height="447" alt="image" src="https://github.com/user-attachments/assets/a2db16a9-026b-4186-a98e-8528bc6c788b" />
