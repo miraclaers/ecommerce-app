@@ -23,7 +23,7 @@ If you're looking to move beyond tutorials and start thinking like an architect,
 This project demonstrates a complete cloud-native microservices based application where we will have Frontend layer, Backend layer, Database layer, Access Layer and Integration layer.
 
 Below is the architecture for this application:
-<img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/75df6e4c-e7a9-481b-acf2-253448ef9c61" />
+<img width="800" height="450" alt="image" src="https://github.com/user-attachments/assets/f4059007-aea1-4a75-9a2f-9178a86cd373" />
 
 ### AWS Services
 - **Frontend**: S3 + CloudFront + Route53
@@ -80,9 +80,7 @@ We will deploy this eCommerce application to AWS by going module-by-module as fo
 
 ## Cost Estimates
 
-- **Local Development**: $0 (runs on your machine)
-- **AWS Deployment** (4-hour session): ~$2-4
-- **AWS Deployment** (24 hours): ~$10-20
+- **AWS Deployment** (4-hour session): ~$2-4 (If you have new AWS account and free credits, there will be no cost).
 
 > **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
 
