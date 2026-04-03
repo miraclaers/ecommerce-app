@@ -102,4 +102,4 @@ ecommerce-vpc (10.10.0.0/16)
 3. **Associate:** Both private database subnets
 
 ## Next Steps
-Proceed to **[Module 2: Authentication](./module02-cognito-authentication.md)** to setup Amazon Cognito for User registration and Sign-in.
+Proceed to **[Module 2: Authentication](./module02-cognito-authentication.md)**
