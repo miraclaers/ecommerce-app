@@ -1,73 +1,40 @@
-# AWS eCommerce Application - Learning Project
+# Let's Build on AWS series - eCommerce Application
 
-A production-grade microservices-based eCommerce application built for learning AWS cloud services and modern application architecture.
+## My mission
+My mission is simple — to bridge the gap between learning and real-world execution. Every course and project I build is designed with one goal - to make you truly industry-ready, not just conceptually aware. These projects replicate what real Cloud, DevOps, and Solutions Architects do every single day — designing, building, troubleshooting, and scaling production-grade systems on AWS.
 
-**Author**: Chetan Agrawal  
+Instead of teaching services in isolation, I focus on connecting the dots — bringing multiple AWS services together the way they are used in real architectures. The result is deeper understanding, stronger problem-solving skills, and the confidence to build and operate cloud-native applications in AWS.
+
+If you're looking to move beyond tutorials and start thinking like an architect, you're in the right place.
+
+**Author**: [Chetan Agrawal](https://in.linkedin.com/in/chetan-agrawal-30107310)
+
 **Website**: [www.awswithchetan.com](https://www.awswithchetan.com)
 
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
-- [Getting Started](#getting-started)
-- [Cost Estimates](#cost-estimates)
 - [Project Structure](#project-structure)
+- [Cost Estimates](#cost-estimates)
+- [Getting Started](#getting-started)
 
 ## Architecture Overview
 
-This project demonstrates a complete cloud-native application using:
+This project demonstrates a complete cloud-native microservices based application where we will have Frontend layer, Backend layer, Database layer, Access Layer and Integration layer.
 
-### Microservices Architecture
-- **Product Service** - Product catalog management (DynamoDB)
-- **Cart Service** - Shopping cart operations (DynamoDB)  
-- **User Service** - User profile management (RDS PostgreSQL)
-- **Order Service** - Order processing and orchestration (RDS PostgreSQL)
-- **Notification Service** - Asynchronous email notifications (SNS/SQS/SES)
+Below is the architecture for this application:
+<img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/75df6e4c-e7a9-481b-acf2-253448ef9c61" />
 
 ### AWS Services
 - **Frontend**: S3 + CloudFront + Route53
-- **API Layer**: API Gateway (HTTP API) + VPC Link
-- **Compute**: ECS/Fargate + Application Load Balancer
+- **API Layer**: API Gateway (HTTP API) + VPC Link + ALB
+- **Compute**: ECS/Fargate
 - **Authentication**: Cognito User Pools
-- **Databases**: DynamoDB + RDS PostgreSQL
-- **Messaging**: SNS + SQS + SES
+- **Databases**: DynamoDB and RDS PostgreSQL
+- **Messaging**: SNS + SQS (+SES)
 - **Networking**: VPC, Subnets, Security Groups, NAT Gateway
-
-### Architecture Diagram
-
-<img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/75df6e4c-e7a9-481b-acf2-253448ef9c61" />
-
-## Getting Started
-
-> **Local Deployment**: To run this application locally with Docker + LocalStack, see the [ecommerce-local-app](https://github.com/YOUR_USERNAME/ecommerce-local-app) repo.
-
-### AWS Deployment
-
-Deploy the ecommerce application to AWS
-
-[AWS Deployment Guide](deployment/README.md)
-
-The deployment is organized into modules:
-- Module 0: Prerequisites
-- Module 1: Networking (VPC, Subnets, Security Groups)
-- Module 2: Authentication (Cognito)
-- Module 3: Frontend Infrastructure (S3, CloudFront)
-- Module 4: Data Layer (RDS, DynamoDB)
-- Module 5: Container Deployment (ECR, ECS/Fargate, ALB)
-- Module 6: API Gateway (HTTP API, VPC Link)
-- Module 7: Frontend-Backend Integration
-- Module 8: Notification (SNS, SQS)
-- Module 9: Custom Domain & SSL (Route53, ACM)
-- Module 10: Cleanup
-
-**Time required**: 3-4 hours
-
-## Cost Estimates
-
-- **Local Development**: $0 (runs on your machine)
-- **AWS Deployment** (4-hour session): ~$2-4
-- **AWS Deployment** (24 hours): ~$10-20
-
-> **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
+- **Logs and Management**: CloudWatch, Systems Manager
+- **Security**: IAM
 
 ## Project Structure
 
@@ -87,7 +54,39 @@ ecommerce-web-app/
 └── install-prerequisites.sh     # Tool installation script
 ```
 
-## Next Steps
+### Microservices
+- **Product Service** - Product catalog management (DynamoDB)
+- **Cart Service** - Shopping cart operations (DynamoDB)  
+- **User Service** - User profile management (RDS PostgreSQL)
+- **Order Service** - Order processing and orchestration (RDS PostgreSQL)
+- **Notification Service** - Asynchronous email notifications (SNS/SQS/SES)
+
+### AWS Deployment
+
+We will deploy this eCommerce application to AWS by going module-by-module as follows:
+- Module 0: Prerequisites
+- Module 1: Networking (VPC, Subnets, Security Groups)
+- Module 2: Authentication (Cognito)
+- Module 3: Frontend Infrastructure (S3, CloudFront)
+- Module 4: Data Layer (RDS, DynamoDB)
+- Module 5: Container Deployment (ECR, ECS/Fargate, ALB)
+- Module 6: API Gateway (HTTP API, VPC Link)
+- Module 7: Frontend-Backend Integration
+- Module 8: Notification (SNS, SQS)
+- Module 9: Custom Domain & SSL (Route53, ACM)
+- Module 10: Cleanup
+
+**Time required**: 4-5 hours
+
+## Cost Estimates
+
+- **Local Development**: $0 (runs on your machine)
+- **AWS Deployment** (4-hour session): ~$2-4
+- **AWS Deployment** (24 hours): ~$10-20
+
+> **Note**: Remember to clean up AWS resources after learning to avoid ongoing charges.
+
+## Getting Started
 
 1. Proceed to [AWS Deployment](deployment/README.md)
 2. Clean up resources after learning
