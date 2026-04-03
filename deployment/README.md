@@ -85,3 +85,6 @@ Complete the following deployment modules in order:
 ### Region Consistency
 - **Primary Region:** Choose your region for deploying all the regional services. Make sure to always check region before creating the resources.
 - **Certificate Manager:** us-east-1 (required for CloudFront)
+
+## Let's get started
+Let's begin with first module **[Module 0: Pre-requisites](./module00-prerequisites.md)**.
