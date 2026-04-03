@@ -1,22 +1,15 @@
 # Module 5: Backend Services Deployment with ECS and ALB
 
 ## Overview
-Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate, using an internal Application Load Balancer and Parameter Store for configuration management.
+Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate run time and internally expose services using internal Application Load Balancer.
 
-## What We'll Build
-- **4.1** Application Load Balancer (internal) with target groups and routing rules
-- **4.2** ECR repositories for Docker images
-- **4.3** Build and push Docker images to ECR
-- **4.4** IAM role for ECS tasks with required permissions
-- **4.5** ECS security group for container networking
-- **4.6** ECS task definitions with environment variables
-- **4.7** ECS cluster and services deployment
-- **4.8** Service status verification
-- **4.9** ALB endpoint service accessibility test
-- **4.10** Parameter Store configuration for service URLs
-- **4.11** Troubleshooting guide and common issues
-
----
+## In this module
+- Create Application Load Balancer (internal) with target groups and routing rules
+- Create ECR repositories for Docker images
+- Build and push Docker images to ECR
+- Create ECS task definitions, ECS cluster and Services
+- Validate service availability and reachability
+- Troubleshooting guide and common issues
 
 ## 4.1 Create Application Load Balancer (internal)
 
@@ -39,16 +32,25 @@ Create 4 target groups for the microservices first (required for ALB creation):
 **Product Service Target Group:**
 1. **EC2 Console → Load Balancing -> Target Groups → Create target group**
 2. **Target type:** IP addresses
-3. **Target group name:** `ecommerce-product-tg`
+3. **Target group name:** `product-service-tg`
 4. **Protocol:** HTTP, Port: 8001
 5. **VPC:** `ecommerce-vpc`
 6. **Health check path:** `/health`
 7. **Create target group**
 
 **Repeat for other services target groups:**
-- **Cart Service:** `ecommerce-cart-tg`, Port: 8002
-- **User Service:** `ecommerce-user-tg`, Port: 8003  
-- **Order Service:** `ecommerce-order-tg`, Port: 8004
+- **Cart Service:** `cart-service-tg`, Port: 8002
+- **User Service:** `user-service-tg`, Port: 8003  
+- **Order Service:** `order-service-tg`, Port: 8004
+
+### Validation Table for ALB target groups
+
+| Target Group | Port | Health |
+|---------|-----------|--------|
+| product-service-tg  | 8001 | /health |
+| cart-service-tg | 8002 | /health |
+| user-service-tg | 8003 | /health |
+| order-service-tg | 8004 | /health |
 
 ### 4.1.3 Create Application Load Balancer
 
@@ -73,23 +75,32 @@ Create 4 target groups for the microservices first (required for ALB creation):
 
 **Product Service Rule:**
 - **IF:** Path is `/products*`
-- **THEN:** Forward to `ecommerce-product-tg`
+- **THEN:** Forward to `product-service-tg`
 
 **Cart Service Rule:**
 - **IF:** Path is `/cart*`
-- **THEN:** Forward to `ecommerce-cart-tg`
+- **THEN:** Forward to `cart-service-tg`
 
 **User Service Rule:**
 - **IF:** Path is `/users*`
-- **THEN:** Forward to `ecommerce-user-tg`
+- **THEN:** Forward to `user-service-tg`
 
 **Order Service Rule:**
 - **IF:** Path is `/orders*`
-- **THEN:** Forward to `ecommerce-order-tg`
+- **THEN:** Forward to `order-service-tg`
 
 3. **Save rules**
 
----
+### Validation Table for ALB lister rules
+
+| Rule No. | Path | Forward to |
+|---------|----------|---------|
+| 1  | /products* | product-service-tg |
+| 2  | /cart* | cart-service-tg |
+| 3  | /users* | user-service-tg |
+| 4  | /orders* | order-service-tg |
+| default  |  N/A | product-service-tg |
+
 
 ## 4.2 Create Parameter Store Parameters
 
@@ -130,7 +141,6 @@ Create repositories for all services:
 | User Service | `ecommerce/user-service` |
 | Order Service | `ecommerce/order-service` |
 
----
 
 ## 4.4 Build and Push Docker Images
 
@@ -169,7 +179,7 @@ docker tag ecommerce/product-service:latest <account-id>.dkr.ecr.<your-region>.a
 docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-service:latest
 ```
 
-### Build and Push Remaining Services
+### Build and Push other services
 
 **Important:** Make sure to change to each service directory before building.
 
@@ -197,8 +207,6 @@ docker tag ecommerce/order-service:latest <account-id>.dkr.ecr.<your-region>.ama
 docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-service:latest
 ```
 
----
-
 ## 4.5 Create IAM Role for ECS Tasks
 
 ### Create ECS Task Role
@@ -220,7 +228,6 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 7. **Role name:** `ecommerce-ecs-task-role`
 8. **Create role**
 
----
 
 ## 4.6 Create ECS Security Group
 
@@ -238,7 +245,6 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 6. **Outbound rules:** All traffic (default)
 7. **Create security group**
 
----
 
 ## 4.7 Create ECS Task Definitions
 
@@ -263,7 +269,7 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
     - `AWS_REGION` = `<your-region>`
 13. **Log configuration:**
     - Log driver: awslogs
-    - Log group: `/ecommerce/product-service`
+    - Log group: `/ecs/product-service`
     - Region: `<your-region>`
     - Stream prefix: ecs
 
@@ -282,7 +288,6 @@ Create task definitions for all services:
 | User Service | `ecommerce-user-service` | 0.25 vCPU | 0.5 GB | 8003 |
 | Order Service | `ecommerce-order-service` | 0.25 vCPU | 0.5 GB | 8004 |
 
----
 
 ## 4.8 Create ECS Cluster and Services
 
@@ -307,7 +312,7 @@ Create task definitions for all services:
 11. **Load Balancing:** Enable "Use load balancing"
 12. **Load balancer type:** Application Load Balancer
 13. **Load balancer:** `ecommerce-internal-alb`
-14. **Target group:** `ecommerce-product-tg`
+14. **Target group:** `product-service-tg`
 15. **Create service**
 15. **Repeat the above steps for the remaining 3 services.**
 
@@ -317,13 +322,11 @@ Create services for all microservices:
 
 | Service | ECS Service Name | Target Group | Desired Tasks |
 |---------|-----------------|--------------|---------------|
-| Product Service | `ecommerce-product-service` | `ecommerce-product-tg` | 1 |
-| Cart Service | `ecommerce-cart-service` | `ecommerce-cart-tg` | 1 |
-| User Service | `ecommerce-user-service` | `ecommerce-user-tg` | 1 |
-| Order Service | `ecommerce-order-service` | `ecommerce-order-tg` | 1 |
+| Product Service | `ecommerce-product-service` | `product-service-tg` | 1 |
+| Cart Service | `ecommerce-cart-service` | `cart-service-tg` | 1 |
+| User Service | `ecommerce-user-service` | `user-service-tg` | 1 |
+| Order Service | `ecommerce-order-service` | `order-service-tg` | 1 |
 
-
----
 
 ## 4.9 Verify ECS Services
 
@@ -342,11 +345,9 @@ Create services for all microservices:
    - **Registered targets:** 1
    - **Health status:** Healthy
 
----
-
 ## 4.10 Test API Endpoints (Optional but recommended)
 
-### Launch a Bastion Host for Testing as we can't directly access internal ALB URL (Stop or Terminate instance after validation)
+Launch a Bastion Host for Testing as we can't directly access internal ALB URL (Stop or Terminate instance after validation)
 
 **Create Bastion Host:**
 1. **EC2 Console → Launch Instance**
@@ -375,8 +376,8 @@ curl http://<internal-alb-dns-name>/products
 ```
 This should return the list of all the products.
 
-Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
----
+**Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
+
 
 ## 4.11 Troubleshooting Guide
 
@@ -386,25 +387,23 @@ If services are not starting properly, check the logs:
 
 1. **CloudWatch Console → Log groups**
 2. **Check these log groups:**
-   - `/ecommerce/product-service`
-   - `/ecommerce/cart-service`
-   - `/ecommerce/user-service`
-   - `/ecommerce/order-service`
+   - `/ecs/product-service`
+   - `/ecs/cart-service`
+   - `/ecs/user-service`
+   - `/ecs/order-service`
 
 **Service not starting:**
 - Check ECR image URI in task definition
 - Verify environment variables are set correctly
-- Check IAM task execution role permissions
+- Check IAM task role is assigned
 
 **Health check failing:**
 - Verify `/health` endpoint exists in your service
 - Check security group allows traffic on service ports
-- Verify container is listening on correct port
 
 **Parameter Store access issues:**
-- Ensure task execution role has `ssm:GetParameter` permissions
 - Verify parameter names match exactly (case-sensitive)
 - Check parameter exists in correct region
 
 ## Next Steps
-Proceed to **[Module 6: API Gateway](./module06-api-gateway.md)** to create the API Gateway with VPC Link integration.
+Proceed to **[Module 6: API Gateway](./module06-api-gateway.md)**
