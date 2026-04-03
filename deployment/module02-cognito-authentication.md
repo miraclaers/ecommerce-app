@@ -4,8 +4,8 @@
 Set up AWS Cognito User Pool and App Client for user authentication and authorization.
 
 ## In this module
-- **2.1** Create Cognito User Pool
-- **2.2** Configure Cognito User Pool App Client
+- Create Cognito User Pool
+- Configure Cognito User Pool App Client
 
 ## 2.1 Create User Pool
 
