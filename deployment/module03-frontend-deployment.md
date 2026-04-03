@@ -1,20 +1,20 @@
 # Module 3: Frontend Deployment
 
 ## Overview
-Set up the infrastructure for the React frontend, configure it with Cognito values, and deploy it to S3. This lets you test login/signup functionality early. Product listing and other API-dependent features will work after **Module 7: Frontend-Backend Integration**, once backend is fully deployed along with APIs.
-## What We'll Build
-- **3.1** S3 bucket for static website hosting
-- **3.2** CloudFront distribution for CDN and HTTPS
-- **3.3** Configure custom error pages for React Router
-- **3.4** Configure and deploy the React application (Cognito only)
+Set up the infrastructure for the React frontend, configure it with Cognito values, deploy it to S3 and access it through CloudFront.
+This lets you test login/signup functionality early.
+
+Note: Product listing and other API-dependent features will work after **Module 7: Frontend-Backend Integration**, once backend is fully deployed along with APIs.
+
+## In this module
+- **3.1** Create S3 bucket for hosting frontend build assets
+- **3.2** Create CloudFront distribution with S3 origin
+- **3.3** Configure CloudFront Root document and Custom Error Pages
+- **3.4** Configure and Build React Application and Deploy to S3
 - **3.5** Test login/signup functionality
 
 ## Architecture
-```
-User → CloudFront (CDN) → S3 Bucket (Static Website)
-```
-
----
+<img width="800" height="447" alt="image" src="https://github.com/user-attachments/assets/a2db16a9-026b-4186-a98e-8528bc6c788b" />
 
 ## 3.1 Create S3 Bucket for Frontend
 
@@ -23,15 +23,10 @@ User → CloudFront (CDN) → S3 Bucket (Static Website)
 1. **S3 Console → Buckets → Create bucket -> General Purpose**
 2. **Bucket name:** `ecommerce-frontend-<some-number-or-text>` (must be globally unique)
 3. **Region:** Your AWS region (Make sure you are in the right AWS region for S3 console)
-4. **Block all public access:** Keep checked (CloudFront will access privately)
+4. **Block all public access:** Keep checked (CloudFront will access this bucket privately)
 5. **Bucket versioning:** Disable
 6. **Encryption:** Default - Enable (SSE-S3)
 7. **Create bucket**
-
-### Save This Value
-- **Frontend Bucket Name** (e.g., `ecommerce-frontend-chetan`)
-
----
 
 ## 3.2 Create CloudFront Distribution
 
@@ -49,7 +44,7 @@ User → CloudFront (CDN) → S3 Bucket (Static Website)
 
 ### Check S3 Bucket Policy to allow access to CloudFront distribution
 
-After creating the distribution, CloudFront automatically updates S3 bucket policy.
+After creating the distribution, CloudFront automatically updates S3 bucket policy with something like following. Verify your S3 bucket policy.
 
 Example:
 ```
@@ -74,9 +69,9 @@ Example:
     ]
 }
 ```
-If you don't see S3 Bucket policy updated, then modify the policy as per your AWS Account, S3 Bucket Name and CloudFront Distribution ID.
+If you don't see S3 Bucket policy updated, then modify the policy as per your **AWS Account**, **S3 Bucket Name** and **CloudFront Distribution ID**.
 
-## 3.3 Configure Root document and Custom Error Pages
+## 3.3 Configure CloudFront Root document and Custom Error Pages
 
 React is a single-page application (SPA). All routes must return `index.html` so React Router can handle navigation client-side.
 
@@ -89,17 +84,16 @@ React is a single-page application (SPA). All routes must return `index.html` so
 7. **Create**
 8. **Repeat for HTTP error code 404**
 
-**Save These Values:**
+**Save these values:**
 - **CloudFront Distribution ID** (e.g., `E1234567890ABC`)
 - **CloudFront Domain Name** (e.g., `d1234567890.cloudfront.net`)
 
----
+## 3.4 Configure and Build React Application and Deploy to S3
 
-## 3.4 Configure and Deploy the React Application
+At this point you should have Cognito User Pool and App Client values from Module 2. We will use these values to configure frontend so that the user registration and authentication flow will work. 
+Note that, at this moment we don't have access to backend services (via API Gateway) and hence the product listing will show an error message until the API is connected (Module 7).
 
-At this point you have Cognito values from Module 2 but no API Gateway URL yet. You can still build and deploy the frontend — the app will load and authentication will work. Product listing will show an error message until the API is connected in Module 7.
-
-### Update AWS Configuration
+### In your local workstation
 
 1. **Navigate to frontend directory:**
 ```bash
@@ -126,19 +120,19 @@ const awsConfig = {
 export default awsConfig;
 ```
 
-### Build and Deploy
+### Build and Deploy React frontend
 
 3. **Install dependencies:**
 ```bash
 npm install
 ```
 
-4. **Build for production:**
+4. **Build:**
 ```bash
 npm run build
 ```
 
-5. **Upload to S3:**
+5. **Deploy frontend build to S3:**
 ```bash
 aws s3 sync build/ s3://<your-frontend-bucket-name> --delete --exclude "images/*"
 ```
@@ -151,8 +145,6 @@ aws s3 sync build/ s3://<your-frontend-bucket-name> --delete --exclude "images/*
    - **Allowed callback URLs:** Add `https://<your-cloudfront-domain>`
    - **Allowed sign-out URLs:** Add `https://<your-cloudfront-domain>`
 9. **Save changes**
-
----
 
 ## 3.5 Test Login/Signup
 
@@ -175,4 +167,4 @@ These will be fully functional after **Module 7: Frontend-Backend Integration**.
 ---
 
 ## Next Steps
-Proceed to **[Module 4: Data Layer](./module04-data-layer.md)** to set up DynamoDB, RDS, and Parameter Store.
+Proceed to **[Module 4: Data Layer](./module04-data-layer.md)**
