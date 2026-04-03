@@ -84,4 +84,5 @@ aws sts get-caller-identity
 
 ```
 
-If all commands work without errors, you're ready to proceed to **[Module 1: Networking Foundation](./module01-networking.md)**.
+## Next Steps
+Proceed to **[Module 1: Networking Foundation](./module01-networking.md)**
