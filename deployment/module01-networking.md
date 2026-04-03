@@ -3,14 +3,14 @@
 ## Overview
 Create VPC infrastructure with public and private subnets across 2 availability zones for the ecommerce application.
 
-## What We'll Build
-1. **VPC** - Virtual Private Cloud with 10.10.0.0/16 CIDR
-2. **Public Subnets** - 2 subnets for internet-facing resources (NAT Gateway, Bastion)
-3. **Private ECS Subnets** - 2 subnets for application services
-4. **Private Database Subnets** - 2 subnets for RDS instances
-5. **Internet Gateway** - Internet access for public subnets
-6. **NAT Gateway** - Outbound internet access for private subnets
-7. **Route Tables** - Traffic routing configuration
+## In this module
+- **VPC** - Virtual Private Cloud with 10.10.0.0/16 CIDR
+- **Public Subnets** - 2 subnets for internet-facing resources (NAT Gateway, Bastion)
+- **Private ECS Subnets** - 2 subnets for application services
+- **Private Database Subnets** - 2 subnets for RDS instances
+- **Internet Gateway** - Internet access for public subnets
+- **NAT Gateway** - Outbound internet access for private subnets
+- **Route Tables** - Traffic routing configuration
 
 **Note:** This guide assumes the AWS region to be Mumbai (ap-south-1). You can choose your region and select the AZs accordingly.
 
