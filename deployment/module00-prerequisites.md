@@ -7,11 +7,31 @@ Ensure you have the required tools and access before starting the AWS deployment
 
 ### 1. AWS Account
 - An AWS account with administrative access
-- AWS credentials configured (Access Key ID and Secret Access Key)
+- AWS CLI configured with Access Key ID and Secret Access Key
 
-### 2. Local Workstation (Linux / Mac)
+### 2. Local Workstation (Linux / Mac / Windows)
 - A Linux or macOS machine to run the deployment steps
 - Windows users can use WSL2 (Ubuntu)
+
+<details>
+<summary><strong>How to create VM using Windows WSL</strong></summary>
+
+<br>
+
+1. Open **Command Prompt** or **PowerShell**
+
+2. Run the following command to create a new Ubuntu VM:
+
+```bash
+wsl --install -d Ubuntu --name <name-of-your-vm>
+```
+
+3. To connect to your VM (anytime later):
+
+```bash
+wsl -d <name-of-your-vm>
+```
+</details>
 
 ### 3. Required Tools
 - **Git** — version control
@@ -62,8 +82,6 @@ aws sts get-caller-identity
     "Arn": "arn:aws:iam::123456789012:user/your-user"
 }
 
-# Test region access (should list available regions)
-aws ec2 describe-regions --query 'Regions[0:3].RegionName'
 ```
 
 If all commands work without errors, you're ready to proceed to **[Module 1: Networking Foundation](./module01-networking.md)**.
