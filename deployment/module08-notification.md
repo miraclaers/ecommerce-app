@@ -1,7 +1,7 @@
 # Module 8: Notification and Integration (SNS and SQS)
 
 ## Overview
-Set up simple notification flows using Amazon SNS and SQS for order notifications and integration with 3rd party vendors. 
+Set up event driven flows using Amazon SNS and SQS for order notifications and integration with 3rd party vendors. 
 
 > [!IMPORTANT]
 Ideally for the email notification we should use Amazon SES (Simple Email Service) where we have the Lambda function subscription for SNS topic and Lambda triggers an email to the email id from the order event using SES. However by default SES service is in Sandbox mode in AWS account and it applies restriction on sending emails from un-verified sender. We have to ask AWS to move SES service out of SandBox and enable it for the Production use and this may take few days. 
