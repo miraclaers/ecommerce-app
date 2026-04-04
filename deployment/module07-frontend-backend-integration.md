@@ -3,22 +3,13 @@
 ## Overview
 Now that the API Gateway is deployed, update the React application with the API Gateway URL, rebuild, and redeploy to S3. This completes the frontend integration and makes all features fully functional.
 
-## What We'll Do
-- **7.1** Update `aws-config.js` with the API Gateway URL
-- **7.2** Rebuild and redeploy to S3
-- **7.3** Invalidate CloudFront cache
-- **7.4** Test the fully integrated application
+## In this module
+- Update frontend with the API Gateway URL
+- Rebuild and redeploy frontend to S3
+- Invalidate CloudFront cache
+- Test the fully integrated application
 
-## Prerequisites
-You will need the following value from Module 6:
-
-| Value | Where to Find |
-|-------|--------------|
-| API Gateway URL | Module 6 → API Gateway Console → Stages → $default → Invoke URL |
-
----
-
-## 7.1 Update AWS Configuration
+## 7.1 Update frontend with API Gateway URL
 
 1. **Navigate to frontend directory:**
 ```bash
@@ -47,18 +38,18 @@ export default awsConfig;
 
 ---
 
-## 7.2 Rebuild and Redeploy to S3
+## 7.2 Rebuild and redeploy frontend to S3
 
 ```bash
 npm run build
 aws s3 sync build/ s3://<your-frontend-bucket-name> --delete --exclude "images/*"
 ```
 
----
-
 ## 7.3 Invalidate CloudFront Cache from AWS Console or using AWS CLI
 
 Go to CloudFront Distribution -> Invalidations -> Create invalidation -> Object paths: `/*` -> Create invalidation
+
+OR 
 
 Using AWS CLI:
 ```bash
@@ -67,9 +58,8 @@ aws cloudfront create-invalidation \
   --paths "/*"
 ```
 
-Invalidation typically completes within 1-2 minutes.
+Invalidation typically completes within 1 minute.
 
----
 
 ## 7.4 Test the Fully Integrated Application
 
@@ -81,8 +71,8 @@ https://<your-cloudfront-domain>
 **Full test checklist:**
 - Login / signup (Cognito)
 - Product listing loads from backend
-- Add/remove items from cart
-- Place a test order
+- Add items to the cart
+- Go to cart and place a test order
 - View order history
 
 ### Troubleshooting
@@ -92,13 +82,15 @@ https://<your-cloudfront-domain>
 - Verify the API Gateway URL in `aws-config.js` has no trailing slash
 - Check API Gateway CORS configuration (Module 6)
 - Ensure ECS services are healthy (Module 5)
+- Go to browser -> Console/Network trace (Chrome - Developer Tools) and check for any error.
+- Check CloudWatch logs for the failing service
 
 **Authentication errors:**
-- Verify Cognito User Pool ID and Client ID are unchanged from Module 3
+- Verify Cognito User Pool ID and Client ID are correctly configured in aws-config.js
 
 **502 / 504 errors:**
 - Check ECS service health in the ECS Console
-- Review CloudWatch logs for the failing service
+
 
 ## Next Steps
-Proceed to **[Module 8: Notification](./module08-notification.md)** to set up SNS and SQS for order notifications.
+Proceed to **[Module 8: Notification](./module08-notification.md)**
