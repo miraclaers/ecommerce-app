@@ -1,7 +1,7 @@
 # Module 10: Cleanup
 
 ## Overview
-Clean up all AWS resources created during this tutorial to avoid ongoing charges.
+Clean up all AWS resources created during this project to avoid ongoing charges.
 
 ## Cleanup Order
 
@@ -17,15 +17,12 @@ Delete resources in reverse order of creation to avoid dependency issues:
 - SQS queue
 - SNS topic
 
-### 3. Frontend-Backend Integration (Module 7)
-- S3 bucket contents (frontend files)
-
-### 4. API Gateway (Module 6)
+### 3. API Gateway (Module 6)
 - API Gateway HTTP API
 - VPC Link
 - JWT Authorizer
 
-### 5. Container Deployment (Module 5)
+### 4. Container Deployment (Module 5)
 - ECS services
 - ECS cluster
 - ECS task definitions
@@ -35,28 +32,24 @@ Delete resources in reverse order of creation to avoid dependency issues:
 - IAM role (ECS task role)
 - Security group (ECS tasks)
 
-### 6. Data Layer (Module 4)
+### 5. Data Layer (Module 4)
 - RDS database instance
 - DB subnet group
 - Security group (RDS)
 - DynamoDB tables (products, cart)
 - Parameter Store parameters
 
-### 7. Frontend Infrastructure (Module 3)
+### 6. Frontend Infrastructure (Module 3)
 - CloudFront distribution (frontend)
 - S3 bucket (frontend)
 
-### 8. Authentication (Module 2)
+### 7. Authentication (Module 2)
 - Cognito User Pool
 - Cognito App Client
 
-### 9. Networking (Module 1)
+### 8. Networking (Module 1)
 - NAT Gateway
-- Elastic IP
-- Internet Gateway
-- Route tables (public, private ECS, private database)
-- Subnets (public, private ECS, private database)
+- Release NAT Gateway Elastic IP
+- Delete VPC
 - Security groups (ALB)
 - VPC
-
-**Important:** Always delete resources in the correct order to avoid dependency errors and ensure complete cleanup.
