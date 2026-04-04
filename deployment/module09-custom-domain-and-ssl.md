@@ -1,37 +1,24 @@
 # Module 9: Custom Domain & SSL 
 
 ## Overview
-Configure a custom domain with SSL certificate for your ecommerce application.
+Access application using Custom domain name and enable HTTPS with SSL certificate
 
 ## Architecture
-```
-User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
-                              ↓
-                        API Gateway (Backend)
-```
+<img width="800" height="370" alt="image" src="https://github.com/user-attachments/assets/037a564f-6dd8-41ea-8822-7a969adae54b" />
+
 
 ## Prerequisites
-- A registered domain name (can register via Route53 or use existing). I have my domain purchased from GoDaddy and DNS is managed in Route53 Public Hosted Zone.
-- Completed Module 8 (CloudFront distribution)
+- A registered public domain name (can register via Route53 or use existing).
+- Amazon Route 53 should be configured as DNS provider for your domain name.
 
-## Resources to Create
+## In this module
+- Get Public SSL Certificate from Amazon Certificate Manager (in us-east-1 region)
+- Add alternate domain name for CloudFront Distribution
+- Create DNS records for your domain name pointing to CloudFront distribution
+- Test the application access over custom domain name
 
-### 1. Route53 Hosted Zone
-- Domain: yourdomain.com
-- Records: A record (alias to CloudFront)
-
-### 2. ACM Certificate
-- Domain: yourdomain.com, www.yourdomain.com
-- Validation: DNS validation via Route53
-- Region: us-east-1 (required for CloudFront)
-
-### 3. Updated CloudFront Distribution
-- Alternate domain names (CNAMEs)
-- Custom SSL certificate
-
-## Console Steps
-
-### Step 1: Create Hosted Zone (if not auto-created)
+## 9.1 Route 53 Public Hosted Zone (pre-requisite)
+If you don't have it already:
 
 1. Route53 Console → Hosted zones → Create hosted zone
 2. Domain name: `yourdomain.com`
@@ -40,9 +27,11 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
 5. Note the 4 nameservers (NS records)
 6. Update nameservers at your domain registrar
 
-### Step 2: Request SSL Certificate in ACM
+## 9.2 Request SSL Certificate in ACM
 
 **IMPORTANT:** Certificate must be in us-east-1 region for CloudFront!
+
+### Request Certificate
 
 1. Go to ACM Console → **Switch to us-east-1 region**
 2. Request certificate → Request a public certificate
@@ -53,15 +42,15 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
 4. Validation method: DNS validation
 5. Request
 
-### Step 3: Validate Certificate
+### Validate Certificate
 
 1. In ACM, click on your certificate
 2. Click "Create records in Route53" button
 3. This automatically adds CNAME records to your hosted zone
-4. Wait for validation (usually 5-30 minutes)
+4. Wait for validation (usually 1-2 minutes)
 5. Status should change to "Issued"
 
-### Step 4: Update CloudFront Distribution
+## 9.3: Add alternate domain name for CloudFront Distribution
 
 1. CloudFront Console → Your distribution → Edit
 2. Settings:
@@ -70,9 +59,9 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
 3. Save changes
 4. Wait for deployment (5-10 minutes)
 
-### Step 5: Create Route53 Records
+## 9.4: Create Route53 Records
 
-**A Record for root domain:**
+**A Record for Top level domain:**
 1. Route53 → Hosted zones → Your domain
 2. Create record:
    - Record name: Leave empty (root domain)
@@ -84,24 +73,24 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
 3. Create record
 
 **A Record for www:**
-4. Create record:
+1. Create record:
    - Record name: `www`
    - Record type: A
    - Alias: Yes
    - Route traffic to: Alias to CloudFront distribution
    - Choose distribution: Select your CloudFront distribution
-5. Create record
+2. Create record
 
-### Step 6: Update Cognito Callback URLs
+## 9.5: Update Cognito Callback URLs
 
-1. Cognito Console → User pools → ecommerce-users
+1. Cognito Console → User pools → your user pool
 2. App integration → App client → Edit
 3. Hosted UI settings:
    - Add callback URLs: `https://yourdomain.com`, `https://www.yourdomain.com`
    - Add sign-out URLs: `https://yourdomain.com`, `https://www.yourdomain.com`
 4. Save
 
-### Step 7: Test Custom Domain
+## 9.6: Test the Application with Custom Domain
 
 **Test in Browser:**
 1. **Open browser:** `https://yourdomain.com`
@@ -111,9 +100,9 @@ User → Route53 (DNS) → CloudFront (SSL) → S3 (Frontend)
    - Sign in/Sign up (Cognito authentication)
    - Add items to cart
    - Place test order
-   - Check that all features work with custom domain
+   - Check that all features work
 
 Congratulations ! You have successfully deployed a production-ready ecommerce application on AWS with custom domain and SSL certificate.
 
 ## Next Steps
-Proceed to **[Module 10: Cleanup](./module10-cleanup.md)** to remove all AWS resources and avoid ongoing charges.
+Proceed to **[Module 10: Cleanup](./module10-cleanup.md)**
