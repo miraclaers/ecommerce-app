@@ -1,7 +1,10 @@
-# Module 5: Backend Services Deployment with ECS and ALB
+# Module 5: Backend Services Deployment (ECS and ALB)
 
 ## Overview
 Deploy microservices as Docker containers on Amazon ECS (Elastic Container Service) with Fargate run time and internally expose services using internal Application Load Balancer.
+
+<img width="600" height="300" alt="image" src="https://github.com/user-attachments/assets/ce3a7981-6d9b-42f1-a2c0-9494be3f6837" />
+
 
 ## In this module
 - Create Application Load Balancer (internal) with target groups and routing rules
@@ -348,6 +351,8 @@ Create services for all microservices:
 ## 4.10 Test API Endpoints (Optional but recommended)
 
 Launch a Bastion Host for Testing as we can't directly access internal ALB URL (Stop or Terminate instance after validation)
+<img width="438" height="425" alt="image" src="https://github.com/user-attachments/assets/c4f521f8-5a8f-4a02-b518-70278f165720" />
+
 
 **Create Bastion Host:**
 1. **EC2 Console → Launch Instance**
