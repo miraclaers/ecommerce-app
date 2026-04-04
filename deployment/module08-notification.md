@@ -1,37 +1,27 @@
-# Module 8: Event-Driven Architecture with SNS
+# Module 8: Notification and Integration (SNS and SQS)
 
 ## Overview
-Set up simple event-driven architecture using Amazon SNS for asynchronous order notifications and shipping vendor.
+Set up simple notification flows using Amazon SNS and SQS for order notifications and integration with 3rd party vendors. 
 
-## What We'll be doing
-- **7.1** Create SNS topic for order events
-- **7.2** Create SQS queue for order shipping
-- **7.3** Configure SNS subscriptions (Email + SQS)
-- **7.4** Update SSM Parameter Store with SNS topic ARN
-- **7.5** Restart Order Service
-- **7.6** Test the notification workflow
+> [!IMPORTANT]
+Ideally for the email notification we should use Amazon SES (Simple Email Service) where we have the Lambda function subscription for SNS topic and Lambda triggers an email to the email id from the order event using SES. However by default SES service is in Sandbox mode in AWS account and it applies restriction on sending emails from un-verified sender. We have to ask AWS to move SES service out of SandBox and enable it for the Production use and this may take few days. 
+
+Hence, we are going to send email directly to fixed email id using the Amazon SNS.
+
+## In this module
+- Create SNS topic for order events
+- Create SQS queue for order shipping
+- Configure SNS subscriptions (Email + SQS)
+- Create Parameter in SSM Parameter Store for SNS Topic ARN and Restart order service
+- Test the notification workflow
 
 ## Architecture
-```
-Order Service → SNS Topic → Email Subscription (Direct)
-                          → SQS Queue (Shipping)
-```
 
-When an order is placed:
-1. **Order Service** publishes message to SNS topic
-2. **SNS** sends email notification directly to subscriber
-3. **SNS** also sends message to SQS queue for shipping
-
----
+<img width="600" height="300" alt="image" src="https://github.com/user-attachments/assets/c55b177f-80be-445f-a274-27593192005d" />
 
 ## 7.1 Create SNS Topic
 
 ### SNS Topic Configuration
-
-1. **SNS Console → Topics → Create topic**
-2. **Type:** Standard
-3. **Name:** `ecommerce-order-events`
-### Topic Configuration
 
 1. **SNS Console → Topics → Create topic**
 2. **Type:** Standard
@@ -44,7 +34,6 @@ When an order is placed:
 6. **Copy the Topic ARN** (e.g., `arn:aws:sns:<region>:<account-id>:ecommerce-order-events`)
 7. **Save this ARN** - we'll use it in Parameter Store
 
----
 
 ## 7.2 Create SQS Queue for Logging
 
@@ -55,7 +44,6 @@ When an order is placed:
 3. **Name:** `ecommerce-order-shipping`
 4. **Create queue**
 
----
 
 ## 7.3 Configure SNS Subscriptions
 
@@ -79,7 +67,7 @@ When an order is placed:
 5. **Create subscription**
 6. **Verify status** shows "Confirmed"
 
-This should automatically update the SQS Policy to allow SQS:SendMessage action for SNS Topic.
+This should automatically update the SQS queue Policy to allow SQS:SendMessage action for SNS Topic.
 
 Go to SQS Queue -> Queue Policies and Verify.
 
@@ -110,8 +98,6 @@ You now have two subscriptions:
 - **Email:** Direct notifications to your email
 - **SQS:** Message for shipping vendor
 
----
-
 ## 7.4 Update Parameter Store
 
 ### SNS Topic ARN Parameter
@@ -124,7 +110,6 @@ You now have two subscriptions:
 
 This parameter is already created and used by the order service to publish messages to SNS.
 
----
 ## 7.5 Restart the Order Service to featch SNS Topic ARN
 
 1. **ECS Cluster -> Services -> Order Service -> Force new deployment**
@@ -132,7 +117,6 @@ This parameter is already created and used by the order service to publish messa
 
 This will make sure that Order Service featches SNS Topic ARN from SSM Parameter Store and publishes order event on to the topic.
 
----
 
 ## 7.6 Test Notification Workflow
 
@@ -146,17 +130,12 @@ This will make sure that Order Service featches SNS Topic ARN from SSM Parameter
 **Email not received:**
 - Check spam folder
 - Verify email subscription is confirmed
-- Ensure SNS topic has correct permissions
+- Check Order service logs in the CloudWatch logs under /ecs/order-service logs group.
 
 **SQS not receiving messages:**
-- Verify SQS queue policy allows SNS
-- Check SNS subscription is confirmed
-- Ensure queue ARN is correct in policy
-
-**Order service errors:**
-- Verify Parameter Store has correct SNS topic ARN
-- Check ECS task role has SNS permissions
-- Review CloudWatch logs for order service
+- Verify SQS queue policy allows SNS topic to send messages
+- Check SQS subscription is confirmed
+- Check Order service logs in the CloudWatch logs under /ecs/order-service logs group.
 
 ## Next Steps
-Proceed to **[Module 9: Custom Domain & SSL](./module09-custom-domain-and-ssl.md)** to configure custom domain and SSL certificates.
+Proceed to **[Module 9: Custom Domain & SSL](./module09-custom-domain-and-ssl.md)**
