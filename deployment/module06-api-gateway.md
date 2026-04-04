@@ -1,33 +1,28 @@
-# Module 6: API Gatewaywith VPC Link
+# Module 6: API Gateway
 
 ## Overview
-Create an HTTP API Gateway that connects to the internal Application Load Balancer using VPC Link, providing a public endpoint to access all microservices.
+Create an HTTP API Gateway that connects to the internal Application Load Balancer, providing a public endpoint to access all microservices.
 
-## What We'll Build
-- **5.1** VPC Link for secure connection to internal ALB
-- **5.2** HTTP API Gateway with $default stage
-- **5.3** Single HTTP proxy integration to internal ALB
-- **5.4** Cognito JWT Authorizer for authentication
-- **5.5** Three API routes: public products, authenticated proxy, and CORS
-- **5.6** CORS configuration for frontend access
-- **5.7** API endpoint testing with mixed authentication
-- **5.8** Parameter Store configuration for API Gateway URL
+## In this module
+- Create a VPC Link for API Gateway to connect privately to the internal ALB
+- Create HTTP API Gateway
+- Create HTTP proxy integration to internal ALB (VPC Resource) via VPCLink
+- Create Cognito JWT Authorizer for authentication
+- Create API routes
+- API CORS configuration for frontend access
+- API endpoint testing
 
 ## Architecture
-```
-Internet → API Gateway → VPC Link → Internal ALB → ECS Services
-```
+<img width="800" height="300" alt="image" src="https://github.com/user-attachments/assets/2c4d0409-7b84-4aba-b62a-780de8edaaf3" />
 
 The API Gateway will have three specific routes:
 - `GET /products` → Product Service (public, no auth)
 - `ANY /{proxy+}` → All Services (authenticated, Cognito-authorizer required)
 - `OPTIONS /{proxy+}` → CORS preflight (public, no auth)
 
----
+## 6.1 Create VPC Link
 
-## 5.1 Create VPC Link
-
-### 5.1.1 Create Security Group for VPC Link
+### 6.1.1 Create Security Group for VPC Link
 
 1. **VPC Console → Security Groups → Create security group**
 2. **Name:** `ecommerce-vpclink-sg`
@@ -39,7 +34,7 @@ The API Gateway will have three specific routes:
 6. **Outbound rules:** All traffic (default)
 7. **Create security group**
 
-### 5.1.2 VPC Link Configuration
+### 6.1.2 VPC Link Configuration
 
 1. **API Gateway Console → VPC Links → Create VPC Link**
 2. **VPC Link version:** VPC Link for HTTP APIs (v2)
@@ -54,9 +49,7 @@ The API Gateway will have three specific routes:
 
 **Note:** VPC Link creation takes 5-10 minutes. Wait for status to become "Available" before proceeding.
 
----
-
-## 5.2 Create HTTP API Gateway
+## 6.2 Create HTTP API Gateway
 
 ### API Gateway Configuration
 
@@ -68,9 +61,9 @@ The API Gateway will have three specific routes:
 6. **Skip adding integrations** - we'll configure these manually
 7. **Create**
 
----
 
-## 5.3 Create HTTP Integration
+
+## 6.3 Create HTTP Integration
 
 ### ALB Integration over VPCLink (VPC Private Resource integration)
 
@@ -86,9 +79,9 @@ Create one integration that will be used by all routes:
 
 **Note:** This single integration connects to your ALB and will be reused by all three routes. The ALB handles path-based routing to the appropriate microservices.
 
----
 
-## 5.4 Create Cognito JWT Authorizer
+
+## 6.4 Create Cognito JWT Authorizer
 
 ### Cognito JWT Authorizer Configuration
 
@@ -102,9 +95,9 @@ Create one integration that will be used by all routes:
    - Use the App Client ID from Module 3
 7. **Create authorizer**
 
----
 
-## 5.5 Create API Routes
+
+## 6.5 Create API Routes
 
 ### Route 1: Public Products Route
 
@@ -140,9 +133,8 @@ Create one integration that will be used by all routes:
 - `/{proxy+}` requires JWT authentication for all other endpoints
 - `OPTIONS /{proxy+}` handles CORS preflight requests without authentication
 
----
 
-## 5.6 Configure CORS
+## 6.6 Configure CORS
 
 ### CORS Configuration
 
@@ -157,15 +149,13 @@ Create one integration that will be used by all routes:
 
 **Note:** Using `*` for Access-Control-Allow-Headers prevents CORS preflight issues with custom headers like Authorization tokens.
 
----
 
-## 5.7 Test API Gateway
+## 6.7 Test API Gateway
 
 ### Get API Gateway URL
 
 1. **Go to your API → Stages → $default**
 2. **Copy the Invoke URL** (e.g., `https://xxxxxxxxxx.execute-api.<region>.amazonaws.com`)
-3. This parameter is used by the frontend application to know the API base URL to access backend services. We will configure it in the next module.
 
 ### Test All Service Endpoints
 
@@ -187,16 +177,10 @@ curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
 **CORS Errors:**
 - If you see "Access-Control-Allow-Origin" errors, ensure CORS is configured with `Access-Control-Allow-Headers: *`
 - Verify OPTIONS routes are created for preflight requests
-- Check that API Gateway CORS settings match your frontend domain
 
 **401 Unauthorized:**
-- Check JWT token is valid and not expired
 - Verify Cognito User Pool ID in authorizer configuration
 - Ensure App Client ID matches in authorizer audience
-
-**403 Forbidden:**
-- Check JWT token format (should be `Bearer <token>`)
-- Verify token is from correct Cognito User Pool
 
 **502 Bad Gateway:**
 - Check VPC Link status
@@ -206,12 +190,8 @@ curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
 **504 Gateway Timeout:**
 - Check ECS service health
 - Verify ALB listener rules are configured correctly
-- Check security group rules
-
-**DynamoDB ValidationException:**
-- If cart service fails with "key element does not match schema", ensure cart table has only `user_id` as partition key (no sort key)
-
----
+- Check VPCLink Security group (should allow HTTP/HTTPS from 0.0.0.0/0) and ALB Security group (should allow HTTP from VPC CIDR)
+    
 
 ## We have configured:
 
@@ -221,4 +201,4 @@ curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
 4. **Flexible Access:** Public product browsing, authenticated user actions
 
 ## Next Steps
-Proceed to **[Module 7: Frontend-Backend Integration](./module07-frontend-backend-integration.md)** to configure, build, and deploy the React application.
+Proceed to **[Module 7: Frontend-Backend Integration](./module07-frontend-backend-integration.md)**
