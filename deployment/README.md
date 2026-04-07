@@ -4,7 +4,7 @@
 This guide walks you through deploying a production-ready microservices ecommerce application on AWS using modern cloud architecture patterns.
 
 ## Architecture Overview
-<img width="800" height="450" alt="image" src="https://github.com/user-attachments/assets/80122c27-4ad2-4f85-a583-22ca1dc6b81e" />
+<img width="800" height="450" alt="project-architecture" src="https://github.com/user-attachments/assets/0ec2816c-c273-46e7-b078-eda66991e0ef" />
 
 ## Deployment Modules
 
