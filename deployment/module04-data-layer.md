@@ -49,6 +49,25 @@ Example: https://dhzk1s0exnne1.cloudfront.net/images/products/prod-001.jpg
 6. **Capacity mode:** On-demand
 7. **Create table**
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+aws dynamodb create-table \
+  --table-name ecommerce-products \
+  --attribute-definitions AttributeName=product_id,AttributeType=S \
+  --key-schema AttributeName=product_id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+
+aws dynamodb create-table \
+  --table-name ecommerce-cart \
+  --attribute-definitions AttributeName=user_id,AttributeType=S \
+  --key-schema AttributeName=user_id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+```
+
+</details>
+
 
 ### Load Sample Products Data
 
@@ -148,6 +167,57 @@ Go to DynamoDB -> ecommerce_products table and check if you see 20 products data
 11. **Create database** (takes 5-10 minutes)
 
 <details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Create RDS security group
+RDS_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-rds-sg \
+  --description "Security group for RDS PostgreSQL" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text)
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $RDS_SG \
+  --protocol tcp --port 5432 \
+  --cidr 10.10.0.0/16
+
+# Create DB subnet group
+aws rds create-db-subnet-group \
+  --db-subnet-group-name ecommerce-db-subnet-group \
+  --db-subnet-group-description "Subnet group for ecommerce RDS" \
+  --subnet-ids $DB_SUBNET_1 $DB_SUBNET_2
+
+# Create RDS instance (replace <your-db-password> with a strong password)
+aws rds create-db-instance \
+  --db-instance-identifier ecommercedb-instance \
+  --db-instance-class db.t3.micro \
+  --engine postgres \
+  --master-username postgres \
+  --master-user-password <your-db-password> \
+  --db-name ecommercedb \
+  --db-subnet-group-name ecommerce-db-subnet-group \
+  --vpc-security-group-ids $RDS_SG \
+  --no-publicly-accessible \
+  --no-enable-performance-insights \
+  --backup-retention-period 0 \
+  --no-storage-encrypted \
+  --availability-zone ap-south-1a
+
+# Wait for RDS to become available (takes 5-10 minutes)
+aws rds wait db-instance-available --db-instance-identifier ecommercedb-instance
+
+# Get RDS endpoint
+RDS_ENDPOINT=$(aws rds describe-db-instances \
+  --db-instance-identifier ecommercedb-instance \
+  --query 'DBInstances[0].Endpoint.Address' --output text)
+
+echo "RDS_ENDPOINT=$RDS_ENDPOINT"
+```
+
+</details>
+
+<details>
 <summary><strong>📋 Database Schema - Just for the reference (Click to expand)</strong></summary>
 
 **The database tables will be automatically created by each microservice on startup. We don't need to create it.**
@@ -211,6 +281,28 @@ After the RDS instance is created, store the database configuration in Parameter
 - **Value:** `<your-database-password>`
 
 These parameters will be automatically loaded by the user-service and order-service when deployed to ECS.
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+aws ssm put-parameter \
+  --name /ecommerce/dev/aws/region \
+  --type String \
+  --value ap-south-1   # replace with your region
+
+aws ssm put-parameter \
+  --name /ecommerce/dev/db/host \
+  --type String \
+  --value $RDS_ENDPOINT
+
+aws ssm put-parameter \
+  --name /ecommerce/dev/db/password \
+  --type SecureString \
+  --value <your-db-password>
+```
+
+</details>
 
 ## Next Steps
 Proceed to **[Module 5: Backend Deployment](./module05-backend-deployment.md)**

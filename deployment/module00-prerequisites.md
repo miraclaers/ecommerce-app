@@ -84,5 +84,12 @@ aws sts get-caller-identity
 
 ```
 
+## Step 5: Set Default Region (optional but recommended)
+
+```bash
+# Set a default region so you don't need --region in every command
+export AWS_DEFAULT_REGION=ap-south-1   # change to your region
+```
+
 ## Next Steps
 Proceed to **[Module 1: Networking Foundation](./module01-networking.md)**

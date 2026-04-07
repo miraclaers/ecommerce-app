@@ -24,6 +24,24 @@ Set up AWS Cognito User Pool and App Client for user authentication and authoriz
 
 6. Click **Create user directory**
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Create User Pool
+USER_POOL_ID=$(aws cognito-idp create-user-pool \
+  --pool-name ecommerce-app \
+  --policies '{"PasswordPolicy":{"MinimumLength":8,"RequireUppercase":true,"RequireLowercase":true,"RequireNumbers":true,"RequireSymbols":false}}' \
+  --auto-verified-attributes email \
+  --username-attributes email \
+  --schema '[{"Name":"email","Required":true,"Mutable":true},{"Name":"name","Required":true,"Mutable":true}]' \
+  --query 'UserPool.Id' --output text)
+
+echo "USER_POOL_ID=$USER_POOL_ID"
+```
+
+</details>
+
 ## 2.2 Configure Cognito User Pool App Client
 - Go to your newly created User Pool → **App integration** tab → **App clients**
 - Click on your app client name and Edit
@@ -32,6 +50,23 @@ Set up AWS Cognito User Pool and App Client for user authentication and authoriz
   - **ALLOW_USER_SRP_AUTH** 
   - **ALLOW_REFRESH_TOKEN_AUTH**
 - Click **Save changes**
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Create App Client (the new console wizard creates this automatically, but via CLI we create it explicitly)
+CLIENT_ID=$(aws cognito-idp create-user-pool-client \
+  --user-pool-id $USER_POOL_ID \
+  --client-name ecommerce-app \
+  --no-generate-secret \
+  --explicit-auth-flows ALLOW_USER_PASSWORD_AUTH ALLOW_USER_SRP_AUTH ALLOW_REFRESH_TOKEN_AUTH \
+  --query 'UserPoolClient.ClientId' --output text)
+
+echo "CLIENT_ID=$CLIENT_ID"
+```
+
+</details>
 
 ## Save These Values
 Copy and save following values somewhere in notepad

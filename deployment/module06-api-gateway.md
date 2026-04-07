@@ -34,6 +34,27 @@ The API Gateway will have three specific routes:
 6. **Outbound rules:** All traffic (default)
 7. **Create security group**
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+VPCLINK_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-vpclink-sg \
+  --description "Security group for VPC Link to ALB" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text)
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $VPCLINK_SG \
+  --ip-permissions \
+    IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0}] \
+    IpProtocol=tcp,FromPort=443,ToPort=443,IpRanges=[{CidrIp=0.0.0.0/0}]
+
+echo "VPCLINK_SG=$VPCLINK_SG"
+```
+
+</details>
+
 ### 6.1.2 VPC Link Configuration
 
 1. **API Gateway Console → VPC Links → Create VPC Link**
@@ -49,6 +70,22 @@ The API Gateway will have three specific routes:
 
 **Note:** VPC Link creation takes 5-10 minutes. Wait for status to become "Available" before proceeding.
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+VPC_LINK_ID=$(aws apigatewayv2 create-vpc-link \
+  --name ecommerce-vpc-link \
+  --subnet-ids $ECS_SUBNET_1 $ECS_SUBNET_2 \
+  --security-group-ids $VPCLINK_SG \
+  --query 'VpcLinkId' --output text)
+
+echo "VPC_LINK_ID=$VPC_LINK_ID"
+# Wait ~5-10 minutes for status to become AVAILABLE before proceeding
+```
+
+</details>
+
 ## 6.2 Create HTTP API Gateway
 
 ### API Gateway Configuration
@@ -60,6 +97,20 @@ The API Gateway will have three specific routes:
 5. **Next**
 6. **Skip adding integrations** - we'll configure these manually
 7. **Create**
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+API_ID=$(aws apigatewayv2 create-api \
+  --name ecommerce-api \
+  --protocol-type HTTP \
+  --query 'ApiId' --output text)
+
+echo "API_ID=$API_ID"
+```
+
+</details>
 
 
 
@@ -79,6 +130,25 @@ Create one integration that will be used by all routes:
 
 **Note:** This single integration connects to your ALB and will be reused by all three routes. The ALB handles path-based routing to the appropriate microservices.
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+INTEGRATION_ID=$(aws apigatewayv2 create-integration \
+  --api-id $API_ID \
+  --integration-type HTTP_PROXY \
+  --integration-method ANY \
+  --integration-uri $LISTENER_ARN \
+  --connection-type VPC_LINK \
+  --connection-id $VPC_LINK_ID \
+  --payload-format-version 1.0 \
+  --query 'IntegrationId' --output text)
+
+echo "INTEGRATION_ID=$INTEGRATION_ID"
+```
+
+</details>
+
 
 
 ## 6.4 Create Cognito JWT Authorizer
@@ -94,6 +164,24 @@ Create one integration that will be used by all routes:
 6. **Audience:** `<your-app-client-id>`
    - Use the App Client ID from Module 3
 7. **Create authorizer**
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+AUTHORIZER_ID=$(aws apigatewayv2 create-authorizer \
+  --api-id $API_ID \
+  --name cognito-jwt-authorizer \
+  --authorizer-type JWT \
+  --identity-source '$request.header.Authorization' \
+  --jwt-configuration \
+    Issuer=https://cognito-idp.${REGION}.amazonaws.com/${USER_POOL_ID},Audience=$CLIENT_ID \
+  --query 'AuthorizerId' --output text)
+
+echo "AUTHORIZER_ID=$AUTHORIZER_ID"
+```
+
+</details>
 
 
 
@@ -133,6 +221,35 @@ Create one integration that will be used by all routes:
 - `/{proxy+}` requires JWT authentication for all other endpoints
 - `OPTIONS /{proxy+}` handles CORS preflight requests without authentication
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+INTEG_TARGET=integrations/$INTEGRATION_ID
+
+# Route 1: Public products
+aws apigatewayv2 create-route \
+  --api-id $API_ID \
+  --route-key "GET /products" \
+  --target $INTEG_TARGET
+
+# Route 2: Authenticated proxy
+aws apigatewayv2 create-route \
+  --api-id $API_ID \
+  --route-key "ANY /{proxy+}" \
+  --target $INTEG_TARGET \
+  --authorization-type JWT \
+  --authorizer-id $AUTHORIZER_ID
+
+# Route 3: CORS preflight (no auth)
+aws apigatewayv2 create-route \
+  --api-id $API_ID \
+  --route-key "OPTIONS /{proxy+}" \
+  --target $INTEG_TARGET
+```
+
+</details>
+
 
 ## 6.6 Configure CORS
 
@@ -148,6 +265,18 @@ Create one integration that will be used by all routes:
 5. **Save**
 
 **Note:** Using `*` for Access-Control-Allow-Headers prevents CORS preflight issues with custom headers like Authorization tokens.
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+aws apigatewayv2 update-api \
+  --api-id $API_ID \
+  --cors-configuration \
+    AllowOrigins='["*"]',AllowHeaders='["*"]',AllowMethods='["GET","POST","PUT","DELETE","OPTIONS"]'
+```
+
+</details>
 
 
 ## 6.7 Test API Gateway
