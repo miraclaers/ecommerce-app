@@ -762,6 +762,75 @@ curl http://<internal-alb-dns-name>/products
 ```
 This should return the list of all the products.
 
+<details>
+<summary><strong>CLI equivalent - Launch Bastion Host</strong></summary>
+
+```bash
+# Retrieve VPC and public subnet
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=ecommerce-vpc" \
+  --query 'Vpcs[0].VpcId' --output text)
+
+PUBLIC_SUBNET=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-public-1" \
+  --query 'Subnets[0].SubnetId' --output text)
+
+MY_IP=$(curl -s https://checkip.amazonaws.com)/32
+
+# Get latest Amazon Linux 2023 AMI
+AMI_ID=$(aws ec2 describe-images \
+  --owners amazon \
+  --filters "Name=name,Values=al2023-ami-*-x86_64" "Name=state,Values=available" \
+  --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+
+# Create bastion security group
+BASTION_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-bastion-sg \
+  --description "Security group for bastion host" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text)
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $BASTION_SG \
+  --protocol tcp --port 22 --cidr $MY_IP > /dev/null
+
+# Launch bastion instance (replace your-key-name with your EC2 key pair name)
+BASTION_ID=$(aws ec2 run-instances \
+  --image-id $AMI_ID \
+  --instance-type t2.micro \
+  --key-name your-key-name \
+  --subnet-id $PUBLIC_SUBNET \
+  --security-group-ids $BASTION_SG \
+  --associate-public-ip-address \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=ecommerce-bastion}]' \
+  --query 'Instances[0].InstanceId' --output text)
+
+echo "Waiting for bastion host to start..."
+aws ec2 wait instance-running --instance-ids $BASTION_ID
+
+BASTION_IP=$(aws ec2 describe-instances \
+  --instance-ids $BASTION_ID \
+  --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+
+ALB_DNS=$(aws elbv2 describe-load-balancers \
+  --names ecommerce-internal-alb \
+  --query 'LoadBalancers[0].DNSName' --output text)
+
+echo "Bastion Host ready!"
+echo "BASTION_IP=$BASTION_IP"
+echo "ALB_DNS=$ALB_DNS"
+echo ""
+echo "SSH command:  ssh -i your-key.pem ec2-user@$BASTION_IP"
+echo "Test command: curl http://$ALB_DNS/products"
+```
+
+> **Remember:** Stop or terminate the bastion host after validation.
+> ```bash
+> aws ec2 terminate-instances --instance-ids $BASTION_ID
+> ```
+
+</details>
+
 **Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
 
 
