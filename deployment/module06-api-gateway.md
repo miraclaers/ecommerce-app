@@ -358,6 +358,40 @@ curl https://xxxxxxxxxx.execute-api.<region>.amazonaws.com/orders
 # Expected: {"message":"Unauthorized"}
 ```
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Get API Gateway URL
+API_ID=$(aws apigatewayv2 get-apis \
+  --query 'Items[?Name==`ecommerce-api`].ApiId' --output text)
+
+API_URL=$(aws apigatewayv2 get-api \
+  --api-id $API_ID \
+  --query 'ApiEndpoint' --output text)
+
+echo "API_URL=$API_URL"
+
+# Test public products endpoint (expect 200 with product list)
+echo "Testing /products (public)..."
+curl -s $API_URL/products | head -c 200
+
+# Test authenticated endpoints (expect 401 Unauthorized)
+echo ""
+echo "Testing /cart (should return 401)..."
+curl -s $API_URL/cart
+
+echo ""
+echo "Testing /users (should return 401)..."
+curl -s $API_URL/users
+
+echo ""
+echo "Testing /orders (should return 401)..."
+curl -s $API_URL/orders
+```
+
+</details>
+
 ### Troubleshooting
 
 **CORS Errors:**
