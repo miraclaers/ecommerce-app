@@ -34,6 +34,20 @@ Hence, we are going to send email directly to fixed email id using the Amazon SN
 6. **Copy the Topic ARN** (e.g., `arn:aws:sns:<region>:<account-id>:ecommerce-order-events`)
 7. **Save this ARN** - we'll use it in Parameter Store
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+SNS_TOPIC_ARN=$(aws sns create-topic \
+  --name ecommerce-order-events \
+  --attributes DisplayName="eCommerce Order Events" \
+  --query 'TopicArn' --output text)
+
+echo "SNS_TOPIC_ARN=$SNS_TOPIC_ARN"
+```
+
+</details>
+
 
 ## 7.2 Create SQS Queue for Logging
 
@@ -43,6 +57,24 @@ Hence, we are going to send email directly to fixed email id using the Amazon SN
 2. **Type:** Standard queue
 3. **Name:** `ecommerce-order-shipping`
 4. **Create queue**
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+SQS_QUEUE_URL=$(aws sqs create-queue \
+  --queue-name ecommerce-order-shipping \
+  --query 'QueueUrl' --output text)
+
+SQS_QUEUE_ARN=$(aws sqs get-queue-attributes \
+  --queue-url $SQS_QUEUE_URL \
+  --attribute-names QueueArn \
+  --query 'Attributes.QueueArn' --output text)
+
+echo "SQS_QUEUE_ARN=$SQS_QUEUE_ARN"
+```
+
+</details>
 
 
 ## 7.3 Configure SNS Subscriptions
@@ -98,6 +130,36 @@ You now have two subscriptions:
 - **Email:** Direct notifications to your email
 - **SQS:** Message for shipping vendor
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Email subscription
+# IMPORTANT: Replace with your own email address below.
+# After running this command, check your inbox for a confirmation email from AWS
+# and click "Confirm subscription" — the subscription won't be active until confirmed.
+aws sns subscribe \
+  --topic-arn $SNS_TOPIC_ARN \
+  --protocol email \
+  --notification-endpoint your-email@example.com
+
+# SQS subscription
+aws sns subscribe \
+  --topic-arn $SNS_TOPIC_ARN \
+  --protocol sqs \
+  --notification-endpoint $SQS_QUEUE_ARN
+
+# Grant SNS permission to send messages to SQS
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+aws sqs set-queue-attributes \
+  --queue-url $SQS_QUEUE_URL \
+  --attributes "{
+    \"Policy\": \"{\\\"Version\\\":\\\"2012-10-17\\\",\\\"Statement\\\":[{\\\"Effect\\\":\\\"Allow\\\",\\\"Principal\\\":{\\\"Service\\\":\\\"sns.amazonaws.com\\\"},\\\"Action\\\":\\\"sqs:SendMessage\\\",\\\"Resource\\\":\\\"$SQS_QUEUE_ARN\\\",\\\"Condition\\\":{\\\"ArnEquals\\\":{\\\"aws:SourceArn\\\":\\\"$SNS_TOPIC_ARN\\\"}}}]}\"
+  }"
+```
+
+</details>
+
 ## 7.4 Update Parameter Store
 
 ### SNS Topic ARN Parameter
@@ -110,12 +172,36 @@ You now have two subscriptions:
 
 This parameter is already created and used by the order service to publish messages to SNS.
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+aws ssm put-parameter \
+  --name /ecommerce/dev/sns/topic-arn \
+  --type String \
+  --value $SNS_TOPIC_ARN
+```
+
+</details>
+
 ## 7.5 Restart the Order Service to featch SNS Topic ARN
 
 1. **ECS Cluster -> Services -> Order Service -> Force new deployment**
 2. Wait until Order Service status changes to 1 Task Running
 
 This will make sure that Order Service featches SNS Topic ARN from SSM Parameter Store and publishes order event on to the topic.
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+aws ecs update-service \
+  --cluster ecommerce-cluster \
+  --service ecommerce-order-service \
+  --force-new-deployment
+```
+
+</details>
 
 
 ## 7.6 Test Notification Workflow

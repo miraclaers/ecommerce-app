@@ -28,6 +28,26 @@ Deploy microservices as Docker containers on Amazon ECS (Elastic Container Servi
 6. **Outbound rules:** All traffic (default)
 6. **Create security group**
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+ALB_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-alb-sg \
+  --description "Security group for internal ALB" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text)
+
+aws ec2 authorize-security-group-ingress \
+  --group-id $ALB_SG \
+  --protocol tcp --port 80 \
+  --cidr 10.10.0.0/16
+
+echo "ALB_SG=$ALB_SG"
+```
+
+</details>
+
 ### 4.1.2 Create Target Groups
 
 Create 4 target groups for the microservices first (required for ALB creation):
@@ -55,6 +75,31 @@ Create 4 target groups for the microservices first (required for ALB creation):
 | user-service-tg | 8003 | /health |
 | order-service-tg | 8004 | /health |
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+for SVC in "product-service-tg:8001" "cart-service-tg:8002" "user-service-tg:8003" "order-service-tg:8004"; do
+  NAME=${SVC%%:*}
+  PORT=${SVC##*:}
+  aws elbv2 create-target-group \
+    --name $NAME \
+    --protocol HTTP \
+    --port $PORT \
+    --vpc-id $VPC_ID \
+    --target-type ip \
+    --health-check-path /health
+done
+
+# Capture individual ARNs for later use
+PRODUCT_TG=$(aws elbv2 describe-target-groups --names product-service-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+CART_TG=$(aws elbv2 describe-target-groups --names cart-service-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+USER_TG=$(aws elbv2 describe-target-groups --names user-service-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+ORDER_TG=$(aws elbv2 describe-target-groups --names order-service-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+```
+
+</details>
+
 ### 4.1.3 Create Application Load Balancer
 
 1. **EC2 Console → Load Balancers → Create load balancer**
@@ -70,6 +115,36 @@ Create 4 target groups for the microservices first (required for ALB creation):
 6. **Listeners:** HTTP:80
    - **Default action:** Forward to `ecommerce-product-tg` (we'll add more rules next)
 7. **Create load balancer**
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+ALB_ARN=$(aws elbv2 create-load-balancer \
+  --name ecommerce-internal-alb \
+  --scheme internal \
+  --type application \
+  --subnets $ECS_SUBNET_1 $ECS_SUBNET_2 \
+  --security-groups $ALB_SG \
+  --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+
+ALB_DNS=$(aws elbv2 describe-load-balancers \
+  --load-balancer-arns $ALB_ARN \
+  --query 'LoadBalancers[0].DNSName' --output text)
+
+# Create listener with default action → product service
+LISTENER_ARN=$(aws elbv2 create-listener \
+  --load-balancer-arn $ALB_ARN \
+  --protocol HTTP --port 80 \
+  --default-actions Type=forward,TargetGroupArn=$PRODUCT_TG \
+  --query 'Listeners[0].ListenerArn' --output text)
+
+echo "ALB_ARN=$ALB_ARN"
+echo "ALB_DNS=$ALB_DNS"
+echo "LISTENER_ARN=$LISTENER_ARN"
+```
+
+</details>
 
 ### 4.1.4 Configure ALB Listener Rules
 
@@ -104,6 +179,42 @@ Create 4 target groups for the microservices first (required for ALB creation):
 | 4  | /orders* | order-service-tg |
 | default  |  N/A | product-service-tg |
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Add path-based routing rules (priority 1-4)
+echo "Creating ALB listener rules..."
+
+aws elbv2 create-rule \
+  --listener-arn $LISTENER_ARN --priority 1 \
+  --conditions '[{"Field":"path-pattern","Values":["/products*"]}]' \
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$PRODUCT_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 1 created: /products* → product-service"
+
+aws elbv2 create-rule \
+  --listener-arn $LISTENER_ARN --priority 2 \
+  --conditions '[{"Field":"path-pattern","Values":["/cart*"]}]' \
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$CART_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 2 created: /cart* → cart-service"
+
+aws elbv2 create-rule \
+  --listener-arn $LISTENER_ARN --priority 3 \
+  --conditions '[{"Field":"path-pattern","Values":["/users*"]}]' \
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$USER_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 3 created: /users* → user-service"
+
+aws elbv2 create-rule \
+  --listener-arn $LISTENER_ARN --priority 4 \
+  --conditions '[{"Field":"path-pattern","Values":["/orders*"]}]' \
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$ORDER_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 4 created: /orders* → order-service"
+
+echo "All listener rules created successfully!"
+```
+
+</details>
+
 
 ## 4.2 Create Parameter Store Parameters
 
@@ -121,6 +232,20 @@ Create 4 target groups for the microservices first (required for ALB creation):
 - `/ecommerce/dev/product-service-url` → `http://<internal-alb-dns-name>`
 
 **Note:** All services use the same ALB DNS name. The ALB routes requests based on path.
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+for PARAM in user-service-url cart-service-url product-service-url; do
+  aws ssm put-parameter \
+    --name /ecommerce/dev/$PARAM \
+    --type String \
+    --value "http://$ALB_DNS"
+done
+```
+
+</details>
 
 ---
 
@@ -143,6 +268,17 @@ Create repositories for all services:
 | Cart Service | `ecommerce/cart-service` |
 | User Service | `ecommerce/user-service` |
 | Order Service | `ecommerce/order-service` |
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+for SVC in product-service cart-service user-service order-service; do
+  aws ecr create-repository --repository-name ecommerce/$SVC
+done
+```
+
+</details>
 
 
 ## 4.4 Build and Push Docker Images
@@ -210,6 +346,46 @@ docker tag ecommerce/order-service:latest <account-id>.dkr.ecr.<your-region>.ama
 docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-service:latest
 ```
 
+<details>
+<summary><strong>CLI equivalent - Build and push all services</strong></summary>
+
+```bash
+# Run from the repo root directory (ecommerce-web-app/)
+
+# Verify Docker is accessible without sudo
+if ! docker ps > /dev/null 2>&1; then
+  echo "ERROR: Cannot connect to Docker daemon. Permission denied."
+  echo "Fix: Log out and log back in to your terminal, then try again."
+  exit 1
+fi
+
+# Retrieve account ID and region dynamically
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+AWS_REGION=$(aws configure get region)
+ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+echo "ECR Registry: $ECR_REGISTRY"
+
+# Authenticate Docker to ECR
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS --password-stdin $ECR_REGISTRY
+
+# Build, tag and push all services
+for SVC in product-service cart-service user-service order-service; do
+  echo "Building $SVC..."
+  cd services/$SVC
+  docker build -t ecommerce/$SVC .
+  docker tag ecommerce/$SVC:latest $ECR_REGISTRY/ecommerce/$SVC:latest
+  docker push $ECR_REGISTRY/ecommerce/$SVC:latest
+  echo "$SVC pushed successfully!"
+  cd ../..
+done
+
+echo "All images pushed to ECR!"
+```
+
+</details>
+
 ## 4.5 Create IAM Role for ECS Tasks
 
 ### Create ECS Task Role
@@ -231,6 +407,37 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 7. **Role name:** `ecommerce-ecs-task-role`
 8. **Create role**
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Create the role with ECS trust policy
+aws iam create-role \
+  --role-name ecommerce-ecs-task-role \
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": {"Service": "ecs-tasks.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    }]
+  }'
+
+# Attach required policies
+for POLICY in \
+  arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess \
+  arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess \
+  arn:aws:iam::aws:policy/CloudWatchLogsFullAccess \
+  arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess \
+  arn:aws:iam::aws:policy/AmazonSNSFullAccess; do
+  aws iam attach-role-policy \
+    --role-name ecommerce-ecs-task-role \
+    --policy-arn $POLICY
+done
+```
+
+</details>
+
 
 ## 4.6 Create ECS Security Group
 
@@ -247,6 +454,40 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
    - Type: Custom TCP, Port: 8004, Source: `ecommerce-alb-sg`
 6. **Outbound rules:** All traffic (default)
 7. **Create security group**
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Retrieve VPC_ID and ALB_SG dynamically
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=ecommerce-vpc" \
+  --query 'Vpcs[0].VpcId' --output text)
+
+ALB_SG=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=ecommerce-alb-sg" "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[0].GroupId' --output text)
+
+echo "VPC_ID=$VPC_ID"
+echo "ALB_SG=$ALB_SG"
+
+ECS_SG=$(aws ec2 create-security-group \
+  --group-name ecommerce-ecs-sg \
+  --description "Security group for ECS tasks" \
+  --vpc-id $VPC_ID \
+  --query 'GroupId' --output text)
+
+for PORT in 8001 8002 8003 8004; do
+  aws ec2 authorize-security-group-ingress \
+    --group-id $ECS_SG \
+    --protocol tcp --port $PORT \
+    --source-group $ALB_SG
+done
+
+echo "ECS_SG=$ECS_SG"
+```
+
+</details>
 
 
 ## 4.7 Create ECS Task Definitions
@@ -291,6 +532,67 @@ Create task definitions for all services:
 | User Service | `ecommerce-user-service` | 0.25 vCPU | 0.5 GB | 8003 |
 | Order Service | `ecommerce-order-service` | 0.25 vCPU | 0.5 GB | 8004 |
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION=$(aws configure get region)
+TASK_ROLE_ARN=arn:aws:iam::${ACCOUNT_ID}:role/ecommerce-ecs-task-role
+EXEC_ROLE_ARN=arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole
+
+# Create the execution role if it doesn't exist yet
+aws iam create-role \
+  --role-name ecsTaskExecutionRole \
+  --assume-role-policy-document '{
+    "Version":"2012-10-17",
+    "Statement":[{"Effect":"Allow","Principal":{"Service":"ecs-tasks.amazonaws.com"},"Action":"sts:AssumeRole"}]
+  }' 2>/dev/null || true
+
+aws iam attach-role-policy \
+  --role-name ecsTaskExecutionRole \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy 2>/dev/null || true
+
+# Register task definitions for all 4 services
+for SVC_PORT in "product-service:8001" "cart-service:8002" "user-service:8003" "order-service:8004"; do
+  SVC=${SVC_PORT%%:*}
+  PORT=${SVC_PORT##*:}
+  LOG_GROUP=/ecs/$SVC
+
+  # Create CloudWatch log group
+  aws logs create-log-group --log-group-name $LOG_GROUP 2>/dev/null || true
+
+  aws ecs register-task-definition \
+    --family ecommerce-$SVC \
+    --requires-compatibilities FARGATE \
+    --network-mode awsvpc \
+    --cpu 256 --memory 512 \
+    --task-role-arn $TASK_ROLE_ARN \
+    --execution-role-arn $EXEC_ROLE_ARN \
+    --container-definitions "[{
+      \"name\": \"$SVC\",
+      \"image\": \"${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/ecommerce/${SVC}:latest\",
+      \"portMappings\": [{\"containerPort\": $PORT, \"protocol\": \"tcp\"}],
+      \"environment\": [
+        {\"name\": \"ENVIRONMENT\", \"value\": \"dev\"},
+        {\"name\": \"AWS_REGION\", \"value\": \"$REGION\"}
+      ],
+      \"logConfiguration\": {
+        \"logDriver\": \"awslogs\",
+        \"options\": {
+          \"awslogs-group\": \"$LOG_GROUP\",
+          \"awslogs-region\": \"$REGION\",
+          \"awslogs-stream-prefix\": \"ecs\"
+        }
+      }
+    }]" > /dev/null && echo "Task definition registered: ecommerce-$SVC"
+done
+
+echo "All task definitions created successfully!"
+```
+
+</details>
+
 
 ## 4.8 Create ECS Cluster and Services
 
@@ -329,6 +631,85 @@ Create services for all microservices:
 | Cart Service | `ecommerce-cart-service` | `cart-service-tg` | 1 |
 | User Service | `ecommerce-user-service` | `user-service-tg` | 1 |
 | Order Service | `ecommerce-order-service` | `order-service-tg` | 1 |
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Retrieve VPC and subnet IDs dynamically
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=ecommerce-vpc" \
+  --query 'Vpcs[0].VpcId' --output text)
+
+ECS_SUBNET_1=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-private-ecs-1" \
+  --query 'Subnets[0].SubnetId' --output text)
+
+ECS_SUBNET_2=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-private-ecs-2" \
+  --query 'Subnets[0].SubnetId' --output text)
+
+ECS_SG=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=ecommerce-ecs-sg" "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[0].GroupId' --output text)
+
+# Retrieve target group ARNs
+PRODUCT_TG=$(aws elbv2 describe-target-groups \
+  --names product-service-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+CART_TG=$(aws elbv2 describe-target-groups \
+  --names cart-service-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+USER_TG=$(aws elbv2 describe-target-groups \
+  --names user-service-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+ORDER_TG=$(aws elbv2 describe-target-groups \
+  --names order-service-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+echo "ECS_SUBNET_1=$ECS_SUBNET_1"
+echo "ECS_SUBNET_2=$ECS_SUBNET_2"
+echo "ECS_SG=$ECS_SG"
+
+# Create ECS cluster
+aws ecs create-cluster \
+  --cluster-name ecommerce-cluster \
+  --capacity-providers FARGATE
+
+# Create services for all 4 microservices
+declare -A TG_MAP=(
+  [product-service]=$PRODUCT_TG
+  [cart-service]=$CART_TG
+  [user-service]=$USER_TG
+  [order-service]=$ORDER_TG
+)
+
+for SVC in product-service cart-service user-service order-service; do
+  aws ecs create-service \
+    --cluster ecommerce-cluster \
+    --service-name ecommerce-$SVC \
+    --task-definition ecommerce-$SVC \
+    --desired-count 1 \
+    --launch-type FARGATE \
+    --network-configuration "awsvpcConfiguration={
+      subnets=[$ECS_SUBNET_1,$ECS_SUBNET_2],
+      securityGroups=[$ECS_SG],
+      assignPublicIp=DISABLED
+    }" \
+    --load-balancers "[{
+      \"targetGroupArn\": \"${TG_MAP[$SVC]}\",
+      \"containerName\": \"$SVC\",
+      \"containerPort\": $(aws ecs describe-task-definition --task-definition ecommerce-$SVC --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
+    }]" > /dev/null && echo "Service created: ecommerce-$SVC"
+done
+
+echo "All ECS services created successfully!"
+```
+
+</details>
 
 
 ## 4.9 Verify ECS Services
@@ -380,6 +761,80 @@ ssh -i your-key.pem ec2-user@<bastion-public-ip>
 curl http://<internal-alb-dns-name>/products
 ```
 This should return the list of all the products.
+
+<details>
+<summary><strong>CLI equivalent - Launch Bastion Host</strong></summary>
+
+```bash
+# Retrieve VPC and public subnet
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=ecommerce-vpc" \
+  --query 'Vpcs[0].VpcId' --output text)
+
+PUBLIC_SUBNET=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-public-subnet-1" \
+  --query 'Subnets[0].SubnetId' --output text)
+
+# Get latest Amazon Linux 2023 AMI (kernel-6.1, matches default console AMI)
+AMI_ID=$(aws ec2 describe-images \
+  --owners amazon \
+  --filters "Name=name,Values=al2023-ami-2023*kernel-6.1*x86_64" \
+            "Name=state,Values=available" \
+  --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+
+echo "AMI_ID=$AMI_ID"
+
+# Reuse bastion security group if it already exists
+BASTION_SG=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=ecommerce-bastion-sg" "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[0].GroupId' --output text)
+
+if [ "$BASTION_SG" = "None" ]; then
+  BASTION_SG=$(aws ec2 create-security-group \
+    --group-name ecommerce-bastion-sg \
+    --description "Security group for bastion host" \
+    --vpc-id $VPC_ID \
+    --query 'GroupId' --output text)
+
+  aws ec2 authorize-security-group-ingress \
+    --group-id $BASTION_SG \
+    --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
+fi
+
+BASTION_ID=$(aws ec2 run-instances \
+  --image-id $AMI_ID \
+  --instance-type t2.micro \
+  --subnet-id $PUBLIC_SUBNET \
+  --security-group-ids $BASTION_SG \
+  --associate-public-ip-address \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=ecommerce-bastion}]' \
+  --query 'Instances[0].InstanceId' --output text)
+
+echo "Waiting for bastion host to start..."
+aws ec2 wait instance-running --instance-ids $BASTION_ID
+
+BASTION_IP=$(aws ec2 describe-instances \
+  --instance-ids $BASTION_ID \
+  --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+
+ALB_DNS=$(aws elbv2 describe-load-balancers \
+  --names ecommerce-internal-alb \
+  --query 'LoadBalancers[0].DNSName' --output text)
+
+echo "Bastion Host ready!"
+echo "BASTION_IP=$BASTION_IP"
+echo "ALB_DNS=$ALB_DNS"
+echo ""
+echo "Connect via EC2 Instance Connect in the AWS Console (EC2 → Instances → ecommerce-bastion → Connect)"
+echo "Test command: curl http://$ALB_DNS/products"
+```
+
+> **Remember:** Stop or terminate the bastion host after validation.
+> ```bash
+> aws ec2 terminate-instances --instance-ids $BASTION_ID
+> ```
+
+</details>
 
 **Stop or terminate the bastion host ec2 instance after validation. We don't want to keep it running un-necessarily.**
 

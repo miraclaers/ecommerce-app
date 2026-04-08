@@ -28,6 +28,29 @@ Note: Product listing and other API-dependent features will work after **Module 
 6. **Encryption:** Default - Enable (SSE-S3)
 7. **Create bucket**
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION=$(aws configure get region)
+BUCKET_NAME=ecommerce-frontend-$ACCOUNT_ID
+
+# For us-east-1, LocationConstraint is not required
+if [ "$REGION" = "us-east-1" ]; then
+  aws s3api create-bucket --bucket $BUCKET_NAME --region $REGION
+else
+  aws s3api create-bucket --bucket $BUCKET_NAME --region $REGION \
+    --create-bucket-configuration LocationConstraint=$REGION
+fi
+
+echo "BUCKET_NAME=$BUCKET_NAME"
+```
+
+> Note: For `us-east-1`, omit `--create-bucket-configuration` as it is the default region.
+
+</details>
+
 ## 3.2 Create CloudFront Distribution
 
 ### Distribution Configuration
@@ -71,6 +94,75 @@ Example:
 ```
 If you don't see S3 Bucket policy updated, then modify the policy as per your **AWS Account**, **S3 Bucket Name** and **CloudFront Distribution ID**.
 
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Create Origin Access Control (reuse if already exists)
+OAC_ID=$(aws cloudfront list-origin-access-controls \
+  --query "OriginAccessControlList.Items[?Name=='ecommerce-oac'].Id" \
+  --output text)
+
+if [ -z "$OAC_ID" ]; then
+  OAC_ID=$(aws cloudfront create-origin-access-control \
+    --origin-access-control-config '{
+      "Name": "ecommerce-oac",
+      "OriginAccessControlOriginType": "s3",
+      "SigningBehavior": "always",
+      "SigningProtocol": "sigv4"
+    }' \
+    --query 'OriginAccessControl.Id' --output text)
+fi
+
+# Create CloudFront distribution
+CF_DIST=$(aws cloudfront create-distribution \
+  --distribution-config "{
+    \"CallerReference\": \"ecommerce-$(date +%s)\",
+    \"Comment\": \"ecommerce-distribution\",
+    \"DefaultRootObject\": \"index.html\",
+    \"Origins\": {
+      \"Quantity\": 1,
+      \"Items\": [{
+        \"Id\": \"s3-origin\",
+        \"DomainName\": \"${BUCKET_NAME}.s3.ap-south-1.amazonaws.com\",
+        \"S3OriginConfig\": {\"OriginAccessIdentity\": \"\"},
+        \"OriginAccessControlId\": \"${OAC_ID}\"
+      }]
+    },
+    \"DefaultCacheBehavior\": {
+      \"TargetOriginId\": \"s3-origin\",
+      \"ViewerProtocolPolicy\": \"redirect-to-https\",
+      \"CachePolicyId\": \"658327ea-f89d-4fab-a63d-7e88639e58f6\",
+      \"AllowedMethods\": {\"Quantity\": 2, \"Items\": [\"GET\",\"HEAD\"], \"CachedMethods\": {\"Quantity\": 2, \"Items\": [\"GET\",\"HEAD\"]}}
+    },
+    \"Enabled\": true
+  }")
+
+CF_DIST_ID=$(echo $CF_DIST | python3 -c "import sys,json; d=json.load(sys.stdin)['Distribution']; print(d['Id'])")
+CF_DOMAIN=$(echo $CF_DIST | python3 -c "import sys,json; d=json.load(sys.stdin)['Distribution']; print(d['DomainName'])")
+
+echo "CF_DIST_ID=$CF_DIST_ID"
+echo "CF_DOMAIN=$CF_DOMAIN"
+
+# Apply S3 bucket policy to allow CloudFront OAC access
+aws s3api put-bucket-policy \
+  --bucket $BUCKET_NAME \
+  --policy "{
+    \"Version\": \"2008-10-17\",
+    \"Statement\": [{
+      \"Effect\": \"Allow\",
+      \"Principal\": {\"Service\": \"cloudfront.amazonaws.com\"},
+      \"Action\": \"s3:GetObject\",
+      \"Resource\": \"arn:aws:s3:::${BUCKET_NAME}/*\",
+      \"Condition\": {\"ArnLike\": {\"AWS:SourceArn\": \"arn:aws:cloudfront::${ACCOUNT_ID}:distribution/${CF_DIST_ID}\"}}
+    }]
+  }"
+```
+
+</details>
+
 ## 3.3 Configure CloudFront Root document and Custom Error Pages
 
 React is a single-page application (SPA). All routes must return `index.html` so React Router can handle navigation client-side.
@@ -87,6 +179,36 @@ React is a single-page application (SPA). All routes must return `index.html` so
 **Save these values:**
 - **CloudFront Distribution ID** (e.g., `E1234567890ABC`)
 - **CloudFront Domain Name** (e.g., `d1234567890.cloudfront.net`)
+
+<details>
+<summary><strong>CLI equivalent</strong></summary>
+
+```bash
+# Get current distribution config (needed for update)
+aws cloudfront get-distribution-config --id $CF_DIST_ID > /tmp/cf-config.json
+ETAG=$(python3 -c "import json; print(json.load(open('/tmp/cf-config.json'))['ETag'])")
+
+# Add custom error responses for 403 and 404 → index.html
+python3 -c "
+import json
+cfg = json.load(open('/tmp/cf-config.json'))['DistributionConfig']
+cfg['CustomErrorResponses'] = {
+  'Quantity': 2,
+  'Items': [
+    {'ErrorCode': 403, 'ResponsePagePath': '/index.html', 'ResponseCode': '200', 'ErrorCachingMinTTL': 300},
+    {'ErrorCode': 404, 'ResponsePagePath': '/index.html', 'ResponseCode': '200', 'ErrorCachingMinTTL': 300}
+  ]
+}
+print(json.dumps(cfg))
+" > /tmp/cf-config-updated.json
+
+aws cloudfront update-distribution \
+  --id $CF_DIST_ID \
+  --if-match $ETAG \
+  --distribution-config file:///tmp/cf-config-updated.json
+```
+
+</details>
 
 ## 3.4 Configure and Build React Application and Deploy to S3
 
