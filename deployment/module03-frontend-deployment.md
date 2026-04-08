@@ -32,7 +32,8 @@ Note: Product listing and other API-dependent features will work after **Module 
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
-BUCKET_NAME=ecommerce-frontend-<some-number-or-text>   # must be globally unique
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+BUCKET_NAME=ecommerce-frontend-$ACCOUNT_ID
 
 aws s3api create-bucket \
   --bucket $BUCKET_NAME \
