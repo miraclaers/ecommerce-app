@@ -783,22 +783,31 @@ AMI_ID=$(aws ec2 describe-images \
   --filters "Name=name,Values=al2023-ami-*-x86_64" "Name=state,Values=available" \
   --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
 
-# Create bastion security group
-BASTION_SG=$(aws ec2 create-security-group \
-  --group-name ecommerce-bastion-sg \
-  --description "Security group for bastion host" \
-  --vpc-id $VPC_ID \
-  --query 'GroupId' --output text)
+# Reuse bastion security group if it already exists
+BASTION_SG=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=ecommerce-bastion-sg" "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[0].GroupId' --output text)
 
-aws ec2 authorize-security-group-ingress \
-  --group-id $BASTION_SG \
-  --protocol tcp --port 22 --cidr $MY_IP > /dev/null
+if [ "$BASTION_SG" = "None" ]; then
+  BASTION_SG=$(aws ec2 create-security-group \
+    --group-name ecommerce-bastion-sg \
+    --description "Security group for bastion host" \
+    --vpc-id $VPC_ID \
+    --query 'GroupId' --output text)
 
-# Launch bastion instance (replace your-key-name with your EC2 key pair name)
-BASTION_ID=$(aws ec2 run-instances \
+  aws ec2 authorize-security-group-ingress \
+    --group-id $BASTION_SG \
+    --protocol tcp --port 22 --cidr $MY_IP > /dev/null
+fi
+
+# Retrieve first available key pair
+KEY_NAME=$(aws ec2 describe-key-pairs \
+  --query 'KeyPairs[0].KeyName' --output text)
+
+echo "Using key pair: $KEY_NAME"BASTION_ID=$(aws ec2 run-instances \
   --image-id $AMI_ID \
   --instance-type t2.micro \
-  --key-name your-key-name \
+  --key-name $KEY_NAME \
   --subnet-id $PUBLIC_SUBNET \
   --security-group-ids $BASTION_SG \
   --associate-public-ip-address \
