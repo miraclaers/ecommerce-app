@@ -134,7 +134,10 @@ You now have two subscriptions:
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
-# Email subscription (you'll receive a confirmation email — click the link to confirm)
+# Email subscription
+# IMPORTANT: Replace with your own email address below.
+# After running this command, check your inbox for a confirmation email from AWS
+# and click "Confirm subscription" — the subscription won't be active until confirmed.
 aws sns subscribe \
   --topic-arn $SNS_TOPIC_ARN \
   --protocol email \
