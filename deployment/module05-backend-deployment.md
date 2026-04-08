@@ -775,8 +775,6 @@ PUBLIC_SUBNET=$(aws ec2 describe-subnets \
   --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-public-subnet-1" \
   --query 'Subnets[0].SubnetId' --output text)
 
-MY_IP=$(curl -s https://checkip.amazonaws.com)/32
-
 # Get latest Amazon Linux 2023 AMI
 AMI_ID=$(aws ec2 describe-images \
   --owners amazon \
