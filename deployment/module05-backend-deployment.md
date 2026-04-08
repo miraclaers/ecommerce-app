@@ -797,17 +797,12 @@ if [ "$BASTION_SG" = "None" ]; then
 
   aws ec2 authorize-security-group-ingress \
     --group-id $BASTION_SG \
-    --protocol tcp --port 22 --cidr $MY_IP > /dev/null
+    --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
 fi
 
-# Retrieve first available key pair
-KEY_NAME=$(aws ec2 describe-key-pairs \
-  --query 'KeyPairs[0].KeyName' --output text)
-
-echo "Using key pair: $KEY_NAME"BASTION_ID=$(aws ec2 run-instances \
+BASTION_ID=$(aws ec2 run-instances \
   --image-id $AMI_ID \
   --instance-type t2.micro \
-  --key-name $KEY_NAME \
   --subnet-id $PUBLIC_SUBNET \
   --security-group-ids $BASTION_SG \
   --associate-public-ip-address \
@@ -829,7 +824,7 @@ echo "Bastion Host ready!"
 echo "BASTION_IP=$BASTION_IP"
 echo "ALB_DNS=$ALB_DNS"
 echo ""
-echo "SSH command:  ssh -i your-key.pem ec2-user@$BASTION_IP"
+echo "Connect via EC2 Instance Connect in the AWS Console (EC2 → Instances → ecommerce-bastion → Connect)"
 echo "Test command: curl http://$ALB_DNS/products"
 ```
 
