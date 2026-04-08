@@ -352,6 +352,10 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 ```bash
 # Run from the repo root directory (ecommerce-web-app/)
 
+# Verify Docker is accessible without sudo before proceeding.
+# If the command below returns a permission denied error, log out and log back in to your terminal.
+docker ps
+
 # Retrieve account ID and region dynamically
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=$(aws configure get region)
