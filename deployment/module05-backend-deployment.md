@@ -184,25 +184,33 @@ echo "LISTENER_ARN=$LISTENER_ARN"
 
 ```bash
 # Add path-based routing rules (priority 1-4)
+echo "Creating ALB listener rules..."
+
 aws elbv2 create-rule \
   --listener-arn $LISTENER_ARN --priority 1 \
   --conditions '[{"Field":"path-pattern","Values":["/products*"]}]' \
-  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$PRODUCT_TG\"}]"
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$PRODUCT_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 1 created: /products* → product-service"
 
 aws elbv2 create-rule \
   --listener-arn $LISTENER_ARN --priority 2 \
   --conditions '[{"Field":"path-pattern","Values":["/cart*"]}]' \
-  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$CART_TG\"}]"
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$CART_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 2 created: /cart* → cart-service"
 
 aws elbv2 create-rule \
   --listener-arn $LISTENER_ARN --priority 3 \
   --conditions '[{"Field":"path-pattern","Values":["/users*"]}]' \
-  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$USER_TG\"}]"
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$USER_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 3 created: /users* → user-service"
 
 aws elbv2 create-rule \
   --listener-arn $LISTENER_ARN --priority 4 \
   --conditions '[{"Field":"path-pattern","Values":["/orders*"]}]' \
-  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$ORDER_TG\"}]"
+  --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$ORDER_TG\"}]" \
+  --no-cli-pager > /dev/null && echo "Rule 4 created: /orders* → order-service"
+
+echo "All listener rules created successfully!"
 ```
 
 </details>
