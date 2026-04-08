@@ -134,6 +134,25 @@ Create one integration that will be used by all routes:
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+# Retrieve API_ID, VPC_LINK_ID and ALB LISTENER_ARN dynamically
+API_ID=$(aws apigatewayv2 get-apis \
+  --query 'Items[?Name==`ecommerce-api`].ApiId' --output text)
+
+VPC_LINK_ID=$(aws apigatewayv2 get-vpc-links \
+  --query 'Items[?Name==`ecommerce-vpc-link`].VpcLinkId' --output text)
+
+ALB_ARN=$(aws elbv2 describe-load-balancers \
+  --names ecommerce-internal-alb \
+  --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+
+LISTENER_ARN=$(aws elbv2 describe-listeners \
+  --load-balancer-arn $ALB_ARN \
+  --query 'Listeners[?Port==`80`].ListenerArn' --output text)
+
+echo "API_ID=$API_ID"
+echo "VPC_LINK_ID=$VPC_LINK_ID"
+echo "LISTENER_ARN=$LISTENER_ARN"
+
 INTEGRATION_ID=$(aws apigatewayv2 create-integration \
   --api-id $API_ID \
   --integration-type HTTP_PROXY \
