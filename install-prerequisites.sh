@@ -255,8 +255,7 @@ fi
 
 echo ""
 echo "Next steps:"
-echo "1. Follow the Local Deployment Guide: local-deployment/README.md"
-echo "2. Then proceed to AWS Deployment: deployment/README.md"
+echo "1. Follow the AWS Deployment Guide: deployment/README.md"
 echo ""
 node --version
 npm --version
