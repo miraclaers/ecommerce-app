@@ -135,10 +135,11 @@ done
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
-for POLICY in AmazonDynamoDBFullAccess AmazonSSMReadOnlyAccess AmazonSNSFullAccess; do
+for POLICY_ARN in $(aws iam list-attached-role-policies \
+  --role-name ecommerce-ecs-task-role \
+  --query 'AttachedPolicies[*].PolicyArn' --output text); do
   aws iam detach-role-policy \
-    --role-name ecommerce-ecs-task-role \
-    --policy-arn arn:aws:iam::aws:policy/$POLICY
+    --role-name ecommerce-ecs-task-role --policy-arn $POLICY_ARN && echo "Detached: $POLICY_ARN"
 done
 aws iam delete-role --role-name ecommerce-ecs-task-role && echo "Deleted ECS task role"
 ```
