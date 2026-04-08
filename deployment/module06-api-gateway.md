@@ -188,6 +188,23 @@ echo "INTEGRATION_ID=$INTEGRATION_ID"
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+# Retrieve all required variables dynamically
+API_ID=$(aws apigatewayv2 get-apis \
+  --query 'Items[?Name==`ecommerce-api`].ApiId' --output text)
+
+REGION=$(aws configure get region)
+
+USER_POOL_ID=$(aws cognito-idp list-user-pools --max-results 60 \
+  --query 'UserPools[?Name==`ecommerce-app`].Id' --output text)
+
+CLIENT_ID=$(aws cognito-idp list-user-pool-clients \
+  --user-pool-id $USER_POOL_ID \
+  --query 'UserPoolClients[0].ClientId' --output text)
+
+echo "API_ID=$API_ID"
+echo "USER_POOL_ID=$USER_POOL_ID"
+echo "CLIENT_ID=$CLIENT_ID"
+
 AUTHORIZER_ID=$(aws apigatewayv2 create-authorizer \
   --api-id $API_ID \
   --name cognito-jwt-authorizer \
