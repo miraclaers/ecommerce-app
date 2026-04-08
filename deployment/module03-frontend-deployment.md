@@ -113,6 +113,7 @@ OAC_ID=$(aws cloudfront create-origin-access-control \
 # Create CloudFront distribution
 CF_DIST=$(aws cloudfront create-distribution \
   --distribution-config "{
+    \"CallerReference\": \"ecommerce-$(date +%s)\",
     \"Comment\": \"ecommerce-distribution\",
     \"DefaultRootObject\": \"index.html\",
     \"Origins\": {
