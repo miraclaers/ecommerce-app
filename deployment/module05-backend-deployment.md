@@ -350,6 +350,8 @@ docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-ser
 <summary><strong>CLI equivalent - Build and push all services</strong></summary>
 
 ```bash
+# Run from the repo root directory (ecommerce-web-app/)
+
 # Retrieve account ID and region dynamically
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=$(aws configure get region)
