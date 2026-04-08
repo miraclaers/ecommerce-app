@@ -295,10 +295,22 @@ These parameters will be automatically loaded by the user-service and order-serv
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+# Retrieve values dynamically
+AWS_REGION=$(aws configure get region)
+
+RDS_ENDPOINT=$(aws rds describe-db-instances \
+  --db-instance-identifier ecommercedb-instance \
+  --query 'DBInstances[0].Endpoint.Address' --output text)
+
+echo "AWS_REGION=$AWS_REGION"
+echo "RDS_ENDPOINT=$RDS_ENDPOINT"
+echo "DB_PASSWORD=$DB_PASSWORD"
+
+# Create Parameter Store parameters
 aws ssm put-parameter \
   --name /ecommerce/dev/aws/region \
   --type String \
-  --value ap-south-1   # replace with your region
+  --value $AWS_REGION
 
 aws ssm put-parameter \
   --name /ecommerce/dev/db/host \
