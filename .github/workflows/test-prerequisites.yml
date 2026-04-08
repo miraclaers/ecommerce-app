@@ -1,0 +1,22 @@
+name: Test install-prerequisites.sh
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Docker via brew (macOS only)
+        if: matrix.os == 'macos-latest'
+        run: brew install docker docker-compose
+
+      - name: Run install-prerequisites.sh
+        run: echo "" | bash install-prerequisites.sh
