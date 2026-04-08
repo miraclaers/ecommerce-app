@@ -53,8 +53,16 @@ OR
 
 Using AWS CLI:
 ```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+DISTRIBUTION_ID=$(aws cloudfront list-distributions \
+  --query "DistributionList.Items[?contains(Origins.Items[0].DomainName, 'ecommerce-frontend-${ACCOUNT_ID}')].Id" \
+  --output text)
+
+echo "DISTRIBUTION_ID=$DISTRIBUTION_ID"
+
 aws cloudfront create-invalidation \
-  --distribution-id <your-cloudfront-distribution-id> \
+  --distribution-id $DISTRIBUTION_ID \
   --paths "/*"
 ```
 
