@@ -655,19 +655,19 @@ ECS_SG=$(aws ec2 describe-security-groups \
 
 # Retrieve target group ARNs
 PRODUCT_TG=$(aws elbv2 describe-target-groups \
-  --names ecommerce-product-tg \
+  --names product-service-tg \
   --query 'TargetGroups[0].TargetGroupArn' --output text)
 
 CART_TG=$(aws elbv2 describe-target-groups \
-  --names ecommerce-cart-tg \
+  --names cart-service-tg \
   --query 'TargetGroups[0].TargetGroupArn' --output text)
 
 USER_TG=$(aws elbv2 describe-target-groups \
-  --names ecommerce-user-tg \
+  --names user-service-tg \
   --query 'TargetGroups[0].TargetGroupArn' --output text)
 
 ORDER_TG=$(aws elbv2 describe-target-groups \
-  --names ecommerce-order-tg \
+  --names order-service-tg \
   --query 'TargetGroups[0].TargetGroupArn' --output text)
 
 echo "ECS_SUBNET_1=$ECS_SUBNET_1"
