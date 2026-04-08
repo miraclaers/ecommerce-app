@@ -190,13 +190,16 @@ aws rds create-db-subnet-group \
   --db-subnet-group-description "Subnet group for ecommerce RDS" \
   --subnet-ids $DB_SUBNET_1 $DB_SUBNET_2
 
-# Create RDS instance (replace <your-db-password> with a strong password)
+# Set your DB password
+DB_PASSWORD="YourSecurePass123!"
+
+# Create RDS instance
 aws rds create-db-instance \
   --db-instance-identifier ecommercedb-instance \
   --db-instance-class db.t3.micro \
   --engine postgres \
   --master-username postgres \
-  --master-user-password <your-db-password> \
+  --master-user-password $DB_PASSWORD \
   --db-name ecommercedb \
   --db-subnet-group-name ecommerce-db-subnet-group \
   --vpc-security-group-ids $RDS_SG \
@@ -215,6 +218,7 @@ RDS_ENDPOINT=$(aws rds describe-db-instances \
   --query 'DBInstances[0].Endpoint.Address' --output text)
 
 echo "RDS_ENDPOINT=$RDS_ENDPOINT"
+echo "DB_PASSWORD=$DB_PASSWORD"
 ```
 
 </details>
@@ -301,7 +305,7 @@ aws ssm put-parameter \
 aws ssm put-parameter \
   --name /ecommerce/dev/db/password \
   --type SecureString \
-  --value <your-db-password>
+  --value $DB_PASSWORD
 ```
 
 </details>
