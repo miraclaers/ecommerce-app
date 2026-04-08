@@ -69,10 +69,33 @@ npm --version
 git --version
 ```
 
-## Step 4: Verify AWS CLI Access
+## Step 4: Configure and Verify AWS CLI Access
+
+### Configure AWS CLI (if not configured already)
+
+You'll need an AWS Access Key ID and Secret Access Key. To create one:
+1. **AWS Console → IAM → Users → Your user → Security credentials → Create access key**
+2. Choose **CLI** as the use case and create the key
+3. Copy the **Access Key ID** and **Secret Access Key**
+
+Then run:
 
 ```bash
-# Test AWS CLI configuration
+aws configure
+```
+
+You'll be prompted for:
+```
+AWS Access Key ID [None]: <your-access-key-id>
+AWS Secret Access Key [None]: <your-secret-access-key>
+Default region name [None]: ap-south-1        # enter your preferred region
+Default output format [None]: json
+```
+
+### Verify AWS CLI Access
+
+```bash
+# Test AWS CLI is configured correctly
 aws sts get-caller-identity
 
 # Expected output should show your account details
@@ -81,7 +104,6 @@ aws sts get-caller-identity
     "Account": "123456789012", 
     "Arn": "arn:aws:iam::123456789012:user/your-user"
 }
-
 ```
 
 ## Step 5: Set Default Region (optional but recommended)
