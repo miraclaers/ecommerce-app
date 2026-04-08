@@ -70,6 +70,11 @@ aws apigatewayv2 delete-vpc-link --vpc-link-id $VPC_LINK_ID && echo "Deleted VPC
 for SVC in product-service cart-service user-service order-service; do
   aws ecs update-service --cluster ecommerce-cluster \
     --service ecommerce-$SVC --desired-count 0 > /dev/null
+done
+
+echo "Waiting for all tasks to drain..."
+for SVC in product-service cart-service user-service order-service; do
+  aws ecs wait services-stable --cluster ecommerce-cluster --services ecommerce-$SVC
   aws ecs delete-service --cluster ecommerce-cluster \
     --service ecommerce-$SVC --force > /dev/null && echo "Deleted ECS service: $SVC"
 done
