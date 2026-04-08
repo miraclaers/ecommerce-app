@@ -211,7 +211,9 @@ aws rds create-db-instance \
   --availability-zone ap-south-1a
 
 # Wait for RDS to become available (takes 5-10 minutes)
+echo "Waiting for RDS instance to become available (this takes 5-10 minutes)..."
 aws rds wait db-instance-available --db-instance-identifier ecommercedb-instance
+echo "RDS instance is ready!"
 
 # Get RDS endpoint
 RDS_ENDPOINT=$(aws rds describe-db-instances \
