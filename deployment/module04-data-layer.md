@@ -16,6 +16,7 @@ There are some sample images under data/product-images/ directory. You can run f
 
 **Using Upload Script:**
 ```bash
+# Run from the repo root directory
 cd data
 bash upload-images-to-s3.sh <your-bucket-name>
 ```
@@ -88,6 +89,7 @@ As you can see the data for each product also contains product image URL (dummy)
 
 **Step 1: Update Product Image URLs**
 ```bash
+# Run from the repo root directory
 cd data
 bash update-product-image-urls.sh <cloudfront URL>
 ```
