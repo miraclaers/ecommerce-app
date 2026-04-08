@@ -636,6 +636,44 @@ Create services for all microservices:
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+# Retrieve VPC and subnet IDs dynamically
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=ecommerce-vpc" \
+  --query 'Vpcs[0].VpcId' --output text)
+
+ECS_SUBNET_1=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-private-ecs-1" \
+  --query 'Subnets[0].SubnetId' --output text)
+
+ECS_SUBNET_2=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-private-ecs-2" \
+  --query 'Subnets[0].SubnetId' --output text)
+
+ECS_SG=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=ecommerce-ecs-sg" "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[0].GroupId' --output text)
+
+# Retrieve target group ARNs
+PRODUCT_TG=$(aws elbv2 describe-target-groups \
+  --names ecommerce-product-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+CART_TG=$(aws elbv2 describe-target-groups \
+  --names ecommerce-cart-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+USER_TG=$(aws elbv2 describe-target-groups \
+  --names ecommerce-user-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+ORDER_TG=$(aws elbv2 describe-target-groups \
+  --names ecommerce-order-tg \
+  --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+echo "ECS_SUBNET_1=$ECS_SUBNET_1"
+echo "ECS_SUBNET_2=$ECS_SUBNET_2"
+echo "ECS_SG=$ECS_SG"
+
 # Create ECS cluster
 aws ecs create-cluster \
   --cluster-name ecommerce-cluster \
@@ -665,8 +703,10 @@ for SVC in product-service cart-service user-service order-service; do
       \"targetGroupArn\": \"${TG_MAP[$SVC]}\",
       \"containerName\": \"$SVC\",
       \"containerPort\": $(aws ecs describe-task-definition --task-definition ecommerce-$SVC --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
-    }]"
+    }]" > /dev/null && echo "Service created: ecommerce-$SVC"
 done
+
+echo "All ECS services created successfully!"
 ```
 
 </details>
