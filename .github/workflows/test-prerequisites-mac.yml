@@ -1,0 +1,15 @@
+name: Test install-prerequisites.sh on macOS
+
+on:
+  workflow_dispatch:  # Run manually from GitHub Actions tab
+
+jobs:
+  test-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run install-prerequisites.sh
+        # Docker Desktop is pre-installed on macos-latest runners.
+        # Pipe a newline to skip the interactive Docker prompt in the script.
+        run: echo "" | bash install-prerequisites.sh
