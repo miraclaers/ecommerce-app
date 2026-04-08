@@ -772,7 +772,7 @@ VPC_ID=$(aws ec2 describe-vpcs \
   --query 'Vpcs[0].VpcId' --output text)
 
 PUBLIC_SUBNET=$(aws ec2 describe-subnets \
-  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-public-1" \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-public-subnet-1" \
   --query 'Subnets[0].SubnetId' --output text)
 
 MY_IP=$(curl -s https://checkip.amazonaws.com)/32
