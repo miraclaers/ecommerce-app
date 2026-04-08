@@ -206,6 +206,7 @@ aws rds create-db-instance \
   --no-publicly-accessible \
   --no-enable-performance-insights \
   --backup-retention-period 0 \
+  --allocated-storage 20 \
   --no-storage-encrypted \
   --availability-zone ap-south-1a
 
