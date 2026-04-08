@@ -261,13 +261,29 @@ echo "AUTHORIZER_ID=$AUTHORIZER_ID"
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+# Retrieve required variables dynamically
+API_ID=$(aws apigatewayv2 get-apis \
+  --query 'Items[?Name==`ecommerce-api`].ApiId' --output text)
+
+INTEGRATION_ID=$(aws apigatewayv2 get-integrations \
+  --api-id $API_ID \
+  --query 'Items[0].IntegrationId' --output text)
+
+AUTHORIZER_ID=$(aws apigatewayv2 get-authorizers \
+  --api-id $API_ID \
+  --query 'Items[?Name==`cognito-jwt-authorizer`].AuthorizerId' --output text)
+
+echo "API_ID=$API_ID"
+echo "INTEGRATION_ID=$INTEGRATION_ID"
+echo "AUTHORIZER_ID=$AUTHORIZER_ID"
+
 INTEG_TARGET=integrations/$INTEGRATION_ID
 
 # Route 1: Public products
 aws apigatewayv2 create-route \
   --api-id $API_ID \
   --route-key "GET /products" \
-  --target $INTEG_TARGET
+  --target $INTEG_TARGET > /dev/null && echo "Route created: GET /products"
 
 # Route 2: Authenticated proxy
 aws apigatewayv2 create-route \
@@ -275,13 +291,13 @@ aws apigatewayv2 create-route \
   --route-key "ANY /{proxy+}" \
   --target $INTEG_TARGET \
   --authorization-type JWT \
-  --authorizer-id $AUTHORIZER_ID
+  --authorizer-id $AUTHORIZER_ID > /dev/null && echo "Route created: ANY /{proxy+}"
 
 # Route 3: CORS preflight (no auth)
 aws apigatewayv2 create-route \
   --api-id $API_ID \
   --route-key "OPTIONS /{proxy+}" \
-  --target $INTEG_TARGET
+  --target $INTEG_TARGET > /dev/null && echo "Route created: OPTIONS /{proxy+}"
 ```
 
 </details>
@@ -306,10 +322,15 @@ aws apigatewayv2 create-route \
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+API_ID=$(aws apigatewayv2 get-apis \
+  --query 'Items[?Name==`ecommerce-api`].ApiId' --output text)
+
 aws apigatewayv2 update-api \
   --api-id $API_ID \
   --cors-configuration \
-    AllowOrigins='["*"]',AllowHeaders='["*"]',AllowMethods='["GET","POST","PUT","DELETE","OPTIONS"]'
+    AllowOrigins='["*"]',AllowHeaders='["*"]',AllowMethods='["GET","POST","PUT","DELETE","OPTIONS"]' > /dev/null
+
+echo "CORS configured for API: $API_ID"
 ```
 
 </details>
