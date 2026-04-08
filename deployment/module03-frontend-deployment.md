@@ -33,12 +33,16 @@ Note: Product listing and other API-dependent features will work after **Module 
 
 ```bash
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION=$(aws configure get region)
 BUCKET_NAME=ecommerce-frontend-$ACCOUNT_ID
 
-aws s3api create-bucket \
-  --bucket $BUCKET_NAME \
-  --region ap-south-1 \
-  --create-bucket-configuration LocationConstraint=ap-south-1
+# For us-east-1, LocationConstraint is not required
+if [ "$REGION" = "us-east-1" ]; then
+  aws s3api create-bucket --bucket $BUCKET_NAME --region $REGION
+else
+  aws s3api create-bucket --bucket $BUCKET_NAME --region $REGION \
+    --create-bucket-configuration LocationConstraint=$REGION
+fi
 
 echo "BUCKET_NAME=$BUCKET_NAME"
 ```
