@@ -459,6 +459,18 @@ done
 <summary><strong>CLI equivalent</strong></summary>
 
 ```bash
+# Retrieve VPC_ID and ALB_SG dynamically
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=ecommerce-vpc" \
+  --query 'Vpcs[0].VpcId' --output text)
+
+ALB_SG=$(aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=ecommerce-alb-sg" "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[0].GroupId' --output text)
+
+echo "VPC_ID=$VPC_ID"
+echo "ALB_SG=$ALB_SG"
+
 ECS_SG=$(aws ec2 create-security-group \
   --group-name ecommerce-ecs-sg \
   --description "Security group for ECS tasks" \
