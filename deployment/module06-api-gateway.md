@@ -97,6 +97,10 @@ echo "VPC_LINK_ID=$VPC_LINK_ID"
 5. **Next**
 6. **Skip adding integrations** - we'll configure these manually
 7. **Create**
+8. **Go to your API → Stages → Create stage**
+   - Stage name: `$default`
+   - Enable Auto-deploy
+   - **Create**
 
 <details>
 <summary><strong>CLI equivalent</strong></summary>
@@ -106,6 +110,12 @@ API_ID=$(aws apigatewayv2 create-api \
   --name ecommerce-api \
   --protocol-type HTTP \
   --query 'ApiId' --output text)
+
+# Create $default stage with auto-deploy
+aws apigatewayv2 create-stage \
+  --api-id $API_ID \
+  --stage-name '$default' \
+  --auto-deploy > /dev/null
 
 echo "API_ID=$API_ID"
 ```
