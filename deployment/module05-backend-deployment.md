@@ -537,7 +537,7 @@ Create task definitions for all services:
 
 ```bash
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-REGION=$AWS_DEFAULT_REGION   # or replace with your region, e.g. ap-south-1
+REGION=$(aws configure get region)
 TASK_ROLE_ARN=arn:aws:iam::${ACCOUNT_ID}:role/ecommerce-ecs-task-role
 EXEC_ROLE_ARN=arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole
 
