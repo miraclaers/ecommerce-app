@@ -100,15 +100,21 @@ If you don't see S3 Bucket policy updated, then modify the policy as per your **
 ```bash
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-# Create Origin Access Control
-OAC_ID=$(aws cloudfront create-origin-access-control \
-  --origin-access-control-config '{
-    "Name": "ecommerce-oac",
-    "OriginAccessControlOriginType": "s3",
-    "SigningBehavior": "always",
-    "SigningProtocol": "sigv4"
-  }' \
-  --query 'OriginAccessControl.Id' --output text)
+# Create Origin Access Control (reuse if already exists)
+OAC_ID=$(aws cloudfront list-origin-access-controls \
+  --query "OriginAccessControlList.Items[?Name=='ecommerce-oac'].Id" \
+  --output text)
+
+if [ -z "$OAC_ID" ]; then
+  OAC_ID=$(aws cloudfront create-origin-access-control \
+    --origin-access-control-config '{
+      "Name": "ecommerce-oac",
+      "OriginAccessControlOriginType": "s3",
+      "SigningBehavior": "always",
+      "SigningProtocol": "sigv4"
+    }' \
+    --query 'OriginAccessControl.Id' --output text)
+fi
 
 # Create CloudFront distribution
 CF_DIST=$(aws cloudfront create-distribution \
