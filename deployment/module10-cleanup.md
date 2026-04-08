@@ -250,6 +250,31 @@ echo "Deleting NAT Gateway..."
 aws ec2 wait nat-gateway-deleted --nat-gateway-ids $NAT_GW_ID
 aws ec2 release-address --allocation-id $ALLOC_ID && echo "Released Elastic IP"
 
+# Detach and delete Internet Gateway
+IGW_ID=$(aws ec2 describe-internet-gateways \
+  --filters "Name=attachment.vpc-id,Values=$VPC_ID" \
+  --query 'InternetGateways[0].InternetGatewayId' --output text)
+aws ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
+aws ec2 delete-internet-gateway --internet-gateway-id $IGW_ID && echo "Deleted Internet Gateway"
+
+# Delete subnets
+for SUBNET_ID in $(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" \
+  --query 'Subnets[*].SubnetId' --output text); do
+  aws ec2 delete-subnet --subnet-id $SUBNET_ID && echo "Deleted subnet: $SUBNET_ID"
+done
+
+# Delete non-main route tables
+for RT_ID in $(aws ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" \
+  --query 'RouteTables[?Associations[0].Main!=`true`].RouteTableId' --output text); do
+  aws ec2 delete-route-table --route-table-id $RT_ID && echo "Deleted route table: $RT_ID"
+done
+
+# Delete non-default security groups
+for SG_ID in $(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC_ID" \
+  --query 'SecurityGroups[?GroupName!=`default`].GroupId' --output text); do
+  aws ec2 delete-security-group --group-id $SG_ID && echo "Deleted security group: $SG_ID"
+done
+
 aws ec2 delete-vpc --vpc-id $VPC_ID && echo "Deleted VPC"
 ```
 
