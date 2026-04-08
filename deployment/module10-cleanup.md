@@ -29,7 +29,7 @@ SNS_TOPIC_ARN=$(aws sns list-topics \
   --query "Topics[?ends_with(TopicArn, ':ecommerce-order-events')].TopicArn" --output text)
 
 for SUB_ARN in $(aws sns list-subscriptions-by-topic --topic-arn $SNS_TOPIC_ARN \
-  --query 'Subscriptions[*].SubscriptionArn' --output text); do
+  --query 'Subscriptions[?SubscriptionArn!=`PendingConfirmation`].SubscriptionArn' --output text); do
   aws sns unsubscribe --subscription-arn $SUB_ARN && echo "Unsubscribed: $SUB_ARN"
 done
 
