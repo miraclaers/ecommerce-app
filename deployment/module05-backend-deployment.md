@@ -585,8 +585,10 @@ for SVC_PORT in "product-service:8001" "cart-service:8002" "user-service:8003" "
           \"awslogs-stream-prefix\": \"ecs\"
         }
       }
-    }]"
+    }]" > /dev/null && echo "Task definition registered: ecommerce-$SVC"
 done
+
+echo "All task definitions created successfully!"
 ```
 
 </details>
