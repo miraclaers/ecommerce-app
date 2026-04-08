@@ -775,11 +775,14 @@ PUBLIC_SUBNET=$(aws ec2 describe-subnets \
   --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ecommerce-public-subnet-1" \
   --query 'Subnets[0].SubnetId' --output text)
 
-# Get latest Amazon Linux 2023 AMI
+# Get latest Amazon Linux 2023 AMI (kernel-6.1, matches default console AMI)
 AMI_ID=$(aws ec2 describe-images \
   --owners amazon \
-  --filters "Name=name,Values=al2023-ami-*-x86_64" "Name=state,Values=available" \
+  --filters "Name=name,Values=al2023-ami-2023*kernel-6.1*x86_64" \
+            "Name=state,Values=available" \
   --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+
+echo "AMI_ID=$AMI_ID"
 
 # Reuse bastion security group if it already exists
 BASTION_SG=$(aws ec2 describe-security-groups \
