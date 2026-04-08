@@ -346,6 +346,37 @@ docker tag ecommerce/order-service:latest <account-id>.dkr.ecr.<your-region>.ama
 docker push <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/order-service:latest
 ```
 
+<details>
+<summary><strong>CLI equivalent - Build and push all services</strong></summary>
+
+```bash
+# Retrieve account ID and region dynamically
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+AWS_REGION=$(aws configure get region)
+ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+echo "ECR Registry: $ECR_REGISTRY"
+
+# Authenticate Docker to ECR
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS --password-stdin $ECR_REGISTRY
+
+# Build, tag and push all services
+for SVC in product-service cart-service user-service order-service; do
+  echo "Building $SVC..."
+  cd services/$SVC
+  docker build -t ecommerce/$SVC .
+  docker tag ecommerce/$SVC:latest $ECR_REGISTRY/ecommerce/$SVC:latest
+  docker push $ECR_REGISTRY/ecommerce/$SVC:latest
+  echo "$SVC pushed successfully!"
+  cd ../..
+done
+
+echo "All images pushed to ECR!"
+```
+
+</details>
+
 ## 4.5 Create IAM Role for ECS Tasks
 
 ### Create ECS Task Role
