@@ -106,7 +106,7 @@ aws sts get-caller-identity
 }
 ```
 
-## Step 5: Set Default Region (optional but recommended)
+## Step 5: Set Default Region
 
 ```bash
 # Set a default region so you don't need --region in every command
