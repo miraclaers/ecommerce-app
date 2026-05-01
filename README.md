@@ -1,4 +1,7 @@
 # Let's Build on AWS series - eCommerce Application
+This repo is a part of my course on Udemy where I have explained the architecture in detail and demonstrated complete deployment process. 
+
+Course Link: https://www.udemy.com/course/build-ecommerce-application-on-aws/?referralCode=361CDE8C3A9653255373
 
 ## My mission
 My mission is simple — to bridge the gap between learning and real-world execution. Every course and project I build is designed with one goal - to make you truly industry-ready, not just conceptually aware. These projects replicate what real Cloud, DevOps, and Solutions Architects do every single day — designing, building, troubleshooting, and scaling production-grade systems on AWS.
