@@ -15,7 +15,7 @@ Create VPC infrastructure with public and private subnets across 2 availability 
 **Note:** This guide assumes the AWS region to be Mumbai (ap-south-1). You can choose your region and select the AZs accordingly.
 
 ## Architecture
-<img width="800" height="1080" alt="image" src="https://github.com/user-attachments/assets/f471f7d3-e47b-4988-8585-ba3555387ed3" />
+<img width="1080" height="600" alt="image" src="https://github.com/user-attachments/assets/f471f7d3-e47b-4988-8585-ba3555387ed3" />
 
 ```
 ecommerce-vpc (10.10.0.0/16)
