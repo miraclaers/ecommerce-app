@@ -307,7 +307,16 @@ aws ecr get-login-password --region <your-region> | docker login --username AWS 
 cd services/product-service
 docker build -t ecommerce/product-service .
 ```
-
+Note: If you are using Arm processor based systems e.g. MAC M1/M2/M3 or AWS Graviton then image is built on ARM64 architecture. In that case, when creating the Fargate task definition (in next steps), select the OS/Architecture accordingly.
+For checking the image architecture, run:
+```bash
+docker image inspect <image>
+```
+and check for "Architecture"
+```
+       "Architecture": "amd64",
+        "Os": "linux",
+```
 3. **Tag the image:**
 ```bash
 docker tag ecommerce/product-service:latest <account-id>.dkr.ecr.<your-region>.amazonaws.com/ecommerce/product-service:latest
@@ -497,7 +506,7 @@ echo "ECS_SG=$ECS_SG"
 1. **ECS Console → Task definitions → Create new task definition**
 2. **Task definition family:** `ecommerce-product-service`
 3. **Launch type:** AWS Fargate
-4. **Operating system:** Linux/X86_64
+4. **Operating system:** Linux/X86_64  (If you are using Arm based processor system, then select Linux/ARM64)
 5. **CPU:** 0.25 vCPU
 6. **Memory:** 0.5 GB
 7. **Task role:** `ecommerce-ecs-task-role`
