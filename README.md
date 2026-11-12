@@ -77,8 +77,6 @@ We will deploy this eCommerce application to AWS by going module-by-module as fo
 - Module 9: Custom Domain & SSL (Route53, ACM)
 - Module 10: Cleanup
 
-**Time required**: 4-5 hours
-
 ## Cost Estimates
 
 - **AWS Deployment** (4-hour session): ~$1-2 (If you have new AWS account and free credits, there will be no cost).
