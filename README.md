@@ -1,6 +1,5 @@
 # Let's Build on AWS series - eCommerce Application
 This repo is a part of my course on Udemy where I have explained the architecture in detail and demonstrated complete deployment process. 
-
 Course Link: https://www.udemy.com/course/build-ecommerce-application-on-aws/?referralCode=361CDE8C3A9653255373
 
 ## My mission
